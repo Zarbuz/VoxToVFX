@@ -1,4 +1,4 @@
-﻿namespace VoxSlicer.Vox
+﻿namespace Vox
 {
     public class VoxelData
     {
@@ -94,5 +94,7 @@
 
         public byte GetSafe(int x, int y, int z)
             => Contains(x, y, z) ? Colors[GetGridPos(x, y, z)] : (byte)0;
+
+    
     }
 }

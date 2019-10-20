@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-namespace VoxSlicer.Vox.Chunks
+namespace Vox.Chunks
 {
     public class TransformNodeChunk : NodeChunk
     { // nTRN: Transform Node Chunk

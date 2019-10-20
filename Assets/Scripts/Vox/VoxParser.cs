@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VoxSlicer.Vox
+namespace Vox
 {
     public abstract class VoxParser
     {

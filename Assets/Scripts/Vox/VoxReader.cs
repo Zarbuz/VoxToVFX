@@ -3,9 +3,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using VoxSlicer.Vox.Chunks;
+using Vox.Chunks;
 
-namespace VoxSlicer.Vox
+namespace Vox
 {
     public class VoxReader : VoxParser
     {

@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using UnityEngine;
-using VoxSlicer.Vox.Chunks;
+using Vox.Chunks;
 
-namespace VoxSlicer.Vox
+namespace Vox
 {
     public class VoxModel
     {
         public System.Drawing.Color[] palette;
         public List<VoxelData> voxelFrames = new List<VoxelData>();
-        public List<MaterialChunk> materialChunks = new List<MaterialChunk>();
+        public HashSet<MaterialChunk> materialChunks = new HashSet<MaterialChunk>();
         public List<TransformNodeChunk> transformNodeChunks = new List<TransformNodeChunk>();
         public List<GroupNodeChunk> groupNodeChunks = new List<GroupNodeChunk>();
         public List<ShapeNodeChunk> shapeNodeChunks = new List<ShapeNodeChunk>();
