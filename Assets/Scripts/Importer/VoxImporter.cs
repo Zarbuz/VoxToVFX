@@ -41,7 +41,7 @@ namespace Importer
             Dictionary<MaterialType, Tuple<List<Vector3>, List<Color>>> voxels = new Dictionary<MaterialType, Tuple<List<Vector3>, List<Color>>>();
             voxels.Add(MaterialType._diffuse,
                 new Tuple<List<Vector3>, List<Color>>(new List<Vector3>(), new List<Color>()));
-            System.Drawing.Color[] colorsPalette = model.palette;
+            Color[] colorsPalette = model.palette;
 
             Debug.Log("Frames: " + model.voxelFrames.Count);
             Debug.Log("Transform Nodes: " + model.transformNodeChunks.Count);
@@ -98,8 +98,8 @@ namespace Importer
                         {
                             int indexColor = data.Get(x, y, z);
 
-                            System.Drawing.Color color = colorsPalette[indexColor];
-                            if (!color.IsEmpty)
+                            Color32 color = colorsPalette[indexColor];
+                            if (color != Color.clear)
                             {
                                 MaterialType materialType = model.materialChunks.First(t => t.id == indexColor).Type;
 
@@ -110,7 +110,7 @@ namespace Importer
                                 }
                                 voxels[materialType].Item1.Add(new Vector3(z + worldPositionFrame.x,
                                 y + worldPositionFrame.z, x + worldPositionFrame.y));
-                                voxels[materialType].Item2.Add(new Color32(color.R, color.G, color.B, color.A));
+                                voxels[materialType].Item2.Add(new Color32(color.r, color.g, color.b, color.a));
                             }
                         }
                     }

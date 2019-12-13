@@ -7,7 +7,7 @@ namespace Vox
 {
     public class VoxModel
     {
-        public System.Drawing.Color[] palette;
+        public Color[] palette;
         public List<VoxelData> voxelFrames = new List<VoxelData>();
         public HashSet<MaterialChunk> materialChunks = new HashSet<MaterialChunk>();
         public List<TransformNodeChunk> transformNodeChunks = new List<TransformNodeChunk>();

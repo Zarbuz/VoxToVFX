@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using Vox.Chunks;
 
 namespace Vox
@@ -53,7 +54,7 @@ namespace Vox
                 g = (byte)((source >> 8) & 0xff);
                 b = (byte)((source >> 16) & 0xff);
                 a = (byte)((source >> 26) & 0xff);
-                result[i] = Color.FromArgb(a, r, g, b);
+                result[i] = new Color32(r, g, b, a);
             }
             return result;
         }
@@ -72,7 +73,7 @@ namespace Vox
                 byte g = reader.ReadByte();
                 byte b = reader.ReadByte();
                 byte a = reader.ReadByte();
-                result[i] = Color.FromArgb(a, r, g, b);
+                result[i] = new Color32(r,g,b,a);
             }
             return result;
         }
