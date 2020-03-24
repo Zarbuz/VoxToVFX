@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using Vox.Chunks;
+using Color = UnityEngine.Color;
 
 namespace Vox
 {
-    public class VoxReader : VoxParser
+	public class VoxReader : VoxParser
     {
         private int _voxelCountLastXYZIChunk = 0;
         protected string _logOutputFile;
