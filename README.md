@@ -2,9 +2,10 @@
 
 ## Requirements
 
-- Unity 2019.1
+- Unity 2019.3 (beta)
 - VFX Graph
 - HDRP
+- Enable Eperimental Operators/Blocks (Edit > Preferences > Visual Effects)
 
 ## What is VoxToVFX ? 
 
@@ -15,10 +16,25 @@ It support also world regions of MagicaVoxel so you can import world bigger than
 ## How to use it ? 
 
 You just need to put your .vox file into your project. The import process will start automatically. 
-It will create two textures (Position Map and Color Map). Then you have to put a Visual Effect into your scene with the asset template "Cubes".
+It will create a pair of texture for each materials you have. 
 
-You might need to modify this asset template to adjust the capacity of the Initialize block.
+![](img/img2.png)
+
+Then you have to assign the TextureMap in the inspector : 
+
+![](img/img3.png)
+
+Don't forget the adjust the capacity of your Initialize Particles
+
+![](img/img4.png)
+
+## Renders
+
+(Unity)
 
 ![](img/img0.png)
 
+(MagicaVoxel)
+
 ![](img/img1.png)
+

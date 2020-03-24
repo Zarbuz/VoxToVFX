@@ -3,9 +3,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using VoxSlicer.Vox.Chunks;
+using UnityEngine;
+using Vox.Chunks;
 
-namespace VoxSlicer.Vox
+namespace Vox
 {
     public class VoxReader : VoxParser
     {
@@ -53,7 +54,7 @@ namespace VoxSlicer.Vox
                 g = (byte)((source >> 8) & 0xff);
                 b = (byte)((source >> 16) & 0xff);
                 a = (byte)((source >> 26) & 0xff);
-                result[i] = Color.FromArgb(a, r, g, b);
+                result[i] = new Color32(r, g, b, a);
             }
             return result;
         }
@@ -72,7 +73,7 @@ namespace VoxSlicer.Vox
                 byte g = reader.ReadByte();
                 byte b = reader.ReadByte();
                 byte a = reader.ReadByte();
-                result[i] = Color.FromArgb(a, r, g, b);
+                result[i] = new Color32(r,g,b,a);
             }
             return result;
         }
@@ -98,7 +99,7 @@ namespace VoxSlicer.Vox
                         int d = chunkReader.ReadInt32();
                         if (_childCount >= output.voxelFrames.Count)
                             output.voxelFrames.Add(new VoxelData());
-                        output.voxelFrames[_childCount].Resize(w, d, h);
+                        output.voxelFrames[_childCount].Resize(w, h, d);
                         _childCount++;
                         break;
                     case XYZI:

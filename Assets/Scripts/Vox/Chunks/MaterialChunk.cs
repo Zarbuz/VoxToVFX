@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 
-namespace VoxSlicer.Vox.Chunks
+namespace Vox.Chunks
 {
-    public class MaterialChunk
+    public class MaterialChunk : IEquatable<MaterialChunk>
     {
         public int id;
         public KeyValue[] properties;
@@ -72,5 +72,9 @@ namespace VoxSlicer.Vox.Chunks
         public float Emission => Type == MaterialType._emit ? Weight * Flux : 0;
         public float Transparency => Type == MaterialType._glass ? Weight : 0;
         public float Alpha => 1 - Transparency;
+        public bool Equals(MaterialChunk other)
+        {
+            return id == other.id;
+        }
     }
 }

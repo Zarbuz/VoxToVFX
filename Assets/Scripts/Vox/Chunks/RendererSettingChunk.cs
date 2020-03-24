@@ -1,4 +1,4 @@
-﻿namespace VoxSlicer.Vox.Chunks
+﻿namespace Vox.Chunks
 {
     public class RendererSettingChunk
     { // rOBJ: Renderer Setting Chunk (undocumented)
