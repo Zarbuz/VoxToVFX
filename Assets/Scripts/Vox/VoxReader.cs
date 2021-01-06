@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using Vox.Chunks;
+using Color = UnityEngine.Color;
 
 namespace Vox
 {
-    public class VoxReader : VoxParser
+	public class VoxReader : VoxParser
     {
         private int _voxelCountLastXYZIChunk = 0;
         protected string _logOutputFile;
@@ -99,7 +99,7 @@ namespace Vox
                         int d = chunkReader.ReadInt32();
                         if (_childCount >= output.voxelFrames.Count)
                             output.voxelFrames.Add(new VoxelData());
-                        output.voxelFrames[_childCount].Resize(w, d, h);
+                        output.voxelFrames[_childCount].Resize(w, h, d);
                         _childCount++;
                         break;
                     case XYZI:
