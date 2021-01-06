@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Unity 2019.3 (beta)
+- Unity 2019.4.3f1
 - VFX Graph
 - HDRP
 - Enable Eperimental Operators/Blocks (Edit > Preferences > Visual Effects)
