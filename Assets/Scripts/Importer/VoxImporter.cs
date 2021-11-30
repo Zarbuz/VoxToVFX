@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using FileToVoxCore.Vox;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-
+using ColorConversion;
 using UnityEngine;
-using Vox;
-using Vox.Chunks;
 
 [UnityEditor.AssetImporters.ScriptedImporter(1, "vox")]
 public class VoxImporter : UnityEditor.AssetImporters.ScriptedImporter
@@ -29,14 +27,14 @@ public class VoxImporter : UnityEditor.AssetImporters.ScriptedImporter
 
 		List<Vector3> positions = new List<Vector3>();
 		List<Color> colors = new List<Color>();
-		Color[] colorsPalette = model.palette;
+		var colorsPalette = model.Palette;
 
-		for (int i = 0; i < model.voxelFrames.Count; i++)
+		for (int i = 0; i < model.VoxelFrames.Count; i++)
 		{
-			VoxelData data = model.voxelFrames[i];
-			Vector3 worldPositionFrame = model.transformNodeChunks[i + 1].TranslationAt();
+			VoxelData data = model.VoxelFrames[i];
+			FileToVoxCore.Schematics.Tools.Vector3 worldPositionFrame = model.TransformNodeChunks[i + 1].TranslationAt();
 
-			if (worldPositionFrame == Vector3.zero)
+			if (worldPositionFrame == FileToVoxCore.Schematics.Tools.Vector3.zero)
 				continue;
 
 			for (int y = 0; y < data.VoxelsTall; y++)
@@ -46,11 +44,11 @@ public class VoxImporter : UnityEditor.AssetImporters.ScriptedImporter
 					for (int x = 0; x < data.VoxelsWide; x++)
 					{
 						int indexColor = data.Get(x, y, z);
-						Color color = colorsPalette[indexColor];
-						if (color != Color.clear)
+						var color = colorsPalette[indexColor];
+						if (color != FileToVoxCore.Drawing.Color.Empty)
 						{
-							positions.Add(new Vector3(z + worldPositionFrame.x, y + worldPositionFrame.z, x + worldPositionFrame.y));
-							colors.Add(color);
+							positions.Add(new Vector3(z + worldPositionFrame.X, y + worldPositionFrame.Z, x + worldPositionFrame.Y));
+							colors.Add(color.ToUnityColor());
 						}
 					}
 				}
