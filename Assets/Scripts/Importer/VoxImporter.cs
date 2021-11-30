@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEditor.Experimental.AssetImporters;
+
 using UnityEngine;
 using Vox;
 using Vox.Chunks;
 
-[ScriptedImporter(1, "vox")]
-public class VoxImporter : ScriptedImporter
+[UnityEditor.AssetImporters.ScriptedImporter(1, "vox")]
+public class VoxImporter : UnityEditor.AssetImporters.ScriptedImporter
 {
-	public override void OnImportAsset(AssetImportContext ctx)
+	public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
 	{
 		BakedPointCloud data = ImportAsBakedPointCloud(ctx.assetPath);
 		if (data != null)
