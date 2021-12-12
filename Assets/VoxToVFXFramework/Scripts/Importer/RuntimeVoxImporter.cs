@@ -49,11 +49,11 @@ public class RuntimeVoxImporter : MonoBehaviour
                     {
                         int indexColor = data.Get(x, y, z);
                         var color = colorsPalette[indexColor];
-                        if (color != Color.Empty)
+                        if (indexColor != 0)
                         {
                             voxels.Add(new VoxelVFX()
                             {
-                                color = new Vector3(color.R, color.G, color.B),
+                                color = new Vector3(color.R / (float)255, color.G / (float)255, color.B / (float)255),
                                 position = new Vector3(z + worldPositionFrame.X, y + worldPositionFrame.Z, x + worldPositionFrame.Y)
                             });
                         }
@@ -63,6 +63,7 @@ public class RuntimeVoxImporter : MonoBehaviour
 
         }
 
+        Debug.Log("Voxel count: " + voxels.Count);
         mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
         mGraphicsBuffer.SetData(voxels);
 
