@@ -73,7 +73,7 @@ public class RuntimeVoxImporter : MonoBehaviour
         mGraphicsBuffer.SetData(mVoxels);
 
         mVisualEffect.SetGraphicsBuffer("Buffer", mGraphicsBuffer);
-	}
+    }
 
 
     private void WriteVoxelFrameData(VoxelData data, TransformNodeChunk transformNodeChunk)
@@ -88,9 +88,9 @@ public class RuntimeVoxImporter : MonoBehaviour
             {
                 for (int x = 0; x < data.VoxelsWide; x++)
                 {
-                    int indexColor = data.Get(x, y, z);
-                    var color = mVoxModel.Palette[indexColor];
-                    if (indexColor != 0)
+                    int paletteIndex = data.Get(x, y, z);
+                    Color color = paletteIndex == 0 ? Color.Empty : mVoxModel.Palette[paletteIndex - 1];
+                    if (paletteIndex != 0)
                     {
                         mVoxels.Add(new VoxelVFX()
                         {
@@ -125,7 +125,7 @@ public class RuntimeVoxImporter : MonoBehaviour
 
     private void OnDestroy()
     {
-        mGraphicsBuffer?.Dispose();
+        //mGraphicsBuffer?.Dispose();
     }
 
     #endregion
