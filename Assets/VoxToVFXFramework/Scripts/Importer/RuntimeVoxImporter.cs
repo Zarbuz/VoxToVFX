@@ -1,14 +1,18 @@
-﻿using System;
+﻿using FileToVoxCore.Vox;
+using FileToVoxCore.Vox.Chunks;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Assets.VoxToVFXFramework.Scripts.Importer;
-using FileToVoxCore.Vox;
-using FileToVoxCore.Vox.Chunks;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.VFX;
 using Color = FileToVoxCore.Drawing.Color;
+using IntVector3 = Assets.VoxToVFXFramework.Scripts.Common.IntVector3;
+using VoxelData = FileToVoxCore.Vox.VoxelData;
 
 [RequireComponent(typeof(VisualEffect))]
 public class RuntimeVoxImporter : MonoBehaviour
@@ -19,7 +23,6 @@ public class RuntimeVoxImporter : MonoBehaviour
     private GraphicsBuffer mVfxBuffer;
     private readonly List<VoxelVFX> mVoxels = new List<VoxelVFX>();
     private VoxModel mVoxModel;
- 
 
     #endregion
 
@@ -31,7 +34,7 @@ public class RuntimeVoxImporter : MonoBehaviour
         mVisualEffect = GetComponent<VisualEffect>();
         mVisualEffect.enabled = false;
 
-        bool result = LoadVoxModel(Path.Combine(Application.streamingAssetsPath, "test.vox"));
+        bool result = LoadVoxModel(Path.Combine(Application.streamingAssetsPath, "test2.vox"));
 
         if (!result)
         {
@@ -39,6 +42,7 @@ public class RuntimeVoxImporter : MonoBehaviour
         }
 
         InitComputeShader();
+        mVisualEffect.SetInt("InitialBurstCount", mVoxels.Count);
         mVisualEffect.SetGraphicsBuffer("Buffer", mVfxBuffer);
         mVisualEffect.enabled = true;
     }
@@ -56,7 +60,7 @@ public class RuntimeVoxImporter : MonoBehaviour
     private bool LoadVoxModel(string path)
     {
         VoxReader voxReader = new VoxReader();
-        mVoxModel = voxReader.LoadModel(path);
+        mVoxModel = voxReader.LoadModel(path, false, false, true);
         if (mVoxModel == null)
         {
             return false;
@@ -96,11 +100,16 @@ public class RuntimeVoxImporter : MonoBehaviour
 
     private void WriteVoxelFrameData(VoxelData data, TransformNodeChunk transformNodeChunk)
     {
-        FileToVoxCore.Schematics.Tools.Vector3 worldPositionFrame = transformNodeChunk.TranslationAt();
-        Rotation transformRotation = transformNodeChunk.RotationAt();
-        Matrix4x4 matrix4X4 = ReadMatrix4X4FromRotation(transformRotation);
-        Debug.Log(transformNodeChunk.RotationAt() + " " + matrix4X4);
-        worldPositionFrame = new FileToVoxCore.Schematics.Tools.Vector3(worldPositionFrame.X - (data.VoxelsDeep / 2), worldPositionFrame.Y - (data.VoxelsWide / 2), worldPositionFrame.Z - (data.VoxelsTall / 2));
+        Matrix4x4 matrix4X4 = ReadMatrix4X4FromRotation(transformNodeChunk.RotationAt(), transformNodeChunk.TranslationAt());
+
+        IntVector3 originSize = new IntVector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
+        originSize.y = data.VoxelsDeep;
+        originSize.z = data.VoxelsTall;
+
+        var pivot = new Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
+        var fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
+
+        //worldPositionFrame = new FileToVoxCore.Schematics.Tools.Vector3(worldPositionFrame.X - (data.VoxelsDeep / 2), worldPositionFrame.Y - (data.VoxelsWide / 2), worldPositionFrame.Z - (data.VoxelsTall / 2));
         for (int y = 0; y < data.VoxelsTall; y++)
         {
             for (int z = 0; z < data.VoxelsDeep; z++)
@@ -112,8 +121,29 @@ public class RuntimeVoxImporter : MonoBehaviour
 
                     if (paletteIndex != 0)
                     {
-                        Vector3 worldPosition = new Vector3(x + worldPositionFrame.Y, y + worldPositionFrame.Z, z + worldPositionFrame.X);
-                        //worldPosition = transformRotation == Rotation._PZ_PX_P ? worldPosition : Quaternion.Euler(0, -90, 0) * worldPosition;
+                        IntVector3 tmpVoxel = new IntVector3(x, y, z);
+                        IntVector3 origPos;
+                        origPos.x = data.VoxelsWide - 1 - tmpVoxel.x; //invert
+                        origPos.y = data.VoxelsDeep - 1 - tmpVoxel.z; //swapYZ //invert
+                        origPos.z = tmpVoxel.y;
+
+                        Vector3 pos = new Vector3(origPos.x + 0.5f, origPos.y + 0.5f, origPos.z + 0.5f);
+                        pos -= pivot;
+                        pos = matrix4X4.MultiplyPoint(pos);
+                        pos += pivot;
+
+                        pos.x += fpivot.x;
+                        pos.y += fpivot.y;
+                        pos.z -= fpivot.z;
+
+                        origPos.x = Mathf.FloorToInt(pos.x);
+                        origPos.y = Mathf.FloorToInt(pos.y);
+                        origPos.z = Mathf.FloorToInt(pos.z);
+
+                        tmpVoxel.x = data.VoxelsWide - 1 - origPos.x; //invert
+                        tmpVoxel.z = data.VoxelsDeep - 1 - origPos.y; //swapYZ  //invert
+                        tmpVoxel.y = origPos.z;
+
 
                         bool canAdd = false;
                         Vector3 finalColor = new Vector3(color.R / (float)255, color.G / (float)255, color.B / (float)255);
@@ -143,7 +173,7 @@ public class RuntimeVoxImporter : MonoBehaviour
                             mVoxels.Add(new VoxelVFX()
                             {
                                 color = finalColor,
-                                position = worldPosition
+                                position = new Vector3(tmpVoxel.x, tmpVoxel.y, tmpVoxel.z) 
                             });
                         }
                     }
@@ -152,22 +182,44 @@ public class RuntimeVoxImporter : MonoBehaviour
         }
     }
 
-    private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation param)
+    private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
     {
-        Vector3 scale;
-        byte b = (byte)param;
-        Matrix4x4 matrix4X4 = Matrix4x4.zero;
-        int x = b & 3;
-        int y = (b >> 2) & 3;
-        scale.x = ((b >> 4) & 1) != 0 ? -1 : 1;
-        scale.y = ((b >> 5) & 1) != 0 ? -1 : 1;
-        scale.z = ((b >> 6) & 1) != 0 ? -1 : 1;
-        matrix4X4[x, 0] = scale.x;
-        matrix4X4[y, 1] = scale.y;
-        matrix4X4[Mathf.Clamp(3 - x - y, 0, 2), 2] = scale.z;
-        matrix4X4[3, 3] = 1;
-        return matrix4X4;
+        Matrix4x4 result = Matrix4x4.identity;
+        {
+            byte r = Convert.ToByte(rotation);
+            int indexRow0 = (r & 3);
+            int indexRow1 = (r & 12) >> 2;
+            bool signRow0 = (r & 16) == 0;
+            bool signRow1 = (r & 32) == 0;
+            bool signRow2 = (r & 64) == 0;
+
+            result.SetRow(0, Vector4.zero);
+            switch (indexRow0)
+            {
+                case 0: result[0, 0] = signRow0 ? 1f : -1f; break;
+                case 1: result[0, 1] = signRow0 ? 1f : -1f; break;
+                case 2: result[0, 2] = signRow0 ? 1f : -1f; break;
+            }
+            result.SetRow(1, Vector4.zero);
+            switch (indexRow1)
+            {
+                case 0: result[1, 0] = signRow1 ? 1f : -1f; break;
+                case 1: result[1, 1] = signRow1 ? 1f : -1f; break;
+                case 2: result[1, 2] = signRow1 ? 1f : -1f; break;
+            }
+            result.SetRow(2, Vector4.zero);
+            switch (indexRow0 + indexRow1)
+            {
+                case 1: result[2, 2] = signRow2 ? 1f : -1f; break;
+                case 2: result[2, 1] = signRow2 ? 1f : -1f; break;
+                case 3: result[2, 0] = signRow2 ? 1f : -1f; break;
+            }
+
+            result.SetColumn(3, new Vector4(transform.X, transform.Y, transform.Z, 1f));
+        }
+        return result;
     }
+
 
 
     private void InitComputeShader()
