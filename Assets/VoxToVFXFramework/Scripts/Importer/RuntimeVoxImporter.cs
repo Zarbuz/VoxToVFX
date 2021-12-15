@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using ColorConversion;
+using Assets.VoxToVFXFramework.Scripts.Importer;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
 using UnityEngine;
@@ -16,28 +16,50 @@ public class RuntimeVoxImporter : MonoBehaviour
     #region Fields
 
     private VisualEffect mVisualEffect;
-    private GraphicsBuffer mGraphicsBuffer;
-    private List<VoxelVFX> mVoxels = new List<VoxelVFX>();
+    private GraphicsBuffer mVfxBuffer;
+    private readonly List<VoxelVFX> mVoxels = new List<VoxelVFX>();
     private VoxModel mVoxModel;
-    #endregion
-
-    #region ConstStatic
-
-    private const int MAX_RANGE = 256;
+ 
 
     #endregion
+
 
     #region UnityMethods
 
     private void Start()
     {
         mVisualEffect = GetComponent<VisualEffect>();
+        mVisualEffect.enabled = false;
 
-        VoxReader voxReader = new VoxReader();
-        mVoxModel = voxReader.LoadModel(Path.Combine(Application.streamingAssetsPath, "test.vox"));
-        if (mVoxModel == null)
+        bool result = LoadVoxModel(Path.Combine(Application.streamingAssetsPath, "test.vox"));
+
+        if (!result)
         {
             return;
+        }
+
+        InitComputeShader();
+        mVisualEffect.SetGraphicsBuffer("Buffer", mVfxBuffer);
+        mVisualEffect.enabled = true;
+    }
+
+    private void OnDestroy()
+    {
+        mVfxBuffer?.Release();
+        mVisualEffect.enabled = false;
+    }
+
+    #endregion
+
+    #region PrivateMethods
+
+    private bool LoadVoxModel(string path)
+    {
+        VoxReader voxReader = new VoxReader();
+        mVoxModel = voxReader.LoadModel(path);
+        if (mVoxModel == null)
+        {
+            return false;
         }
 
         for (int i = 0; i < mVoxModel.TransformNodeChunks.Count; i++)
@@ -69,13 +91,8 @@ public class RuntimeVoxImporter : MonoBehaviour
             }
         }
 
-        Debug.Log("Voxel count: " + mVoxels.Count);
-        mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mVoxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-        mGraphicsBuffer.SetData(mVoxels);
-
-        mVisualEffect.SetGraphicsBuffer("Buffer", mGraphicsBuffer);
+        return true;
     }
-
 
     private void WriteVoxelFrameData(VoxelData data, TransformNodeChunk transformNodeChunk)
     {
@@ -96,7 +113,7 @@ public class RuntimeVoxImporter : MonoBehaviour
                     if (paletteIndex != 0)
                     {
                         Vector3 worldPosition = new Vector3(x + worldPositionFrame.Y, y + worldPositionFrame.Z, z + worldPositionFrame.X);
-                        worldPosition = transformRotation == Rotation._PZ_PX_P ? worldPosition : Quaternion.Euler(0, -90, 0) * worldPosition;
+                        //worldPosition = transformRotation == Rotation._PZ_PX_P ? worldPosition : Quaternion.Euler(0, -90, 0) * worldPosition;
 
                         bool canAdd = false;
                         Vector3 finalColor = new Vector3(color.R / (float)255, color.G / (float)255, color.B / (float)255);
@@ -135,7 +152,7 @@ public class RuntimeVoxImporter : MonoBehaviour
         }
     }
 
-    public static Matrix4x4 ReadMatrix4X4FromRotation(Rotation param)
+    private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation param)
     {
         Vector3 scale;
         byte b = (byte)param;
@@ -150,43 +167,15 @@ public class RuntimeVoxImporter : MonoBehaviour
         matrix4X4[Mathf.Clamp(3 - x - y, 0, 2), 2] = scale.z;
         matrix4X4[3, 3] = 1;
         return matrix4X4;
-
-        //byte r = Convert.ToByte(param);
-        //int indexRow0 = (r & 3);
-        //int indexRow1 = (r & 12) >> 2;
-        //bool signRow0 = (r & 16) == 0;
-        //bool signRow1 = (r & 32) == 0;
-        //bool signRow2 = (r & 64) == 0;
-
-        //Matrix4x4 result = Matrix4x4.identity;
-        //result.SetRow(0, Vector4.zero);
-        //switch (indexRow0)
-        //{
-        //    case 0: result[0, 0] = signRow0 ? 1f : -1f; break;
-        //    case 1: result[0, 1] = signRow0 ? 1f : -1f; break;
-        //    case 2: result[0, 2] = signRow0 ? 1f : -1f; break;
-        //}
-        //result.SetRow(1, Vector4.zero);
-        //switch (indexRow1)
-        //{
-        //    case 0: result[1, 0] = signRow1 ? 1f : -1f; break;
-        //    case 1: result[1, 1] = signRow1 ? 1f : -1f; break;
-        //    case 2: result[1, 2] = signRow1 ? 1f : -1f; break;
-        //}
-        //result.SetRow(2, Vector4.zero);
-        //switch (indexRow0 + indexRow1)
-        //{
-        //    case 1: result[2, 2] = signRow2 ? 1f : -1f; break;
-        //    case 2: result[2, 1] = signRow2 ? 1f : -1f; break;
-        //    case 3: result[2, 0] = signRow2 ? 1f : -1f; break;
-        //}
-
-        //return result;
     }
 
-    private void OnDestroy()
+
+    private void InitComputeShader()
     {
-        //mGraphicsBuffer?.Dispose();
+        Debug.Log(mVoxels.Count);
+        mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mVoxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+        mVfxBuffer.SetData(mVoxels);
+
     }
 
     #endregion
