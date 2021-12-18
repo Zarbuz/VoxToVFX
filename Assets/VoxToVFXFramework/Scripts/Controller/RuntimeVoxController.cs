@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
+using UnityEditor;
+using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
@@ -21,7 +23,6 @@ public class RuntimeVoxController : MonoBehaviour
     {
         mVisualEffect = GetComponent<VisualEffect>();
         mVisualEffect.enabled = false;
-
         VoxImporter voxImporter = new VoxImporter();
         StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "Sydney.vox"), OnLoadProgress, OnLoadFinished));
     }
