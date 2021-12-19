@@ -16,6 +16,14 @@ public class RuntimeVoxController : MonoBehaviour
     [SerializeField] private Transform MainCamera;
 
     #endregion
+
+    #region ConstStatic
+
+    private const string MAIN_VFX_BUFFER = "Buffer";
+    private const string MATERIAL_VFX_BUFFER = "MaterialBuffer";
+
+    #endregion
+
     #region Fields
 
     private VisualEffect mVisualEffect;
@@ -28,6 +36,7 @@ public class RuntimeVoxController : MonoBehaviour
     private long mPreviousChunkIndex;
 
     #endregion
+
 
     #region UnityMethods
 
@@ -43,8 +52,10 @@ public class RuntimeVoxController : MonoBehaviour
     private void OnDestroy()
     {
         mVfxBuffer?.Release();
+        mPaletteBuffer?.Release();
+        Destroy(mVisualEffect);
         mVfxBuffer = null;
-        mVisualEffect.enabled = false;
+        mPaletteBuffer = null;
     }
 
     private void Update()
@@ -102,11 +113,11 @@ public class RuntimeVoxController : MonoBehaviour
         mVfxBuffer.SetData(voxels);
 
         mVisualEffect.SetInt("InitialBurstCount", voxels.Count);
-        mVisualEffect.SetGraphicsBuffer("Buffer", mVfxBuffer);
+        mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
 
         mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
         mPaletteBuffer.SetData(voxelData.Materials);
-        mVisualEffect.SetGraphicsBuffer("MaterialBuffer", mPaletteBuffer);
+        mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
 
         mVisualEffect.enabled = true;
         mCustomSchematic = voxelData.CustomSchematic;
