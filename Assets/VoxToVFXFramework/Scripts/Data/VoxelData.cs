@@ -7,7 +7,7 @@ namespace VoxToVFXFramework.Scripts.Data
 {
     public class VoxelDataVFX
     {
-        public List<VoxelVFX> Voxels;
+        public CustomSchematic CustomSchematic;
         public VoxelMaterialVFX[] Materials;
     }
 

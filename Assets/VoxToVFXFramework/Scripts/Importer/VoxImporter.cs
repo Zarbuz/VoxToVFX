@@ -17,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.Importer
     {
         #region Fields
 
-        private List<VoxelVFX> mVoxels { get; set; } = new List<VoxelVFX>();
+        private CustomSchematic mCustomSchematic;
         private VoxModel mVoxModel;
         private Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
 
@@ -29,7 +29,7 @@ namespace VoxToVFXFramework.Scripts.Importer
         {
             VoxReader voxReader = new VoxReader();
             mVoxModel = voxReader.LoadModel(path, false, false, true);
-            mVoxels.Clear();
+            mCustomSchematic = new CustomSchematic();
             mModelMatrix.Clear();
 
             if (mVoxModel == null)
@@ -84,10 +84,9 @@ namespace VoxToVFXFramework.Scripts.Importer
                     yield return new WaitForEndOfFrame();
                 }
 
-                voxelDataVfx.Voxels = mVoxels;
+                voxelDataVfx.CustomSchematic = mCustomSchematic;
                 onFinishedCallback?.Invoke(voxelDataVfx);
 
-                mVoxels.Clear();
                 mModelMatrix.Clear();
             }
 
@@ -186,11 +185,12 @@ namespace VoxToVFXFramework.Scripts.Importer
 
                             if (canAdd)
                             {
-                                mVoxels.Add(new VoxelVFX()
-                                {
-                                    paletteIndex = paletteIndex -1,
-                                    position = new UnityEngine.Vector3(tmpVoxel.x, tmpVoxel.y, tmpVoxel.z)
-                                });
+                                mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y, tmpVoxel.z + 1000, paletteIndex - 1);
+                                //mVoxels.Add(new VoxelVFX()
+                                //{
+                                //    paletteIndex = paletteIndex -1,
+                                //    position = new UnityEngine.Vector3(tmpVoxel.x, tmpVoxel.y, tmpVoxel.z)
+                                //});
                             }
                         }
                     }

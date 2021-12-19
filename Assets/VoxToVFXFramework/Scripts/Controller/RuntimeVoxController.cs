@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
-using UnityEditor;
-using UnityEditor.VFX;
+using FileToVoxCore.Utils;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
@@ -10,17 +11,29 @@ using VoxToVFXFramework.Scripts.Importer;
 [RequireComponent(typeof(VisualEffect))]
 public class RuntimeVoxController : MonoBehaviour
 {
+    #region SerializeFields
+
+    [SerializeField] private Transform MainCamera;
+
+    #endregion
     #region Fields
 
     private VisualEffect mVisualEffect;
     private GraphicsBuffer mVfxBuffer;
     private GraphicsBuffer mPaletteBuffer;
+    private CustomSchematic mCustomSchematic;
+    private BoxCollider[] mBoxColliders;
+
+    private Vector3 mPreviousPosition;
+    private long mPreviousChunkIndex;
+
     #endregion
 
     #region UnityMethods
 
     private void Start()
     {
+        InitBoxColliders();
         mVisualEffect = GetComponent<VisualEffect>();
         mVisualEffect.enabled = false;
         VoxImporter voxImporter = new VoxImporter();
@@ -30,12 +43,46 @@ public class RuntimeVoxController : MonoBehaviour
     private void OnDestroy()
     {
         mVfxBuffer?.Release();
+        mVfxBuffer = null;
         mVisualEffect.enabled = false;
+    }
+
+    private void Update()
+    {
+        if (mCustomSchematic == null)
+        {
+            return;
+        }
+
+        if (mPreviousPosition != MainCamera.position)
+        {
+            mPreviousPosition = MainCamera.position;
+            FastMath.FloorToInt(mPreviousPosition.x / CustomSchematic.CHUNK_SIZE, mPreviousPosition.y / CustomSchematic.CHUNK_SIZE, mPreviousPosition.z / CustomSchematic.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+            long chunkIndex = CustomSchematic.GetVoxelIndex(chunkX, chunkY, chunkZ);
+            if (mPreviousChunkIndex != chunkIndex)
+            {
+                mPreviousChunkIndex = chunkIndex;
+                CreateBoxColliderForCurrentChunk(chunkIndex);
+            }
+        }
     }
 
     #endregion
 
     #region PrivateMethods
+
+    private void InitBoxColliders()
+    {
+        mBoxColliders = new BoxCollider[1000];
+        GameObject boxColliderParent = new GameObject("BoxColliders");
+        for (int i = 0; i < 1000; i++)
+        {
+            GameObject go = new GameObject("BoxCollider " + i);
+            go.transform.SetParent(boxColliderParent.transform);
+            BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+            mBoxColliders[i] = boxCollider;
+        }
+    }
 
     private void OnLoadProgress(float progress)
     {
@@ -44,11 +91,17 @@ public class RuntimeVoxController : MonoBehaviour
 
     private void OnLoadFinished(VoxelDataVFX voxelData)
     {
-        Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxelData.Voxels.Count);
-        mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-        mVfxBuffer.SetData(voxelData.Voxels);
+        List<VoxelVFX> voxels = voxelData.CustomSchematic.GetAllVoxels();
+        int targetPositionX = voxelData.CustomSchematic.Width / 2;
+        int targetPositionY = voxelData.CustomSchematic.Height / 2;
+        int targetPositionZ = voxelData.CustomSchematic.Length / 2;
+        MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
 
-        mVisualEffect.SetInt("InitialBurstCount", voxelData.Voxels.Count);
+        Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
+        mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+        mVfxBuffer.SetData(voxels);
+
+        mVisualEffect.SetInt("InitialBurstCount", voxels.Count);
         mVisualEffect.SetGraphicsBuffer("Buffer", mVfxBuffer);
 
         mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
@@ -56,6 +109,26 @@ public class RuntimeVoxController : MonoBehaviour
         mVisualEffect.SetGraphicsBuffer("MaterialBuffer", mPaletteBuffer);
 
         mVisualEffect.enabled = true;
+        mCustomSchematic = voxelData.CustomSchematic;
+    }
+
+    private void CreateBoxColliderForCurrentChunk(long chunkIndex)
+    {
+        int i = 0;
+        foreach (VoxelVFX voxel in mCustomSchematic.RegionDict[chunkIndex].BlockDict.Values)
+        {
+            if (i < mBoxColliders.Length)
+            {
+                BoxCollider boxCollider = mBoxColliders[i];
+                boxCollider.transform.position = voxel.position;
+                i++;
+            }
+            else
+            {
+                Debug.Log("Capacity of box colliders is too small");
+                break;
+            }
+        }
     }
 
     #endregion
