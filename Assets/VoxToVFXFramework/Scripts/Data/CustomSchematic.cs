@@ -37,15 +37,12 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int MAX_WORLD_HEIGHT = 1000;
 		public const int MAX_WORLD_LENGTH = 2000;
 
-        public const int HALF_MAX_WORLD_WIDTH = MAX_WORLD_WIDTH / 2;
-        public const int HALF_MAX_WORLD_HEIGHT = MAX_WORLD_HEIGHT / 2;
-        public const int HALF_MAX_WORLD_LENGTH = MAX_WORLD_LENGTH / 2;
-		public static int CHUNK_SIZE = 16;
+		public static int CHUNK_SIZE = 64;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static long GetVoxelIndex(int x, int y, int z)
 		{
-			return (y * HALF_MAX_WORLD_LENGTH + z) * HALF_MAX_WORLD_WIDTH + x;
+			return (y * MAX_WORLD_LENGTH + z) * MAX_WORLD_WIDTH + x;
 		}
 
 		
@@ -184,6 +181,7 @@ namespace VoxToVFXFramework.Scripts.Data
                 int y = (i / worldRegionX) % worldRegionY;
                 int z = i / (worldRegionX * worldRegionY);
 
+                //Debug.Log($"x: {x} y: {y} z: {z}");
                 RegionDict[GetVoxelIndex(x, y, z)] = new Region(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
             }
         }

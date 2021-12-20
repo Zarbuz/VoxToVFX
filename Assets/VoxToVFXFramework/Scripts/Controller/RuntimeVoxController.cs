@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using FileToVoxCore.Utils;
 using UnityEngine;
@@ -14,13 +15,14 @@ public class RuntimeVoxController : MonoBehaviour
     #region SerializeFields
 
     [SerializeField] private Transform MainCamera;
-
+    [SerializeField] private int ChunkLoadDistance = 10;
     #endregion
 
     #region ConstStatic
 
     private const string MAIN_VFX_BUFFER = "Buffer";
     private const string MATERIAL_VFX_BUFFER = "MaterialBuffer";
+    private const int MAX_VFX_CAPACITY = 4000000;
 
     #endregion
 
@@ -70,10 +72,13 @@ public class RuntimeVoxController : MonoBehaviour
             mPreviousPosition = MainCamera.position;
             FastMath.FloorToInt(mPreviousPosition.x / CustomSchematic.CHUNK_SIZE, mPreviousPosition.y / CustomSchematic.CHUNK_SIZE, mPreviousPosition.z / CustomSchematic.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
             long chunkIndex = CustomSchematic.GetVoxelIndex(chunkX, chunkY, chunkZ);
+
             if (mPreviousChunkIndex != chunkIndex)
             {
+
                 mPreviousChunkIndex = chunkIndex;
                 CreateBoxColliderForCurrentChunk(chunkIndex);
+                LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
             }
         }
     }
@@ -110,7 +115,7 @@ public class RuntimeVoxController : MonoBehaviour
 
         Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
         mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-        mVfxBuffer.SetData(voxels);
+        //mVfxBuffer.SetData(voxels);
 
         mVisualEffect.SetInt("InitialBurstCount", voxels.Count);
         mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
@@ -126,22 +131,55 @@ public class RuntimeVoxController : MonoBehaviour
     private void CreateBoxColliderForCurrentChunk(long chunkIndex)
     {
         int i = 0;
-        foreach (VoxelVFX voxel in mCustomSchematic.RegionDict[chunkIndex].BlockDict.Values)
+
+        if (mCustomSchematic.RegionDict.TryGetValue(chunkIndex, out Region region))
         {
-            if (i < mBoxColliders.Length)
+            foreach (VoxelVFX voxel in region.BlockDict.Values)
             {
-                BoxCollider boxCollider = mBoxColliders[i];
-                boxCollider.transform.position = voxel.position;
-                i++;
-            }
-            else
-            {
-                Debug.Log("Capacity of box colliders is too small");
-                break;
+                if (i < mBoxColliders.Length)
+                {
+                    BoxCollider boxCollider = mBoxColliders[i];
+                    boxCollider.transform.position = voxel.position;
+                    i++;
+                }
+                else
+                {
+                    Debug.Log("Capacity of box colliders is too small");
+                    break;
+                }
             }
         }
+
+
     }
 
+    private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
+    {
+        List<VoxelVFX> list = new List<VoxelVFX>();
+        int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
+        for (int x = chunkX - chunkLoadDistanceRadius; x < chunkX + chunkLoadDistanceRadius; x++)
+        {
+            for (int y = chunkY - chunkLoadDistanceRadius; y < chunkY + chunkLoadDistanceRadius; y++)
+            {
+                for (int z = chunkZ - chunkLoadDistanceRadius; z < chunkZ + chunkLoadDistanceRadius; z++)
+                {
+                    long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
+                    if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
+                    {
+                        list.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
+                    }
+                }
+            }
+        }
+
+        if (list.Count > MAX_VFX_CAPACITY)
+        {
+            Debug.LogWarning("Capacity is smaller than the current list: " + list.Count + ". Max: " + MAX_VFX_CAPACITY);
+        }
+
+        mVfxBuffer.SetData(list);
+        mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
+    }
     #endregion
 }
 
