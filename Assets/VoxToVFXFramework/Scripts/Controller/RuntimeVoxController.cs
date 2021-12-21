@@ -1,11 +1,8 @@
-﻿using System;
+﻿using FileToVoxCore.Utils;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using FileToVoxCore.Utils;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
@@ -23,7 +20,7 @@ public class RuntimeVoxController : MonoBehaviour
 
     private const string MAIN_VFX_BUFFER = "Buffer";
     private const string MATERIAL_VFX_BUFFER = "MaterialBuffer";
-    private const int MAX_VFX_CAPACITY = 4000000;
+    private const int MAX_VFX_CAPACITY = 2000000;
 
     #endregion
 
@@ -117,11 +114,7 @@ public class RuntimeVoxController : MonoBehaviour
 
         Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
 
-        mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
         //mVfxBuffer.SetData(voxels);
-
-        mVisualEffect.SetInt("InitialBurstCount", voxels.Count);
-        mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
 
         mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
         mPaletteBuffer.SetData(voxelData.Materials);
@@ -159,13 +152,15 @@ public class RuntimeVoxController : MonoBehaviour
 
     private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
     {
+        mVfxBuffer?.Release();
+
         List<VoxelVFX> list = new List<VoxelVFX>();
         int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
         for (int x = chunkX - chunkLoadDistanceRadius; x < chunkX + chunkLoadDistanceRadius; x++)
         {
-            for (int y = chunkY - chunkLoadDistanceRadius; y < chunkY + chunkLoadDistanceRadius; y++)
-            {
-                for (int z = chunkZ - chunkLoadDistanceRadius; z < chunkZ + chunkLoadDistanceRadius; z++)
+	        for (int z = chunkZ - chunkLoadDistanceRadius; z < chunkZ + chunkLoadDistanceRadius; z++)
+	        {
+                for (int y = chunkY - chunkLoadDistanceRadius; y < chunkY + chunkLoadDistanceRadius; y++)
                 {
                     long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
                     if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
@@ -181,8 +176,11 @@ public class RuntimeVoxController : MonoBehaviour
             Debug.LogWarning("Capacity is smaller than the current list: " + list.Count + ". Max: " + MAX_VFX_CAPACITY);
         }
 
+        mVisualEffect.SetInt("InitialBurstCount", list.Count);
+        mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, list.Count, Marshal.SizeOf(typeof(VoxelVFX)));
         mVfxBuffer.SetData(list);
         mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
+        mVisualEffect.Play();
     }
     #endregion
 }
