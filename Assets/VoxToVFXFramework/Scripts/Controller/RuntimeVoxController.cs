@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -31,6 +32,7 @@ public class RuntimeVoxController : MonoBehaviour
     private VisualEffect mVisualEffect;
     private GraphicsBuffer mVfxBuffer;
     private GraphicsBuffer mPaletteBuffer;
+
     private CustomSchematic mCustomSchematic;
     private BoxCollider[] mBoxColliders;
 
@@ -114,6 +116,7 @@ public class RuntimeVoxController : MonoBehaviour
         MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
 
         Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
+
         mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Count, Marshal.SizeOf(typeof(VoxelVFX)));
         //mVfxBuffer.SetData(voxels);
 
@@ -127,6 +130,7 @@ public class RuntimeVoxController : MonoBehaviour
         mVisualEffect.enabled = true;
         mCustomSchematic = voxelData.CustomSchematic;
     }
+
 
     private void CreateBoxColliderForCurrentChunk(long chunkIndex)
     {

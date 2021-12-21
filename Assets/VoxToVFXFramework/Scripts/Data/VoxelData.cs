@@ -11,7 +11,6 @@ namespace VoxToVFXFramework.Scripts.Data
         public VoxelMaterialVFX[] Materials;
     }
 
-
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
     public struct VoxelVFX
     {

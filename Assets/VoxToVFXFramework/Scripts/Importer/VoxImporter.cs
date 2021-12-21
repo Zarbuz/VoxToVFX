@@ -187,11 +187,6 @@ namespace VoxToVFXFramework.Scripts.Importer
                             if (canAdd)
                             {
                                 mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y, tmpVoxel.z + 1000, paletteIndex - 1);
-                                //mVoxels.Add(new VoxelVFX()
-                                //{
-                                //    paletteIndex = paletteIndex -1,
-                                //    position = new UnityEngine.Vector3(tmpVoxel.x, tmpVoxel.y, tmpVoxel.z)
-                                //});
                             }
                         }
                     }
