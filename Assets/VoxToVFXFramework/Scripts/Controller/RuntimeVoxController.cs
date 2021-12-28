@@ -17,6 +17,7 @@ public class RuntimeVoxController : MonoBehaviour
 	[Range(2, 10)]
 	[SerializeField] private int ChunkLoadDistance = 10;
 	[SerializeField] private List<VisualEffectAsset> EffectAssets;
+	[SerializeField] private bool MatchCapacityAtRuntime;
 	#endregion
 
 	#region ConstStatic
@@ -50,7 +51,7 @@ public class RuntimeVoxController : MonoBehaviour
 	private void Start()
 	{
 		bool b = VerifyEffectAssetsList();
-		if (!b)
+		if (!b && MatchCapacityAtRuntime)
 		{
 			Debug.LogError("[RuntimeVoxController] EffectAssets count is different to COUNT_ASSETS_TO_GENERATE: " + EffectAssets.Count + " expect: " + COUNT_ASSETS_TO_GENERATE);
 			return;
@@ -66,7 +67,7 @@ public class RuntimeVoxController : MonoBehaviour
 	{
 		mVfxBuffer?.Release();
 		mPaletteBuffer?.Release();
-		Destroy(mVisualEffect);
+		
 		mVfxBuffer = null;
 		mPaletteBuffer = null;
 	}
@@ -86,7 +87,6 @@ public class RuntimeVoxController : MonoBehaviour
 
 			if (mPreviousChunkIndex != chunkIndex)
 			{
-
 				mPreviousChunkIndex = chunkIndex;
 				CreateBoxColliderForCurrentChunk(chunkIndex);
 				LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
@@ -253,33 +253,16 @@ public class RuntimeVoxController : MonoBehaviour
 			}
 		}
 
-		//for (int x = chunkX; x < chunkX + chunkLoadDistanceRadius; x++)
-		//{
-		//	for (int z = chunkZ; z < chunkZ + chunkLoadDistanceRadius; z++)
-		//	{
-		//		for (int y = chunkY; y < chunkY + chunkLoadDistanceRadius; y++)
-		//		{
-		//			long chunkIndexAt1 = CustomSchematic.GetVoxelIndex(x, y, z);
-		//			long chunkIndexAt2 = CustomSchematic.GetVoxelIndex(chunkX - x, chunkY - y, chunkZ - z);
-		//			if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt1))
-		//			{
-		//				list.AddRange(mCustomSchematic.RegionDict[chunkIndexAt1].BlockDict.Values);
-		//			}
+		if (MatchCapacityAtRuntime)
+		{
+			mVisualEffect.visualEffectAsset = GetVisualEffectAsset(list.Count);
+		}
 
-		//			if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt2))
-		//			{
-		//				list.AddRange(mCustomSchematic.RegionDict[chunkIndexAt2].BlockDict.Values);
-		//			}
-		//		}
-		//	}
-		//}
-
-		mVisualEffect.visualEffectAsset = GetVisualEffectAsset(list.Count);
 		mVisualEffect.SetInt("InitialBurstCount", list.Count);
 		mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, list.Count, Marshal.SizeOf(typeof(VoxelVFX)));
 		mVfxBuffer.SetData(list);
 		mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
-		mVisualEffect.Reinit();
+		mVisualEffect.Play();
 	}
 
 

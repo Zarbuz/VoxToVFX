@@ -19,7 +19,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
         private CustomSchematic mCustomSchematic;
         private VoxModel mVoxModel;
-        private Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
+        private readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
 
         #endregion
 
@@ -86,8 +86,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 
                 voxelDataVfx.CustomSchematic = mCustomSchematic;
                 onFinishedCallback?.Invoke(voxelDataVfx);
-
-                mModelMatrix.Clear();
             }
 
             yield return null;
