@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
+using VoxToVFXFramework.Scripts.Managers;
 
 public class RuntimeVoxController : MonoBehaviour
 {
@@ -66,18 +67,18 @@ public class RuntimeVoxController : MonoBehaviour
 	private long mPreviousChunkIndex;
 	private int mPreviousDetailLoadDistance;
 
+	private Thread mThread;
 	private readonly List<VoxelVFX> mList = new List<VoxelVFX>();
 	private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
 	private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
-	private static bool mLoadChunkReady;
-	private readonly WaitWhile mWaitWhile = new WaitWhile(() => mLoadChunkReady == false);
-	private Coroutine mWaitChunksAreLoaded;
+	private static event Action ChunkDataLoaded;
 	#endregion
 
 	#region UnityMethods
 
 	private void Start()
 	{
+		ChunkDataLoaded += OnChunkDataLoaded;
 		bool b = VerifyEffectAssetsList();
 		if (!b && !DebugVisualEffects)
 		{
@@ -91,10 +92,12 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void OnDestroy()
 	{
-		mOpaqueBuffer?.Dispose();
-		mTransparencyBuffer?.Dispose();
-		mPaletteBuffer?.Dispose();
-		mRotationBuffer?.Dispose();
+		ChunkDataLoaded -= OnChunkDataLoaded;
+
+		mOpaqueBuffer?.Release();
+		mTransparencyBuffer?.Release();
+		mPaletteBuffer?.Release();
+		mRotationBuffer?.Release();
 
 		mOpaqueBuffer = null;
 		mTransparencyBuffer = null;
@@ -328,62 +331,57 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
 	{
+		if (mThread != null && mThread.IsAlive)
+		{
+			mThread.Abort();
+		}
+
+		mThread = new Thread(() => DoMainThreadWork(chunkX, chunkY, chunkZ));
+		mThread.Start();
+	}
+
+	private void DoMainThreadWork(int chunkX, int chunkY, int chunkZ)
+	{
 		mList.Clear();
 		mOpaqueList.Clear();
 		mTransparencyList.Clear();
-		mLoadChunkReady = false;
-		
-		new Thread(() =>
+
+		int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
+		for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
 		{
-			Thread.CurrentThread.IsBackground = true;
-			int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
-			for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
+			for (int z = chunkZ - chunkLoadDistanceRadius; z <= chunkZ + chunkLoadDistanceRadius; z++)
 			{
-				for (int z = chunkZ - chunkLoadDistanceRadius; z <= chunkZ + chunkLoadDistanceRadius; z++)
+				for (int y = chunkY - chunkLoadDistanceRadius; y <= chunkY + chunkLoadDistanceRadius; y++)
 				{
-					for (int y = chunkY - chunkLoadDistanceRadius; y <= chunkY + chunkLoadDistanceRadius; y++)
+					long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
+					if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
 					{
-						long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
-						if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
-						{
-							mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
-						}
+						mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
 					}
 				}
 			}
-			mLoadChunkReady = true;
-		}).Start();
-
-		if (mWaitChunksAreLoaded != null)
-		{
-			StopCoroutine(mWaitChunksAreLoaded);
 		}
 
-		mWaitChunksAreLoaded = StartCoroutine(WaitChunksAreLoaded());
-	}
+		if (mList.Count > 0)
+		{
+			mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
+			mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
 
-	private IEnumerator WaitChunksAreLoaded()
-	{
-		yield return mWaitWhile;
-		OnChunkDataLoaded();
+			UnityMainThreadManager.Instance.Enqueue(() => ChunkDataLoaded?.Invoke());
+		}
+		else
+		{
+			Debug.Log("[RuntimeVoxController] List is empty, abort");
+		}
 	}
 
 	private void OnChunkDataLoaded()
 	{
-		mOpaqueBuffer?.Dispose();
-		mTransparencyBuffer?.Dispose();
+		mOpaqueBuffer?.Release();
+		mTransparencyBuffer?.Release();
 
 		mOpaqueBuffer = null;
 		mTransparencyBuffer = null;
-
-		if (mList.Count == 0)
-		{
-			Debug.Log("[RuntimeVoxController] List is empty, abort");
-			return;
-		}
-
-		mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
-		mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
 
 		if (!DebugVisualEffects)
 		{
@@ -393,21 +391,20 @@ public class RuntimeVoxController : MonoBehaviour
 
 		if (mOpaqueList.Count > 0)
 		{
-			OpaqueVisualEffect.SetInt("InitialBurstCount", mOpaqueList.Count);
 			mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mOpaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
 			mOpaqueBuffer.SetData(mOpaqueList);
 
+			OpaqueVisualEffect.SetInt("InitialBurstCount", mOpaqueList.Count);
 			OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mOpaqueBuffer);
 			OpaqueVisualEffect.Play();
 		}
 
-
 		if (mTransparencyList.Count > 0)
 		{
-			TransparenceVisualEffect.SetInt("InitialBurstCount", mTransparencyList.Count);
 			mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mTransparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
 			mTransparencyBuffer.SetData(mTransparencyList);
 
+			TransparenceVisualEffect.SetInt("InitialBurstCount", mTransparencyList.Count);
 			TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mTransparencyBuffer);
 			TransparenceVisualEffect.Play();
 		}
