@@ -16,6 +16,12 @@ namespace VoxToVFXFramework.Scripts.Data
     {
         public Vector3 position;
         public int paletteIndex;
+        public int rotationIndex;
+
+        public bool IsTransparent(VoxelMaterialVFX[] materials)
+        {
+	        return materials[paletteIndex].alpha < 1;
+        }
     }
 
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -26,5 +32,12 @@ namespace VoxToVFXFramework.Scripts.Data
         public float metallic;
         public float emission;
         public float alpha;
+    }
+
+    [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+    public struct VoxelRotationVFX
+    {
+	    public Vector3 rotation;
+	    public Vector3 pivot;
     }
 }

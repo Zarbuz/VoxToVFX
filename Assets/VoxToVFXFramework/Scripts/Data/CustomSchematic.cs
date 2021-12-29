@@ -105,11 +105,11 @@ namespace VoxToVFXFramework.Scripts.Data
             CreateAllRegions();
         }
 
-		public void AddVoxel(int x, int y, int z, int palettePosition)
+		public void AddVoxel(int x, int y, int z, int palettePosition, int rotationIndex)
 		{
 			if (x < MAX_WORLD_WIDTH && y < MAX_WORLD_HEIGHT && z < MAX_WORLD_LENGTH)
 			{
-                AddUsageForRegion(x, y, z, palettePosition);
+                AddUsageForRegion(x, y, z, palettePosition, rotationIndex);
                 ComputeMinMax(x, y, z);
 			}
 			else
@@ -186,7 +186,7 @@ namespace VoxToVFXFramework.Scripts.Data
             }
         }
 
-		private void AddUsageForRegion(int x, int y, int z, int paletteIndex)
+		private void AddUsageForRegion(int x, int y, int z, int paletteIndex, int rotationIndex)
 		{
 			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 
@@ -196,6 +196,7 @@ namespace VoxToVFXFramework.Scripts.Data
             VoxelVFX voxelVfx = new VoxelVFX();
             voxelVfx.position = new Vector3(x, y, z);
             voxelVfx.paletteIndex = paletteIndex;
+            voxelVfx.rotationIndex = rotationIndex;
 
             RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
         }

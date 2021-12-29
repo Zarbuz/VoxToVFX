@@ -142,7 +142,7 @@ namespace VoxToVFXFramework.Scripts.Importer
                             origPos.y = data.VoxelsDeep - 1 - tmpVoxel.z; //swapYZ //invert
                             origPos.z = tmpVoxel.y;
 
-                            UnityEngine.Vector3 pos = new UnityEngine.Vector3(origPos.x + 0.5f, origPos.y + 0.5f, origPos.z + 0.5f);
+                            UnityEngine.Vector3 pos = new(origPos.x + 0.5f, origPos.y + 0.5f, origPos.z + 0.5f);
                             pos -= pivot;
                             pos = matrix4X4.MultiplyPoint(pos);
                             pos += pivot;
@@ -159,32 +159,32 @@ namespace VoxToVFXFramework.Scripts.Importer
                             tmpVoxel.z = data.VoxelsDeep - 1 - origPos.y; //swapYZ  //invert
                             tmpVoxel.y = origPos.z;
 
-
                             bool canAdd = false;
-                            if (x - 1 >= 0 && x + 1 < data.VoxelsWide && y - 1 >= 0 && y + 1 < data.VoxelsTall && z - 1 >= 0 && z + 1 < data.VoxelsDeep)
+
+                            int left = data.GetSafe(x - 1, y, z);
+                            int right = data.GetSafe(x + 1, y, z);
+
+                            int top = data.GetSafe(x, y + 1, z);
+                            int bottom = data.GetSafe(x, y - 1, z);
+
+                            int front = data.GetSafe(x, y, z + 1); //y
+                            int back = data.GetSafe(x, y, z - 1); //y
+                            int rotationIndex = 0;
+                            if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
                             {
-                                int left = data.Get(x - 1, y, z);
-                                int right = data.Get(x + 1, y, z);
+	                            canAdd = true;
 
-                                int top = data.Get(x, y + 1, z);
-                                int bottom = data.Get(x, y - 1, z);
-
-                                int front = data.Get(x, y, z + 1);
-                                int back = data.Get(x, y, z - 1);
-
-                                if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
-                                {
-                                    canAdd = true;
-                                }
-                            }
-                            else
-                            {
-                                canAdd = true;
+                                //Horizontal plane
+	                            if (left != 0 && right != 0 && front != 0 && back != 0 ||
+	                                left != 0 && right != 0 && top != 0 && bottom != 0)
+	                            {
+		                            rotationIndex = 1;
+	                            }
                             }
 
                             if (canAdd)
                             {
-                                mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y, tmpVoxel.z + 1000, paletteIndex - 1);
+                                mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y, tmpVoxel.z + 1000, paletteIndex - 1, rotationIndex);
                             }
                         }
                     }

@@ -2,22 +2,33 @@
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 
-[RequireComponent(typeof(VisualEffect))]
 public class RuntimeVoxController : MonoBehaviour
 {
 	#region SerializeFields
 
+	[Header("Visual Effects")]
+	[SerializeField] private VisualEffect OpaqueVisualEffect;
+	[SerializeField] private VisualEffect TransparenceVisualEffect;
+
+	[Header("Camera Settings")]
 	[SerializeField] private Transform MainCamera;
 	[Range(2, 10)]
+	[OnValueChanged(nameof(OnChunkLoadDistanceValueChanged))]
 	[SerializeField] private int ChunkLoadDistance = 10;
-	[SerializeField] private List<VisualEffectAsset> EffectAssets;
-	[SerializeField] private bool MatchCapacityAtRuntime;
+
+	[Header("Debug Settings")]
+	[SerializeField] private bool DebugVisualEffects;
+
+	[Header("VisualEffectAssets")]
+	[SerializeField] private List<VisualEffectAsset> OpaqueVisualEffects;
+	[SerializeField] private List<VisualEffectAsset> TransparenceVisualEffects;
 	#endregion
 
 	#region ConstStatic
@@ -27,22 +38,24 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private const string MAIN_VFX_BUFFER = "Buffer";
 	private const string MATERIAL_VFX_BUFFER = "MaterialBuffer";
+	private const string ROTATION_VFX_BUFFER = "RotationBuffer";
 	private const string FRAMEWORK_FOLDER = "VoxToVFXFramework";
 
 	#endregion
 
 	#region Fields
 
-	private VisualEffect mVisualEffect;
-	private GraphicsBuffer mVfxBuffer;
+	private GraphicsBuffer mOpaqueBuffer;
+	private GraphicsBuffer mTransparencyBuffer;
 	private GraphicsBuffer mPaletteBuffer;
+	private GraphicsBuffer mRotationBuffer;
 
 	private CustomSchematic mCustomSchematic;
 	private BoxCollider[] mBoxColliders;
+	private VoxelMaterialVFX[] mMaterials;
 
 	private Vector3 mPreviousPosition;
 	private long mPreviousChunkIndex;
-
 	#endregion
 
 
@@ -51,24 +64,25 @@ public class RuntimeVoxController : MonoBehaviour
 	private void Start()
 	{
 		bool b = VerifyEffectAssetsList();
-		if (!b && MatchCapacityAtRuntime)
+		if (!b && !DebugVisualEffects)
 		{
-			Debug.LogError("[RuntimeVoxController] EffectAssets count is different to COUNT_ASSETS_TO_GENERATE: " + EffectAssets.Count + " expect: " + COUNT_ASSETS_TO_GENERATE);
+			Debug.LogError("[RuntimeVoxController] EffectAssets count is different to COUNT_ASSETS_TO_GENERATE: " + OpaqueVisualEffects.Count + " expect: " + COUNT_ASSETS_TO_GENERATE);
 			return;
 		}
-		InitBoxColliders();
-		mVisualEffect = GetComponent<VisualEffect>();
-		mVisualEffect.enabled = false;
+		//InitBoxColliders();
 		VoxImporter voxImporter = new VoxImporter();
 		StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "Sydney.vox"), OnLoadProgress, OnLoadFinished));
 	}
 
 	private void OnDestroy()
 	{
-		mVfxBuffer?.Release();
+		mOpaqueBuffer?.Release();
+		mTransparencyBuffer?.Release();
 		mPaletteBuffer?.Release();
-		
-		mVfxBuffer = null;
+		mRotationBuffer?.Release();
+
+		mOpaqueBuffer = null;
+		mTransparencyBuffer = null;
 		mPaletteBuffer = null;
 	}
 
@@ -88,7 +102,7 @@ public class RuntimeVoxController : MonoBehaviour
 			if (mPreviousChunkIndex != chunkIndex)
 			{
 				mPreviousChunkIndex = chunkIndex;
-				CreateBoxColliderForCurrentChunk(chunkIndex);
+				//CreateBoxColliderForCurrentChunk(chunkIndex);
 				LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
 			}
 		}
@@ -103,15 +117,30 @@ public class RuntimeVoxController : MonoBehaviour
 	[Button]
 	private void GenerateAssets()
 	{
-		string path = Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "VoxImporterV2.vfx");
-		if (!File.Exists(path))
+		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "VoxImporterV2.vfx"), "Opaque", out List<VisualEffectAsset> l1))
 		{
-			Debug.LogError("VFX asset file not found at: " + path);
-			return;
+			OpaqueVisualEffects.Clear();
+			OpaqueVisualEffects.AddRange(l1);
+		}
+
+		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "VoxImporterV2Transparency.vfx"), "Transparency", out List<VisualEffectAsset> l2))
+		{
+			TransparenceVisualEffects.Clear();
+			TransparenceVisualEffects.AddRange(l2);
+		}
+	}
+
+	private static bool WriteAllVisualAssets(string inputPath, string prefixName, out List<VisualEffectAsset> assets)
+	{
+		assets = new List<VisualEffectAsset>();
+		if (!File.Exists(inputPath))
+		{
+			Debug.LogError("VFX asset file not found at: " + inputPath);
+			return false;
 		}
 
 		int capacityLineIndex = 0;
-		string[] lines = File.ReadAllLines(path);
+		string[] lines = File.ReadAllLines(inputPath);
 		for (int index = 0; index < lines.Length; index++)
 		{
 			string line = lines[index];
@@ -125,11 +154,10 @@ public class RuntimeVoxController : MonoBehaviour
 		if (capacityLineIndex == 0)
 		{
 			Debug.LogError("Failed to found capacity line index in vfx asset! Abort duplicate");
-			return;
+			return false;
 		}
 
-		EffectAssets.Clear();
-		string pathOutput = Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "Opaque");
+		string pathOutput = Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", prefixName);
 		if (!Directory.Exists(pathOutput))
 		{
 			Directory.CreateDirectory(pathOutput);
@@ -147,14 +175,16 @@ public class RuntimeVoxController : MonoBehaviour
 		{
 			uint newCapacity = (uint)(i * RuntimeVoxController.STEP_CAPACITY);
 			lines[capacityLineIndex] = "  capacity: " + newCapacity;
-			string targetFileName = "OpaqueVFX-" + newCapacity + ".vfx";
+			string targetFileName = prefixName + "VFX-" + newCapacity + ".vfx";
 			File.WriteAllLines(Path.Combine(pathOutput, targetFileName), lines);
 
-			string relativePath = "Assets/" + FRAMEWORK_FOLDER + "/VFX/OPAQUE/" + targetFileName;
+			string relativePath = "Assets/" + FRAMEWORK_FOLDER + "/VFX/" + prefixName + "/" + targetFileName;
 			UnityEditor.AssetDatabase.ImportAsset(relativePath);
 			VisualEffectAsset visualEffectAsset = (VisualEffectAsset)UnityEditor.AssetDatabase.LoadAssetAtPath(relativePath, typeof(VisualEffectAsset));
-			EffectAssets.Add(visualEffectAsset);
+			assets.Add(visualEffectAsset);
 		}
+
+		return true;
 	}
 
 #endif
@@ -165,21 +195,21 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private bool VerifyEffectAssetsList()
 	{
-		return EffectAssets.Count == COUNT_ASSETS_TO_GENERATE;
+		return OpaqueVisualEffects.Count == COUNT_ASSETS_TO_GENERATE;
 	}
 
-	private void InitBoxColliders()
-	{
-		mBoxColliders = new BoxCollider[1000];
-		GameObject boxColliderParent = new GameObject("BoxColliders");
-		for (int i = 0; i < 1000; i++)
-		{
-			GameObject go = new GameObject("BoxCollider " + i);
-			go.transform.SetParent(boxColliderParent.transform);
-			BoxCollider boxCollider = go.AddComponent<BoxCollider>();
-			mBoxColliders[i] = boxCollider;
-		}
-	}
+	//private void InitBoxColliders()
+	//{
+	//	mBoxColliders = new BoxCollider[1000];
+	//	GameObject boxColliderParent = new GameObject("BoxColliders");
+	//	for (int i = 0; i < 1000; i++)
+	//	{
+	//		GameObject go = new GameObject("BoxCollider " + i);
+	//		go.transform.SetParent(boxColliderParent.transform);
+	//		BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+	//		mBoxColliders[i] = boxCollider;
+	//	}
+	//}
 
 	private void OnLoadProgress(float progress)
 	{
@@ -195,17 +225,42 @@ public class RuntimeVoxController : MonoBehaviour
 		MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
 
 		Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
-
-		//mVfxBuffer.SetData(voxels);
-
 		mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 		mPaletteBuffer.SetData(voxelData.Materials);
-		mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
+		OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
+		TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
 
-		mVisualEffect.enabled = true;
+		VoxelRotationVFX[] rotations = new VoxelRotationVFX[2];
+		rotations[0] = new VoxelRotationVFX()
+		{
+			pivot = Vector3.zero,
+			rotation = Vector3.zero
+		};
+
+		rotations[1] = new VoxelRotationVFX()
+		{
+			pivot = new Vector3(0, 0, 0.5f),
+			rotation = new Vector3(90,0,0)
+		};
+
+		mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Length, Marshal.SizeOf(typeof(VoxelRotationVFX)));
+		mRotationBuffer.SetData(rotations);
+
+		OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER, mRotationBuffer);
+		TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER, mRotationBuffer);
+
+		OpaqueVisualEffect.enabled = true;
+		TransparenceVisualEffect.enabled = true;
+		mMaterials = voxelData.Materials;
 		mCustomSchematic = voxelData.CustomSchematic;
 	}
 
+	private void OnChunkLoadDistanceValueChanged()
+	{
+		mPreviousPosition = MainCamera.position;
+		FastMath.FloorToInt(mPreviousPosition.x / CustomSchematic.CHUNK_SIZE, mPreviousPosition.y / CustomSchematic.CHUNK_SIZE, mPreviousPosition.z / CustomSchematic.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+		LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
+	}
 
 	private void CreateBoxColliderForCurrentChunk(long chunkIndex)
 	{
@@ -234,7 +289,8 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
 	{
-		mVfxBuffer?.Release();
+		mOpaqueBuffer?.Release();
+		mTransparencyBuffer?.Release();
 
 		List<VoxelVFX> list = new List<VoxelVFX>();
 		int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
@@ -253,28 +309,53 @@ public class RuntimeVoxController : MonoBehaviour
 			}
 		}
 
-		if (MatchCapacityAtRuntime)
+		if (list.Count == 0)
 		{
-			mVisualEffect.visualEffectAsset = GetVisualEffectAsset(list.Count);
+			Debug.Log("[RuntimeVoxController] List is empty, abort");
+			return;
 		}
 
-		mVisualEffect.SetInt("InitialBurstCount", list.Count);
-		mVfxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, list.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-		mVfxBuffer.SetData(list);
-		mVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mVfxBuffer);
-		mVisualEffect.Play();
+		List<VoxelVFX> opaqueList = list.Where(v => !v.IsTransparent(mMaterials)).ToList();
+		List<VoxelVFX> transparencyList = list.Where(v => v.IsTransparent(mMaterials)).ToList();
+
+		if (!DebugVisualEffects)
+		{
+			OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(opaqueList.Count, OpaqueVisualEffects);
+			TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(transparencyList.Count, TransparenceVisualEffects);
+		}
+
+		if (opaqueList.Count > 0)
+		{
+			OpaqueVisualEffect.SetInt("InitialBurstCount", opaqueList.Count);
+			mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, opaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+			mOpaqueBuffer.SetData(opaqueList);
+
+			OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mOpaqueBuffer);
+			OpaqueVisualEffect.Play();
+		}
+
+
+		if (transparencyList.Count > 0)
+		{
+			TransparenceVisualEffect.SetInt("InitialBurstCount", transparencyList.Count);
+			mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, transparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+			mTransparencyBuffer.SetData(transparencyList);
+
+			TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mTransparencyBuffer);
+			TransparenceVisualEffect.Play();
+		}
 	}
 
 
-	private VisualEffectAsset GetVisualEffectAsset(int voxels)
+	private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
 	{
 		int index = voxels / STEP_CAPACITY;
-		if (index > EffectAssets.Count)
+		if (index > assets.Count)
 		{
-			index = EffectAssets.Count - 1;
+			index = assets.Count - 1;
 		}
 
-		return EffectAssets[index];
+		return assets[index];
 	}
 	#endregion
 }
