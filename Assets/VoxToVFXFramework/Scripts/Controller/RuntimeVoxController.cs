@@ -23,6 +23,8 @@ public class RuntimeVoxController : MonoBehaviour
 	[OnValueChanged(nameof(OnChunkLoadDistanceValueChanged))]
 	[SerializeField] private int ChunkLoadDistance = 10;
 
+	[Range(10, 200)]
+	[SerializeField] private int DetailLoadDistance = 140;
 	[Header("Debug Settings")]
 	[SerializeField] private bool DebugVisualEffects;
 
@@ -36,10 +38,12 @@ public class RuntimeVoxController : MonoBehaviour
 	private const int STEP_CAPACITY = 20000;
 	private const int COUNT_ASSETS_TO_GENERATE = 500;
 
-	private const string MAIN_VFX_BUFFER = "Buffer";
-	private const string MATERIAL_VFX_BUFFER = "MaterialBuffer";
-	private const string ROTATION_VFX_BUFFER = "RotationBuffer";
+	private const string MAIN_VFX_BUFFER_KEY = "Buffer";
+	private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
+	private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
+	private const string DETAIL_LOAD_DISTANCE_KEY = "DetailLoadDistance";
 	private const string FRAMEWORK_FOLDER = "VoxToVFXFramework";
+	private const string FRAMEWORK_VFX_FOLDER = "VFX";
 
 	#endregion
 
@@ -56,8 +60,12 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private Vector3 mPreviousPosition;
 	private long mPreviousChunkIndex;
-	#endregion
+	private int mPreviousDetailLoadDistance;
 
+	private readonly List<VoxelVFX> mList = new List<VoxelVFX>();
+	private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
+	private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
+	#endregion
 
 	#region UnityMethods
 
@@ -76,14 +84,15 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void OnDestroy()
 	{
-		mOpaqueBuffer?.Release();
-		mTransparencyBuffer?.Release();
-		mPaletteBuffer?.Release();
-		mRotationBuffer?.Release();
+		mOpaqueBuffer?.Dispose();
+		mTransparencyBuffer?.Dispose();
+		mPaletteBuffer?.Dispose();
+		mRotationBuffer?.Dispose();
 
 		mOpaqueBuffer = null;
 		mTransparencyBuffer = null;
 		mPaletteBuffer = null;
+		mRotationBuffer = null;
 	}
 
 	private void Update()
@@ -91,6 +100,12 @@ public class RuntimeVoxController : MonoBehaviour
 		if (mCustomSchematic == null)
 		{
 			return;
+		}
+
+		if (mPreviousDetailLoadDistance != DetailLoadDistance)
+		{
+			mPreviousDetailLoadDistance = DetailLoadDistance;
+			UpdateDetailLoadDistance();
 		}
 
 		if (mPreviousPosition != MainCamera.position)
@@ -117,13 +132,13 @@ public class RuntimeVoxController : MonoBehaviour
 	[Button]
 	private void GenerateAssets()
 	{
-		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "VoxImporterV2.vfx"), "Opaque", out List<VisualEffectAsset> l1))
+		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, FRAMEWORK_VFX_FOLDER, "VoxImporterV2.vfx"), "Opaque", out List<VisualEffectAsset> l1))
 		{
 			OpaqueVisualEffects.Clear();
 			OpaqueVisualEffects.AddRange(l1);
 		}
 
-		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", "VoxImporterV2Transparency.vfx"), "Transparency", out List<VisualEffectAsset> l2))
+		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, FRAMEWORK_VFX_FOLDER, "VoxImporterV2Transparency.vfx"), "Transparency", out List<VisualEffectAsset> l2))
 		{
 			TransparenceVisualEffects.Clear();
 			TransparenceVisualEffects.AddRange(l2);
@@ -157,7 +172,7 @@ public class RuntimeVoxController : MonoBehaviour
 			return false;
 		}
 
-		string pathOutput = Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, "VFX", prefixName);
+		string pathOutput = Path.Combine(Application.dataPath, FRAMEWORK_FOLDER, FRAMEWORK_VFX_FOLDER, prefixName);
 		if (!Directory.Exists(pathOutput))
 		{
 			Directory.CreateDirectory(pathOutput);
@@ -178,7 +193,7 @@ public class RuntimeVoxController : MonoBehaviour
 			string targetFileName = prefixName + "VFX-" + newCapacity + ".vfx";
 			File.WriteAllLines(Path.Combine(pathOutput, targetFileName), lines);
 
-			string relativePath = "Assets/" + FRAMEWORK_FOLDER + "/VFX/" + prefixName + "/" + targetFileName;
+			string relativePath = "Assets/" + FRAMEWORK_FOLDER + "/" + FRAMEWORK_VFX_FOLDER + "/" + prefixName + "/" + targetFileName;
 			UnityEditor.AssetDatabase.ImportAsset(relativePath);
 			VisualEffectAsset visualEffectAsset = (VisualEffectAsset)UnityEditor.AssetDatabase.LoadAssetAtPath(relativePath, typeof(VisualEffectAsset));
 			assets.Add(visualEffectAsset);
@@ -213,45 +228,60 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void OnLoadProgress(float progress)
 	{
-		Debug.Log("[RuntimeVoxController] Load progress: " + progress);
+		Debug.Log("[RuntimeVoxController] Load progress: " + progress * 100);
 	}
 
 	private void OnLoadFinished(VoxelDataVFX voxelData)
 	{
 		List<VoxelVFX> voxels = voxelData.CustomSchematic.GetAllVoxels();
+
+		Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
 		int targetPositionX = voxelData.CustomSchematic.Width / 2;
 		int targetPositionY = voxelData.CustomSchematic.Height / 2;
 		int targetPositionZ = voxelData.CustomSchematic.Length / 2;
 		MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
 
-		Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
 		mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 		mPaletteBuffer.SetData(voxelData.Materials);
-		OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
-		TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER, mPaletteBuffer);
+		OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+		TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 
-		VoxelRotationVFX[] rotations = new VoxelRotationVFX[2];
-		rotations[0] = new VoxelRotationVFX()
+		List<VoxelRotationVFX> rotations = new List<VoxelRotationVFX>();
+		rotations.Add(new VoxelRotationVFX()
 		{
 			pivot = Vector3.zero,
 			rotation = Vector3.zero
-		};
+		});
 
-		rotations[1] = new VoxelRotationVFX()
+		rotations.Add(new VoxelRotationVFX()
 		{
 			pivot = new Vector3(0, 0, 0.5f),
-			rotation = new Vector3(90,0,0)
-		};
+			rotation = new Vector3(90, 0, 0)
+		});
 
-		mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Length, Marshal.SizeOf(typeof(VoxelRotationVFX)));
+		rotations.Add(new VoxelRotationVFX()
+		{
+			pivot = new Vector3(0, 0, 0.5f),
+			rotation = new Vector3(0, 180, 0)
+		});
+
+		rotations.Add(new VoxelRotationVFX()
+		{
+			pivot = new Vector3(0, 0, 0.5f),
+			rotation = new Vector3(0, 90, 0)
+		});
+
+		mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Count, Marshal.SizeOf(typeof(VoxelRotationVFX)));
 		mRotationBuffer.SetData(rotations);
 
-		OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER, mRotationBuffer);
-		TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER, mRotationBuffer);
+		OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+		TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+		mMaterials = voxelData.Materials;
+		voxelData.CustomSchematic.UpdateRotations();
+		Debug.Log("[RuntimeVoxController] OnUpdateRotationFinished");
 
 		OpaqueVisualEffect.enabled = true;
 		TransparenceVisualEffect.enabled = true;
-		mMaterials = voxelData.Materials;
 		mCustomSchematic = voxelData.CustomSchematic;
 	}
 
@@ -283,16 +313,26 @@ public class RuntimeVoxController : MonoBehaviour
 				}
 			}
 		}
+	}
 
-
+	private void UpdateDetailLoadDistance()
+	{
+		OpaqueVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
+		TransparenceVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
 	}
 
 	private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
 	{
-		mOpaqueBuffer?.Release();
-		mTransparencyBuffer?.Release();
+		mOpaqueBuffer?.Dispose();
+		mTransparencyBuffer?.Dispose();
 
-		List<VoxelVFX> list = new List<VoxelVFX>();
+		mOpaqueBuffer = null;
+		mTransparencyBuffer = null;
+
+		mList.Clear();
+		mOpaqueList.Clear();
+		mTransparencyList.Clear();
+
 		int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
 		for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
 		{
@@ -303,45 +343,45 @@ public class RuntimeVoxController : MonoBehaviour
 					long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
 					if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
 					{
-						list.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
+						mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
 					}
 				}
 			}
 		}
 
-		if (list.Count == 0)
+		if (mList.Count == 0)
 		{
 			Debug.Log("[RuntimeVoxController] List is empty, abort");
 			return;
 		}
 
-		List<VoxelVFX> opaqueList = list.Where(v => !v.IsTransparent(mMaterials)).ToList();
-		List<VoxelVFX> transparencyList = list.Where(v => v.IsTransparent(mMaterials)).ToList();
+		mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
+		mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
 
 		if (!DebugVisualEffects)
 		{
-			OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(opaqueList.Count, OpaqueVisualEffects);
-			TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(transparencyList.Count, TransparenceVisualEffects);
+			OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, OpaqueVisualEffects);
+			TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, TransparenceVisualEffects);
 		}
 
-		if (opaqueList.Count > 0)
+		if (mOpaqueList.Count > 0)
 		{
-			OpaqueVisualEffect.SetInt("InitialBurstCount", opaqueList.Count);
-			mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, opaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-			mOpaqueBuffer.SetData(opaqueList);
+			OpaqueVisualEffect.SetInt("InitialBurstCount", mOpaqueList.Count);
+			mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mOpaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+			mOpaqueBuffer.SetData(mOpaqueList);
 
-			OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mOpaqueBuffer);
+			OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mOpaqueBuffer);
 			OpaqueVisualEffect.Play();
 		}
 
 
-		if (transparencyList.Count > 0)
+		if (mTransparencyList.Count > 0)
 		{
-			TransparenceVisualEffect.SetInt("InitialBurstCount", transparencyList.Count);
-			mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, transparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-			mTransparencyBuffer.SetData(transparencyList);
+			TransparenceVisualEffect.SetInt("InitialBurstCount", mTransparencyList.Count);
+			mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mTransparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+			mTransparencyBuffer.SetData(mTransparencyList);
 
-			TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER, mTransparencyBuffer);
+			TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mTransparencyBuffer);
 			TransparenceVisualEffect.Play();
 		}
 	}

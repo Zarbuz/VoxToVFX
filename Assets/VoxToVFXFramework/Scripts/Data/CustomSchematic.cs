@@ -1,5 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -105,11 +106,11 @@ namespace VoxToVFXFramework.Scripts.Data
             CreateAllRegions();
         }
 
-		public void AddVoxel(int x, int y, int z, int palettePosition, int rotationIndex)
+		public void AddVoxel(int x, int y, int z, int palettePosition)
 		{
 			if (x < MAX_WORLD_WIDTH && y < MAX_WORLD_HEIGHT && z < MAX_WORLD_LENGTH)
 			{
-                AddUsageForRegion(x, y, z, palettePosition, rotationIndex);
+                AddUsageForRegion(x, y, z, palettePosition);
                 ComputeMinMax(x, y, z);
 			}
 			else
@@ -117,26 +118,32 @@ namespace VoxToVFXFramework.Scripts.Data
                 Debug.LogError($"[CustomSchematic] Invalid coordinate when AddVoxel: x:{x} y:{y} z:{z}");
             }
 		}
-		
-		public bool GetVoxel(int x, int y, int z, ref VoxelVFX voxel)
-		{
-			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 
-			long chunkIndex = GetVoxelIndex(chunkX, chunkY, chunkZ);
-			long voxelIndex = GetVoxelIndex(x, y, z);
-			if (RegionDict.ContainsKey(chunkIndex))
+		public void UpdateRotations()
+		{
+			Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
+			foreach (VoxelVFX voxel in voxels.Values)
 			{
-				bool found = RegionDict[chunkIndex].BlockDict.TryGetValue(voxelIndex, out VoxelVFX foundVoxel);
-				voxel = foundVoxel;
-				return found;
+				long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
+				long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
+				long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
+				long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
+				long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
+				long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
+
+				if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack))
+				{
+					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
+				}
+				else if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
+				{
+					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
+				}
+				else if (voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
+				{
+					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
+				}
 			}
-
-            return false;
-        }
-
-		public List<Region> GetAllRegions()
-		{
-			return RegionDict.Values.Where(region => region.BlockDict.Count > 0).ToList();
 		}
 
 		public List<VoxelVFX> GetAllVoxels()
@@ -158,17 +165,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		{
 			RegionDict = new Dictionary<long, Region>();
 
-            //        for (int x = -HALF_MAX_WORLD_WIDTH; x <= HALF_MAX_WORLD_WIDTH; x+= CHUNK_SIZE)
-            //        {
-            //            for (int y = -HALF_MAX_WORLD_HEIGHT; y <= HALF_MAX_WORLD_HEIGHT; y += CHUNK_SIZE)
-            //            {
-            //	for (int z = -HALF_MAX_WORLD_LENGTH; z <= HALF_MAX_WORLD_LENGTH; z += CHUNK_SIZE)
-            //                {
-            //        RegionDict[GetVoxelIndex(x, y, z)] = new Region(x, y, z);
-            //	}
-            //}
-            //        }
-
             int worldRegionX = (int)Math.Ceiling((decimal)MAX_WORLD_WIDTH / CHUNK_SIZE);
             int worldRegionY = (int)Math.Ceiling((decimal)MAX_WORLD_HEIGHT / CHUNK_SIZE);
             int worldRegionZ = (int)Math.Ceiling((decimal)MAX_WORLD_LENGTH / CHUNK_SIZE);
@@ -186,7 +182,7 @@ namespace VoxToVFXFramework.Scripts.Data
             }
         }
 
-		private void AddUsageForRegion(int x, int y, int z, int paletteIndex, int rotationIndex)
+		private void AddUsageForRegion(int x, int y, int z, int paletteIndex)
 		{
 			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 
@@ -196,12 +192,24 @@ namespace VoxToVFXFramework.Scripts.Data
             VoxelVFX voxelVfx = new VoxelVFX();
             voxelVfx.position = new Vector3(x, y, z);
             voxelVfx.paletteIndex = paletteIndex;
-            voxelVfx.rotationIndex = rotationIndex;
+            voxelVfx.rotationIndex = 0;
 
             RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
         }
 
-        private void ComputeMinMax(int x, int y, int z)
+		private void UpdateRotationIndex(int x, int y, int z, int rotationIndex)
+		{
+			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+
+			long chunkIndex = GetVoxelIndex(chunkX, chunkY, chunkZ);
+			long voxelIndex = GetVoxelIndex(x, y, z);
+
+			VoxelVFX voxelVfx = RegionDict[chunkIndex].BlockDict[voxelIndex];
+			voxelVfx.rotationIndex = rotationIndex;
+			RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
+		}
+
+		private void ComputeMinMax(int x, int y, int z)
         {
             MinX = Math.Min(x, MinX);
             MinY = Math.Min(y, MinY);
