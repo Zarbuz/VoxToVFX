@@ -119,7 +119,7 @@ namespace VoxToVFXFramework.Scripts.Data
             }
 		}
 
-		public void UpdateRotations()
+		public int UpdateRotations()
 		{
 			Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
 			foreach (VoxelVFX voxel in voxels.Values)
@@ -144,18 +144,10 @@ namespace VoxToVFXFramework.Scripts.Data
 					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
 				}
 			}
+
+			return voxels.Count;
 		}
 
-		public List<VoxelVFX> GetAllVoxels()
-		{
-			List<VoxelVFX> voxels = new List<VoxelVFX>();
-			foreach (KeyValuePair<long, Region> region in RegionDict)
-			{
-				voxels.AddRange(region.Value.BlockDict.Values);
-			}
-
-			return voxels;
-		}
 
 		#endregion
 
@@ -211,14 +203,14 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		private void ComputeMinMax(int x, int y, int z)
         {
-            MinX = Math.Min(x, MinX);
-            MinY = Math.Min(y, MinY);
-            MinZ = Math.Min(z, MinZ);
+            MinX = Mathf.Min(x, MinX);
+            MinY = Mathf.Min(y, MinY);
+            MinZ = Mathf.Min(z, MinZ);
 
 
-            MaxX = Math.Max(x, MaxX);
-            MaxY = Math.Max(y, MaxY);
-            MaxZ = Math.Max(z, MaxZ);
+            MaxX = Mathf.Max(x, MaxX);
+            MaxY = Mathf.Max(y, MaxY);
+            MaxZ = Mathf.Max(z, MaxZ);
         }
 
 		#endregion

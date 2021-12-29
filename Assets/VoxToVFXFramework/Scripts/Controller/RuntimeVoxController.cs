@@ -93,16 +93,10 @@ public class RuntimeVoxController : MonoBehaviour
 	private void OnDestroy()
 	{
 		ChunkDataLoaded -= OnChunkDataLoaded;
-
 		mOpaqueBuffer?.Release();
 		mTransparencyBuffer?.Release();
 		mPaletteBuffer?.Release();
 		mRotationBuffer?.Release();
-
-		mOpaqueBuffer = null;
-		mTransparencyBuffer = null;
-		mPaletteBuffer = null;
-		mRotationBuffer = null;
 	}
 
 	private void FixedUpdate()
@@ -241,9 +235,9 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void OnLoadFinished(VoxelDataVFX voxelData)
 	{
-		List<VoxelVFX> voxels = voxelData.CustomSchematic.GetAllVoxels();
+		int count = voxelData.CustomSchematic.UpdateRotations();
 
-		Debug.Log("[RuntimeVoxController] OnLoadFinished: " + voxels.Count);
+		Debug.Log("[RuntimeVoxController] OnLoadFinished: " + count);
 		int targetPositionX = voxelData.CustomSchematic.Width / 2;
 		int targetPositionY = voxelData.CustomSchematic.Height / 2;
 		int targetPositionZ = voxelData.CustomSchematic.Length / 2;
@@ -379,9 +373,6 @@ public class RuntimeVoxController : MonoBehaviour
 	{
 		mOpaqueBuffer?.Release();
 		mTransparencyBuffer?.Release();
-
-		mOpaqueBuffer = null;
-		mTransparencyBuffer = null;
 
 		if (!DebugVisualEffects)
 		{
