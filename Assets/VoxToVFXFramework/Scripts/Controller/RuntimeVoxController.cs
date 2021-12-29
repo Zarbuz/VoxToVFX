@@ -1,9 +1,13 @@
-﻿using FileToVoxCore.Utils;
+﻿using System;
+using System.Collections;
+using FileToVoxCore.Utils;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
@@ -65,6 +69,9 @@ public class RuntimeVoxController : MonoBehaviour
 	private readonly List<VoxelVFX> mList = new List<VoxelVFX>();
 	private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
 	private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
+	private static bool mLoadChunkReady;
+	private readonly WaitWhile mWaitWhile = new WaitWhile(() => mLoadChunkReady == false);
+	private Coroutine mWaitChunksAreLoaded;
 	#endregion
 
 	#region UnityMethods
@@ -95,12 +102,10 @@ public class RuntimeVoxController : MonoBehaviour
 		mRotationBuffer = null;
 	}
 
-	private void Update()
+	private void FixedUpdate()
 	{
 		if (mCustomSchematic == null)
-		{
 			return;
-		}
 
 		if (mPreviousDetailLoadDistance != DetailLoadDistance)
 		{
@@ -323,31 +328,53 @@ public class RuntimeVoxController : MonoBehaviour
 
 	private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
 	{
+		mList.Clear();
+		mOpaqueList.Clear();
+		mTransparencyList.Clear();
+		mLoadChunkReady = false;
+		
+		new Thread(() =>
+		{
+			Thread.CurrentThread.IsBackground = true;
+			int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
+			for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
+			{
+				for (int z = chunkZ - chunkLoadDistanceRadius; z <= chunkZ + chunkLoadDistanceRadius; z++)
+				{
+					for (int y = chunkY - chunkLoadDistanceRadius; y <= chunkY + chunkLoadDistanceRadius; y++)
+					{
+						long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
+						if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
+						{
+							mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
+						}
+					}
+				}
+			}
+			mLoadChunkReady = true;
+		}).Start();
+
+		if (mWaitChunksAreLoaded != null)
+		{
+			StopCoroutine(mWaitChunksAreLoaded);
+		}
+
+		mWaitChunksAreLoaded = StartCoroutine(WaitChunksAreLoaded());
+	}
+
+	private IEnumerator WaitChunksAreLoaded()
+	{
+		yield return mWaitWhile;
+		OnChunkDataLoaded();
+	}
+
+	private void OnChunkDataLoaded()
+	{
 		mOpaqueBuffer?.Dispose();
 		mTransparencyBuffer?.Dispose();
 
 		mOpaqueBuffer = null;
 		mTransparencyBuffer = null;
-
-		mList.Clear();
-		mOpaqueList.Clear();
-		mTransparencyList.Clear();
-
-		int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
-		for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
-		{
-			for (int z = chunkZ - chunkLoadDistanceRadius; z <= chunkZ + chunkLoadDistanceRadius; z++)
-			{
-				for (int y = chunkY - chunkLoadDistanceRadius; y <= chunkY + chunkLoadDistanceRadius; y++)
-				{
-					long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
-					if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
-					{
-						mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
-					}
-				}
-			}
-		}
 
 		if (mList.Count == 0)
 		{
@@ -385,8 +412,6 @@ public class RuntimeVoxController : MonoBehaviour
 			TransparenceVisualEffect.Play();
 		}
 	}
-
-
 	private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
 	{
 		int index = voxels / STEP_CAPACITY;
