@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.VoxToVFXFramework.Scripts.Common;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Common;
 using VoxToVFXFramework.Scripts.Data;
 using Color = FileToVoxCore.Drawing.Color;
 using Vector3 = FileToVoxCore.Schematics.Tools.Vector3;

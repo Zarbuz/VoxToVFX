@@ -1,4 +1,4 @@
-﻿namespace Assets.VoxToVFXFramework.Scripts.Common
+﻿namespace VoxToVFXFramework.Scripts.Common
 {
     public struct IntVector3
     {

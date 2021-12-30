@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.VoxToVFXFramework.Scripts.Camera
+namespace VoxToVFXFramework.Scripts.Camera
 {
     public class FreeCamera : MonoBehaviour
     {

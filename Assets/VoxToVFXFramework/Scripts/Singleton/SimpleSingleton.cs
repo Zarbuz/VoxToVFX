@@ -1,33 +1,36 @@
-﻿public abstract class SimpleSingleton<T> where T : class, new()
+﻿namespace VoxToVFXFramework.Scripts.Singleton
 {
-	#region ConstStatic
-
-	protected static T mInstance;
-	public static T Instance
+	public abstract class SimpleSingleton<T> where T : class, new()
 	{
-		get
+		#region ConstStatic
+
+		protected static T mInstance;
+		public static T Instance
 		{
-			if (mInstance == null)
+			get
 			{
-				mInstance = new T();
+				if (mInstance == null)
+				{
+					mInstance = new T();
+				}
+
+				return mInstance;
 			}
-
-			return mInstance;
 		}
+
+		protected SimpleSingleton()
+		{
+			Init();
+		}
+
+		#endregion
+
+		#region PrivateMethods
+
+		protected virtual void Init()
+		{
+		}
+
+		#endregion
 	}
-
-	protected SimpleSingleton()
-	{
-		Init();
-	}
-
-	#endregion
-
-	#region PrivateMethods
-
-	protected virtual void Init()
-	{
-	}
-
-	#endregion
 }
