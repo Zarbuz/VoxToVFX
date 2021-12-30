@@ -32,6 +32,7 @@ namespace VoxToVFXFramework.Scripts.Data
         public float metallic;
         public float emission;
         public float alpha;
+        public float softParticleFadeDistance;
     }
 
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]

@@ -118,6 +118,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				materials[i].smoothness = materialChunk.Smoothness;
 				materials[i].metallic = materialChunk.Metallic;
 				materials[i].alpha = materialChunk.Alpha;
+				materials[i].softParticleFadeDistance = materialChunk.Type == MaterialType._media ? 1.2f : 0.01f;
 			}
 
 			return materials;
