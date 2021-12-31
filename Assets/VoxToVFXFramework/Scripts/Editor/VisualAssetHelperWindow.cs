@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.ScriptableObjects;
 
 public class VisualAssetHelperWindow : EditorWindow
 {
@@ -15,8 +16,8 @@ public class VisualAssetHelperWindow : EditorWindow
 
 	#region Fields
 
-	private RuntimeVoxManager mRuntimeVoxManager;
-
+	private VisualEffectConfig mVisualEffectConfig;
+	private int mCountAssetsToGenerate = 100;
 	#endregion
 
 	#region UnityMethods
@@ -24,12 +25,18 @@ public class VisualAssetHelperWindow : EditorWindow
 	private void OnGUI()
 	{
 		EditorGUILayout.BeginHorizontal();
-		mRuntimeVoxManager = (RuntimeVoxManager)EditorGUILayout.ObjectField(mRuntimeVoxManager, typeof(RuntimeVoxManager), true);
+		
+		EditorGUILayout.LabelField("Assets to Generate");
+		mCountAssetsToGenerate = EditorGUILayout.IntSlider(mCountAssetsToGenerate, 10, 500);
+
 		EditorGUILayout.EndHorizontal();
+
+		EditorGUILayout.BeginHorizontal();
+		mVisualEffectConfig = (VisualEffectConfig)EditorGUILayout.ObjectField(mVisualEffectConfig, typeof(VisualEffectConfig), false);
 
 		if (GUILayout.Button("GenerateAssets"))
 		{
-			if (mRuntimeVoxManager == null)
+			if (mVisualEffectConfig == null)
 			{
 				EditorUtility.DisplayDialog("VoxToVFX - Error", "You must link a RuntimeVoxController before generating visual assets", "Ok");
 				return;
@@ -37,6 +44,7 @@ public class VisualAssetHelperWindow : EditorWindow
 
 			GenerateAssets();
 		}
+		EditorGUILayout.EndHorizontal();
 	}
 
 	#endregion
@@ -58,18 +66,16 @@ public class VisualAssetHelperWindow : EditorWindow
 	{
 		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_VFX_FOLDER, "VoxImporterV2.vfx"), "Opaque", out List<VisualEffectAsset> l1))
 		{
-			mRuntimeVoxManager.SetOpaqueVisualEffectsList(l1);
-			EditorUtility.SetDirty(mRuntimeVoxManager.gameObject);
+			mVisualEffectConfig.OpaqueVisualEffects = l1;
 		}
 
 		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_VFX_FOLDER, "VoxImporterV2Transparency.vfx"), "Transparency", out List<VisualEffectAsset> l2))
 		{
-			mRuntimeVoxManager.SetTransparenceVisualEffectsList(l2);
-			EditorUtility.SetDirty(mRuntimeVoxManager.gameObject);
+			mVisualEffectConfig.TransparenceVisualEffects = l2;
 		}
 	}
 
-	private static bool WriteAllVisualAssets(string inputPath, string prefixName, out List<VisualEffectAsset> assets)
+	private bool WriteAllVisualAssets(string inputPath, string prefixName, out List<VisualEffectAsset> assets)
 	{
 		assets = new List<VisualEffectAsset>();
 		if (!File.Exists(inputPath))
@@ -110,9 +116,9 @@ public class VisualAssetHelperWindow : EditorWindow
 			}
 		}
 
-		for (int i = 1; i <= RuntimeVoxManager.COUNT_ASSETS_TO_GENERATE; i++)
+		for (int i = 1; i <= mCountAssetsToGenerate; i++)
 		{
-			uint newCapacity = (uint)(i * RuntimeVoxManager.STEP_CAPACITY);
+			uint newCapacity = (uint)(i * mVisualEffectConfig.StepCapacity);
 			lines[capacityLineIndex] = "  capacity: " + newCapacity;
 			string targetFileName = prefixName + "VFX-" + newCapacity + ".vfx";
 			File.WriteAllLines(Path.Combine(pathOutput, targetFileName), lines);

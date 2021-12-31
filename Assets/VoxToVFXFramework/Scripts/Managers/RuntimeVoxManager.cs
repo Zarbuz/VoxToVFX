@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
+using VoxToVFXFramework.Scripts.ScriptableObjects;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI;
 
@@ -29,14 +30,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private bool DebugVisualEffects;
 
 		[Header("VisualEffectAssets")]
-		[SerializeField] private List<VisualEffectAsset> OpaqueVisualEffects;
-		[SerializeField] private List<VisualEffectAsset> TransparenceVisualEffects;
+		[SerializeField] private VisualEffectConfig Config;
 		#endregion
 
 		#region ConstStatic
 
-		public const int STEP_CAPACITY = 20000;
-		public const int COUNT_ASSETS_TO_GENERATE = 500;
 
 		private const string MAIN_VFX_BUFFER_KEY = "Buffer";
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
@@ -77,16 +75,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		protected override void OnStart()
 		{
 			ChunkDataLoaded += OnChunkDataLoaded;
-			bool b = VerifyEffectAssetsList();
-			if (!b && !DebugVisualEffects)
-			{
-				Debug.LogError("[RuntimeVoxController] EffectAssets count is different to COUNT_ASSETS_TO_GENERATE: " + OpaqueVisualEffects.Count + " expect: " + COUNT_ASSETS_TO_GENERATE);
-				return;
-			}
-
 			VoxImporter voxImporter = new VoxImporter();
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "Sydney.vox"), OnLoadProgress, OnLoadFinished));
+			StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"), OnLoadProgress, OnLoadFinished));
 		}
 
 		private void OnDestroy()
@@ -121,18 +112,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public void SetOpaqueVisualEffectsList(List<VisualEffectAsset> list)
-		{
-			OpaqueVisualEffects.Clear();
-			OpaqueVisualEffects.AddRange(list);
-		}
-
-		public void SetTransparenceVisualEffectsList(List<VisualEffectAsset> list)
-		{
-			TransparenceVisualEffects.Clear();
-			TransparenceVisualEffects.AddRange(list);
-		}
-
 		public void SetChunkLoadDistance(int distance)
 		{
 			ChunkLoadDistance = distance;
@@ -149,16 +128,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mTransparencyBuffer?.Release();
 			mPaletteBuffer?.Release();
 			mRotationBuffer?.Release();
+
+			mOpaqueBuffer = null;
+			mTransparencyBuffer = null;
+			mPaletteBuffer = null;
+			mRotationBuffer = null;
+
+			mCustomSchematic = null;
 		}
 
-		private bool VerifyEffectAssetsList()
-		{
-			return OpaqueVisualEffects.Count == COUNT_ASSETS_TO_GENERATE && TransparenceVisualEffects.Count == COUNT_ASSETS_TO_GENERATE;
-		}
 
 		private void OnLoadProgress(float progress)
 		{
-			Debug.Log("[RuntimeVoxController] Load progress: " + progress * 100);
 			LoadProgressCallback?.Invoke(progress);
 		}
 
@@ -283,8 +264,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			if (!DebugVisualEffects)
 			{
-				OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, OpaqueVisualEffects);
-				TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, TransparenceVisualEffects);
+				OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, Config.OpaqueVisualEffects);
+				TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, Config.TransparenceVisualEffects);
 			}
 
 			if (mOpaqueList.Count > 0)
@@ -309,7 +290,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		}
 		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
 		{
-			int index = voxels / STEP_CAPACITY;
+			int index = voxels / Config.StepCapacity;
 			if (index > assets.Count)
 			{
 				index = assets.Count - 1;

@@ -47,8 +47,6 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			RuntimeVoxManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			RuntimeVoxManager.Instance.LoadFinishedCallback += OnLoadFinished;
-			
-			CanvasPlayerPcState = CanvasPlayerPCState.None;
 		}
 
 		private void OnDestroy()
