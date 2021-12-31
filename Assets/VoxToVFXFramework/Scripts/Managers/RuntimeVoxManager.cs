@@ -50,6 +50,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public int ChunkLoadDistance { get; set; } = 10;
 		public int DetailLoadDistance { get; set; } = 140;
+		public bool ActiveTransparency { get; set; } = true;
 
 		private GraphicsBuffer mOpaqueBuffer;
 		private GraphicsBuffer mTransparencyBuffer;
@@ -115,6 +116,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void SetChunkLoadDistance(int distance)
 		{
 			ChunkLoadDistance = distance;
+			OnChunkLoadDistanceValueChanged();
+		}
+
+		public void SetActiveTransparency(bool active)
+		{
+			ActiveTransparency = active;
 			OnChunkLoadDistanceValueChanged();
 		}
 
@@ -246,8 +253,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			if (mList.Count > 0)
 			{
-				mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
-				mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
+				if (ActiveTransparency)
+				{
+					mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
+					mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
+				}
+				else
+				{
+					mOpaqueList.AddRange(mList);
+				}
 
 				UnityMainThreadManager.Instance.Enqueue(() => ChunkDataLoaded?.Invoke());
 			}
@@ -299,6 +313,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return assets[index];
 		}
 		#endregion
+
+		
 	}
 }
 

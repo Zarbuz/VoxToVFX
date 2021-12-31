@@ -16,6 +16,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		[SerializeField] private TextMeshProUGUI LoadDetailDistanceText;
 		[SerializeField] private Slider DetailLoadDistanceSlider;
 
+		[SerializeField] private Toggle ActiveTransparency;
 		#endregion
 
 		#region UnityMethods
@@ -24,6 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			ChunkLoadDistanceSlider.onValueChanged.AddListener(OnChunkLoadDistanceValueChanged);
 			DetailLoadDistanceSlider.onValueChanged.AddListener(OnDetailLoadDistanceValueChanged);
+			ActiveTransparency.onValueChanged.AddListener(OnActiveTransparencyValueChanged);
 			RefreshSettings();
 		}
 
@@ -31,6 +33,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			ChunkLoadDistanceSlider.onValueChanged.RemoveListener(OnChunkLoadDistanceValueChanged);
 			DetailLoadDistanceSlider.onValueChanged.RemoveListener(OnDetailLoadDistanceValueChanged);
+			ActiveTransparency.onValueChanged.RemoveListener(OnActiveTransparencyValueChanged);
 		}
 
 		#endregion
@@ -44,6 +47,8 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 			LoadDetailDistanceText.text = "Load Details Distance: " + RuntimeVoxManager.Instance.DetailLoadDistance;
 			DetailLoadDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.DetailLoadDistance);
+
+			ActiveTransparency.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.ActiveTransparency);
 		}
 
 		private void OnChunkLoadDistanceValueChanged(float value)
@@ -56,6 +61,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			LoadDetailDistanceText.text = "Load Details Distance: " + value;
 			RuntimeVoxManager.Instance.DetailLoadDistance = ((int)value);
+		}
+
+		private void OnActiveTransparencyValueChanged(bool active)
+		{
+			RuntimeVoxManager.Instance.SetActiveTransparency(active);
 		}
 
 		#endregion
