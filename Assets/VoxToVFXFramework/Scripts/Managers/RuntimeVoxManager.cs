@@ -196,7 +196,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			mMaterials = voxelData.Materials;
-			voxelData.CustomSchematic.UpdateRotations();
 			Debug.Log("[RuntimeVoxController] OnUpdateRotationFinished");
 
 			OpaqueVisualEffect.enabled = true;
