@@ -163,7 +163,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 							if (canAdd)
 							{
-								mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y, tmpVoxel.z + 1000, paletteIndex - 1);
+								mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, paletteIndex - 1);
 							}
 						}
 					}
