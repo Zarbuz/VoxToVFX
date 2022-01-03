@@ -119,7 +119,7 @@ namespace VoxToVFXFramework.Scripts.Data
 			}
 		}
 
-		public int UpdateRotations()
+		public List<VoxelVFX> UpdateRotations()
 		{
 			Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
 			foreach (VoxelVFX voxel in voxels.Values)
@@ -144,8 +144,9 @@ namespace VoxToVFXFramework.Scripts.Data
 					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
 				}
 			}
-
-			return voxels.Count;
+			
+			voxels.Clear();
+			return RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToList();
 		}
 
 

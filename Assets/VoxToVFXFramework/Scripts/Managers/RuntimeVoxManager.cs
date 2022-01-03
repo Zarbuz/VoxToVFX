@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
@@ -26,8 +27,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[Header("Camera Settings")]
 		[SerializeField] private Transform MainCamera;
 
-		[Header("Debug Settings")]
-		[SerializeField] private bool DebugVisualEffects;
+		[SerializeField] private HDAdditionalLightData DirectionalLight;
+
 
 		[Header("VisualEffectAssets")]
 		[SerializeField] private VisualEffectConfig Config;
@@ -40,6 +41,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
 		private const string DETAIL_LOAD_DISTANCE_KEY = "DetailLoadDistance";
+		private const string CUT_OF_MARGIN_KEY = "CutOfMargin";
 
 		#endregion
 
@@ -48,34 +50,30 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public event Action<float> LoadProgressCallback;
 		public event Action LoadFinishedCallback;
 
-		public int ChunkLoadDistance { get; set; } = 10;
 		public int DetailLoadDistance { get; set; } = 140;
-		public bool ActiveTransparency { get; set; } = true;
+		public int CutOfMargin { get; set; } = 200;
 
 		private GraphicsBuffer mOpaqueBuffer;
 		private GraphicsBuffer mTransparencyBuffer;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mRotationBuffer;
 
-		private CustomSchematic mCustomSchematic;
-		private VoxelMaterialVFX[] mMaterials;
+		private bool mIsLoaded;
+		private int mPreviousDetailLoadDistance;
+		private int mPreviousCutOfMargin;
 
 		private Vector3 mPreviousPosition;
-		private long mPreviousChunkIndex;
-		private int mPreviousDetailLoadDistance;
+		private Vector3 mPreviousAngle;
+		//private CustomSchematic mCustomSchematic;
 
-		private Thread mThread;
-		private readonly List<VoxelVFX> mList = new List<VoxelVFX>();
-		private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
-		private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
-		private static event Action ChunkDataLoaded;
 		#endregion
 
 		#region UnityMethods
 
 		protected override void OnStart()
 		{
-			ChunkDataLoaded += OnChunkDataLoaded;
+			//ChunkDataLoaded += OnChunkDataLoaded;
+			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			VoxImporter voxImporter = new VoxImporter();
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 			StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"), OnLoadProgress, OnLoadFinished));
@@ -83,14 +81,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDestroy()
 		{
-			ChunkDataLoaded -= OnChunkDataLoaded;
+			//ChunkDataLoaded -= OnChunkDataLoaded;
 			Release();
 		}
 
-		private void FixedUpdate()
+		private void Update()
 		{
-			if (mCustomSchematic == null)
+			if (!mIsLoaded)
+			{
 				return;
+			}
 
 			if (mPreviousDetailLoadDistance != DetailLoadDistance)
 			{
@@ -98,32 +98,20 @@ namespace VoxToVFXFramework.Scripts.Managers
 				UpdateDetailLoadDistance();
 			}
 
-			if (mPreviousPosition != MainCamera.position)
+			if (mPreviousCutOfMargin != CutOfMargin)
 			{
-				mPreviousPosition = MainCamera.position;
-				FastMath.FloorToInt(mPreviousPosition.x / CustomSchematic.CHUNK_SIZE, mPreviousPosition.y / CustomSchematic.CHUNK_SIZE, mPreviousPosition.z / CustomSchematic.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
-				long chunkIndex = CustomSchematic.GetVoxelIndex(chunkX, chunkY, chunkZ);
+				mPreviousCutOfMargin = CutOfMargin;
+				UpdateCutOfMargin();
+			}
 
-				if (mPreviousChunkIndex != chunkIndex)
-				{
-					mPreviousChunkIndex = chunkIndex;
-					//CreateBoxColliderForCurrentChunk(chunkIndex);
-					LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
-				}
+			if (MainCamera.transform.position != mPreviousPosition || MainCamera.transform.eulerAngles != mPreviousAngle)
+			{
+				mPreviousPosition = MainCamera.transform.position;
+				mPreviousAngle = MainCamera.transform.eulerAngles;
+				DirectionalLight.RequestShadowMapRendering();
 			}
 		}
 
-		public void SetChunkLoadDistance(int distance)
-		{
-			ChunkLoadDistance = distance;
-			OnChunkLoadDistanceValueChanged();
-		}
-
-		public void SetActiveTransparency(bool active)
-		{
-			ActiveTransparency = active;
-			OnChunkLoadDistanceValueChanged();
-		}
 
 		#endregion
 
@@ -141,7 +129,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer = null;
 			mRotationBuffer = null;
 
-			mCustomSchematic = null;
+			//mCustomSchematic = null;
 		}
 
 
@@ -152,13 +140,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnLoadFinished(VoxelDataVFX voxelData)
 		{
-			int count = voxelData.CustomSchematic.UpdateRotations();
+			List<VoxelVFX> voxels = voxelData.CustomSchematic.UpdateRotations();
+			int count = voxels.Count;
 
 			Debug.Log("[RuntimeVoxController] OnLoadFinished: " + count);
 			int targetPositionX = voxelData.CustomSchematic.Width / 2;
 			int targetPositionY = voxelData.CustomSchematic.Height / 2;
 			int targetPositionZ = voxelData.CustomSchematic.Length / 2;
 			MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
+
+			List<VoxelVFX> opaqueList = new List<VoxelVFX>();
+			List<VoxelVFX> transparencyList = new List<VoxelVFX>();
+			opaqueList.AddRange(voxels.Where(v => !v.IsTransparent(voxelData.Materials)));
+			transparencyList.AddRange(voxels.Where(v => v.IsTransparent(voxelData.Materials)));
+
+			OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(opaqueList.Count, Config.OpaqueVisualEffects);
+			TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(transparencyList.Count, Config.TransparenceVisualEffects);
 
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(voxelData.Materials);
@@ -195,19 +192,33 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
-			mMaterials = voxelData.Materials;
+
+			
+
+			if (opaqueList.Count > 0)
+			{
+				mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, opaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+				mOpaqueBuffer.SetData(opaqueList);
+
+				OpaqueVisualEffect.SetInt("InitialBurstCount", opaqueList.Count);
+				OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mOpaqueBuffer);
+				OpaqueVisualEffect.Play();
+			}
+
+			if (transparencyList.Count > 0)
+			{
+				mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, transparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+				mTransparencyBuffer.SetData(transparencyList);
+
+				TransparenceVisualEffect.SetInt("InitialBurstCount", transparencyList.Count);
+				TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mTransparencyBuffer);
+				TransparenceVisualEffect.Play();
+			}
 
 			OpaqueVisualEffect.enabled = true;
 			TransparenceVisualEffect.enabled = true;
-			mCustomSchematic = voxelData.CustomSchematic;
+			mIsLoaded = true;
 			LoadFinishedCallback?.Invoke();
-		}
-
-		private void OnChunkLoadDistanceValueChanged()
-		{
-			mPreviousPosition = MainCamera.position;
-			FastMath.FloorToInt(mPreviousPosition.x / CustomSchematic.CHUNK_SIZE, mPreviousPosition.y / CustomSchematic.CHUNK_SIZE, mPreviousPosition.z / CustomSchematic.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
-			LoadVoxelDataAroundCamera(chunkX, chunkY, chunkZ);
 		}
 
 		private void UpdateDetailLoadDistance()
@@ -216,90 +227,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			TransparenceVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
 		}
 
-		private void LoadVoxelDataAroundCamera(int chunkX, int chunkY, int chunkZ)
+		private void UpdateCutOfMargin()
 		{
-			if (mThread != null && mThread.IsAlive)
-			{
-				mThread.Abort();
-			}
-
-			mThread = new Thread(() => DoMainThreadWork(chunkX, chunkY, chunkZ));
-			mThread.Start();
+			OpaqueVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
+			TransparenceVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
 		}
 
-		private void DoMainThreadWork(int chunkX, int chunkY, int chunkZ)
-		{
-			mList.Clear();
-			mOpaqueList.Clear();
-			mTransparencyList.Clear();
-
-			int chunkLoadDistanceRadius = ChunkLoadDistance / 2;
-			for (int x = chunkX - chunkLoadDistanceRadius; x <= chunkX + chunkLoadDistanceRadius; x++)
-			{
-				for (int z = chunkZ - chunkLoadDistanceRadius; z <= chunkZ + chunkLoadDistanceRadius; z++)
-				{
-					for (int y = chunkY - chunkLoadDistanceRadius; y <= chunkY + chunkLoadDistanceRadius; y++)
-					{
-						long chunkIndexAt = CustomSchematic.GetVoxelIndex(x, y, z);
-						if (mCustomSchematic.RegionDict.ContainsKey(chunkIndexAt))
-						{
-							mList.AddRange(mCustomSchematic.RegionDict[chunkIndexAt].BlockDict.Values);
-						}
-					}
-				}
-			}
-
-			if (mList.Count > 0)
-			{
-				if (ActiveTransparency)
-				{
-					mOpaqueList.AddRange(mList.Where(v => !v.IsTransparent(mMaterials)));
-					mTransparencyList.AddRange(mList.Where(v => v.IsTransparent(mMaterials)));
-				}
-				else
-				{
-					mOpaqueList.AddRange(mList);
-				}
-
-				UnityMainThreadManager.Instance.Enqueue(() => ChunkDataLoaded?.Invoke());
-			}
-			else
-			{
-				Debug.Log("[RuntimeVoxController] List is empty, abort");
-			}
-		}
-
-		private void OnChunkDataLoaded()
-		{
-			mOpaqueBuffer?.Release();
-			mTransparencyBuffer?.Release();
-
-			if (!DebugVisualEffects)
-			{
-				OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, Config.OpaqueVisualEffects);
-				TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, Config.TransparenceVisualEffects);
-			}
-
-			if (mOpaqueList.Count > 0)
-			{
-				mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mOpaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-				mOpaqueBuffer.SetData(mOpaqueList);
-
-				OpaqueVisualEffect.SetInt("InitialBurstCount", mOpaqueList.Count);
-				OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mOpaqueBuffer);
-				OpaqueVisualEffect.Play();
-			}
-
-			if (mTransparencyList.Count > 0)
-			{
-				mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mTransparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-				mTransparencyBuffer.SetData(mTransparencyList);
-
-				TransparenceVisualEffect.SetInt("InitialBurstCount", mTransparencyList.Count);
-				TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mTransparencyBuffer);
-				TransparenceVisualEffect.Play();
-			}
-		}
 		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
 		{
 			int index = voxels / Config.StepCapacity;
@@ -311,8 +244,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return assets[index];
 		}
 		#endregion
-
-		
 	}
 }
 

@@ -196,7 +196,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
@@ -293,8 +293,8 @@ MonoBehaviour:
   m_MaxDepthBias: 0.001
   m_ShadowResolution:
     m_Override: 512
-    m_UseOverride: 1
-    m_Level: 0
+    m_UseOverride: 0
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -307,9 +307,9 @@ MonoBehaviour:
   m_PenumbraTint: 0
   m_NormalBias: 0.75
   m_SlopeBias: 0.5
-  m_ShadowUpdateMode: 0
+  m_ShadowUpdateMode: 2
   m_AlwaysDrawDynamicShadows: 0
-  m_UpdateShadowOnLightMovement: 0
+  m_UpdateShadowOnLightMovement: 1
   m_CachedShadowTranslationThreshold: 0.01
   m_CachedShadowAngularThreshold: 0.5
   m_BarnDoorAngle: 90
@@ -853,27 +853,27 @@ PrefabInstance:
     - target: {fileID: 2280101523268585454, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2280101523268585454, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2280101523268585454, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 2280101523268585454, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 2280101523268585454, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -100
       objectReference: {fileID: 0}
     - target: {fileID: 2342109334604839077, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
@@ -893,27 +893,27 @@ PrefabInstance:
     - target: {fileID: 6394534712113657159, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6394534712113657159, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6394534712113657159, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 6394534712113657159, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 6394534712113657159, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 7250438108037741141, guid: fc2bf61b16eea9249adda311188a902e,
         type: 3}
@@ -1049,6 +1049,11 @@ PrefabInstance:
       propertyPath: MainCamera
       value: 
       objectReference: {fileID: 1403960012}
+    - target: {fileID: 8111456310344060155, guid: e185c49bdd7463c43be3a65999488bc3,
+        type: 3}
+      propertyPath: DirectionalLight
+      value: 
+      objectReference: {fileID: 798177758}
     - target: {fileID: 8111456310344060155, guid: e185c49bdd7463c43be3a65999488bc3,
         type: 3}
       propertyPath: ChunkLoadDistance
@@ -6273,11 +6278,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CastShadows
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8111456310807942425, guid: e185c49bdd7463c43be3a65999488bc3,
-        type: 3}
-      propertyPath: m_LightProbeUsage
-      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e185c49bdd7463c43be3a65999488bc3, type: 3}

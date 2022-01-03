@@ -10,30 +10,28 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 	{
 		#region ScriptParameters
 
-		[SerializeField] private TextMeshProUGUI ChunkLoadDistanceText;
-		[SerializeField] private Slider ChunkLoadDistanceSlider;
-
 		[SerializeField] private TextMeshProUGUI LoadDetailDistanceText;
 		[SerializeField] private Slider DetailLoadDistanceSlider;
 
-		[SerializeField] private Toggle ActiveTransparency;
+		[SerializeField] private TextMeshProUGUI CutOfMarginText;
+		[SerializeField] private Slider CutOfMarginSlider;
+
+
 		#endregion
 
 		#region UnityMethods
 
 		private void OnEnable()
 		{
-			ChunkLoadDistanceSlider.onValueChanged.AddListener(OnChunkLoadDistanceValueChanged);
+			CutOfMarginSlider.onValueChanged.AddListener(OnCutOfMarginValueChanged);
 			DetailLoadDistanceSlider.onValueChanged.AddListener(OnDetailLoadDistanceValueChanged);
-			ActiveTransparency.onValueChanged.AddListener(OnActiveTransparencyValueChanged);
 			RefreshSettings();
 		}
 
 		private void OnDisable()
 		{
-			ChunkLoadDistanceSlider.onValueChanged.RemoveListener(OnChunkLoadDistanceValueChanged);
+			CutOfMarginSlider.onValueChanged.RemoveListener(OnCutOfMarginValueChanged);
 			DetailLoadDistanceSlider.onValueChanged.RemoveListener(OnDetailLoadDistanceValueChanged);
-			ActiveTransparency.onValueChanged.RemoveListener(OnActiveTransparencyValueChanged);
 		}
 
 		#endregion
@@ -42,19 +40,18 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		private void RefreshSettings()
 		{
-			ChunkLoadDistanceText.text = "Chunk Load Distance: " + RuntimeVoxManager.Instance.ChunkLoadDistance;
-			ChunkLoadDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ChunkLoadDistance);
+			CutOfMarginText.text = "Cut of margin: " + RuntimeVoxManager.Instance.CutOfMargin;
+			CutOfMarginSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.CutOfMargin);
 
 			LoadDetailDistanceText.text = "Load Details Distance: " + RuntimeVoxManager.Instance.DetailLoadDistance;
 			DetailLoadDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.DetailLoadDistance);
 
-			ActiveTransparency.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.ActiveTransparency);
 		}
 
-		private void OnChunkLoadDistanceValueChanged(float value)
+		private void OnCutOfMarginValueChanged(float value)
 		{
-			ChunkLoadDistanceText.text = "Chunk Load Distance: " + value;
-			RuntimeVoxManager.Instance.SetChunkLoadDistance((int)value);
+			CutOfMarginText.text = "Cut of margin: " + value;
+			RuntimeVoxManager.Instance.CutOfMargin = ((int)value);
 		}
 
 		private void OnDetailLoadDistanceValueChanged(float value)
@@ -63,10 +60,6 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			RuntimeVoxManager.Instance.DetailLoadDistance = ((int)value);
 		}
 
-		private void OnActiveTransparencyValueChanged(bool active)
-		{
-			RuntimeVoxManager.Instance.SetActiveTransparency(active);
-		}
 
 		#endregion
 	}
