@@ -5,12 +5,6 @@ using Color = FileToVoxCore.Drawing.Color;
 
 namespace VoxToVFXFramework.Scripts.Data
 {
-    public class VoxelDataVFX
-    {
-        public CustomSchematic CustomSchematic;
-        public VoxelMaterialVFX[] Materials;
-    }
-
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
     public struct VoxelVFX
     {

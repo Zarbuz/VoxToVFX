@@ -23,6 +23,11 @@ namespace VoxToVFXFramework.Scripts.Data
 			BlockDict = new Dictionary<long, VoxelVFX>();
 		}
 
+		public bool HaveVoxelInRegion()
+		{
+			return BlockDict.Count > 0;
+		}
+
 		public override string ToString()
 		{
 			return $"{X} {Y} {Z}";
@@ -30,7 +35,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	}
 
 
-	public class CustomSchematic
+	public class CustomSchematic : IDisposable
 	{
 		#region ConstStatic
 
@@ -38,7 +43,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int MAX_WORLD_HEIGHT = 2000;
 		public const int MAX_WORLD_LENGTH = 2000;
 
-		public static int CHUNK_SIZE = 64;
+		public static int CHUNK_SIZE = 512;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static long GetVoxelIndex(int x, int y, int z)
@@ -119,36 +124,71 @@ namespace VoxToVFXFramework.Scripts.Data
 			}
 		}
 
-		public List<VoxelVFX> UpdateRotations()
+		public void UpdateRotations()
 		{
-			Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
-			foreach (VoxelVFX voxel in voxels.Values)
+			foreach (Region region in RegionDict.Values)
 			{
-				long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
-				long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
-				long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
-				long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
-				long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
-				long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
+				List<long> keys = region.BlockDict.Keys.ToList();
+				foreach (long key in keys)
+				{
+					VoxelVFX voxel = region.BlockDict[key];
+					long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
+					long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
+					long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
+					long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
+					long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
+					long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
 
-				if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack))
-				{
-					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
-				}
-				else if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
-				{
-					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
-				}
-				else if (voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
-				{
-					UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
+					if (region.BlockDict.ContainsKey(iLeft) && region.BlockDict.ContainsKey(iRight) && region.BlockDict.ContainsKey(iFront) && region.BlockDict.ContainsKey(iBack))
+					{
+						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
+					}
+					else if (region.BlockDict.ContainsKey(iLeft) && region.BlockDict.ContainsKey(iRight) && region.BlockDict.ContainsKey(iTop) && region.BlockDict.ContainsKey(iBottom))
+					{
+						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
+					}
+					else if (region.BlockDict.ContainsKey(iFront) && region.BlockDict.ContainsKey(iBack) && region.BlockDict.ContainsKey(iTop) && region.BlockDict.ContainsKey(iBottom))
+					{
+						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
+					}
 				}
 			}
+
+			//Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
+			//foreach (VoxelVFX voxel in voxels.Values)
+			//{
+			//	long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
+			//	long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
+			//	long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
+			//	long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
+			//	long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
+			//	long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
+
+			//	if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack))
+			//	{
+			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
+			//	}
+			//	else if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
+			//	{
+			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
+			//	}
+			//	else if (voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
+			//	{
+			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
+			//	}
+			//}
 			
-			voxels.Clear();
-			return RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToList();
+			//voxels.Clear();
 		}
 
+		public void Dispose()
+		{
+			foreach (Region region in RegionDict.Values)
+			{
+				region.BlockDict.Clear();
+			}
+			RegionDict.Clear();
+		}
 
 		#endregion
 
@@ -212,6 +252,8 @@ namespace VoxToVFXFramework.Scripts.Data
 			MaxY = Mathf.Max(y, MaxY);
 			MaxZ = Mathf.Max(z, MaxZ);
 		}
+
+		
 
 		#endregion
 	}

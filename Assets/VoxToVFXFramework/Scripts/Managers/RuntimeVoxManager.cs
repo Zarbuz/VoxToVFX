@@ -13,6 +13,7 @@ using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.ScriptableObjects;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI;
+using VoxToVFXFramework.Scripts.VFXItem;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -20,9 +21,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 	{
 		#region SerializeFields
 
-		[Header("Visual Effects")]
-		[SerializeField] private VisualEffect OpaqueVisualEffect;
-		[SerializeField] private VisualEffect TransparenceVisualEffect;
+		[SerializeField] private VisualEffectItem VisualEffectItemPrefab;
 
 		[Header("Camera Settings")]
 		[SerializeField] private Transform MainCamera;
@@ -53,8 +52,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int DetailLoadDistance { get; set; } = 140;
 		public int CutOfMargin { get; set; } = 200;
 
-		private GraphicsBuffer mOpaqueBuffer;
-		private GraphicsBuffer mTransparencyBuffer;
+		private readonly List<GraphicsBuffer> mOpaqueBuffers = new List<GraphicsBuffer>();
+		private readonly List<GraphicsBuffer> mTransparencyBuffers = new List<GraphicsBuffer>();
+		private readonly List<VisualEffectItem> mVisualEffectItems = new List<VisualEffectItem>();
+		private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
+		private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
+
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mRotationBuffer;
 
@@ -64,6 +67,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private Vector3 mPreviousPosition;
 		private Vector3 mPreviousAngle;
+
 		//private CustomSchematic mCustomSchematic;
 
 		#endregion
@@ -74,9 +78,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			//ChunkDataLoaded += OnChunkDataLoaded;
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
-			VoxImporter voxImporter = new VoxImporter();
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(voxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"), OnLoadProgress, OnLoadFinished));
+			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"), OnLoadProgress, OnLoadFinished));
 		}
 
 		private void OnDestroy()
@@ -119,16 +122,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void Release()
 		{
-			mOpaqueBuffer?.Release();
-			mTransparencyBuffer?.Release();
+			foreach (GraphicsBuffer buffer in mOpaqueBuffers)
+			{
+				buffer.Release();
+			}
+
+			foreach (GraphicsBuffer buffer in mTransparencyBuffers)
+			{
+				buffer.Release();
+			}
+
 			mPaletteBuffer?.Release();
 			mRotationBuffer?.Release();
 
-			mOpaqueBuffer = null;
-			mTransparencyBuffer = null;
+			mOpaqueBuffers.Clear();
+			mTransparencyBuffers.Clear();
 			mPaletteBuffer = null;
 			mRotationBuffer = null;
-
+			mVisualEffectItems.Clear();
 			//mCustomSchematic = null;
 		}
 
@@ -138,30 +149,102 @@ namespace VoxToVFXFramework.Scripts.Managers
 			LoadProgressCallback?.Invoke(progress);
 		}
 
-		private void OnLoadFinished(VoxelDataVFX voxelData)
+		private void OnLoadFinished(bool success)
 		{
-			List<VoxelVFX> voxels = voxelData.CustomSchematic.UpdateRotations();
-			int count = voxels.Count;
+			if (!success)
+			{
+				Debug.LogError("[RuntimeVoxManager] Failed to load vox model");
+				return;
+			}
 
-			Debug.Log("[RuntimeVoxController] OnLoadFinished: " + count);
-			int targetPositionX = voxelData.CustomSchematic.Width / 2;
-			int targetPositionY = voxelData.CustomSchematic.Height / 2;
-			int targetPositionZ = voxelData.CustomSchematic.Length / 2;
+			GameObject vfxHolders = new GameObject("VisualItemsParent");
+			VoxImporter.CustomSchematic.UpdateRotations();
+
+
+			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
+			mPaletteBuffer.SetData(VoxImporter.Materials);
+
+			List<VoxelRotationVFX> rotations = GetVoxelRotations();
+			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Count, Marshal.SizeOf(typeof(VoxelRotationVFX)));
+			mRotationBuffer.SetData(rotations);
+
+			foreach (Region region in VoxImporter.CustomSchematic.RegionDict.Values.Where(r => r.HaveVoxelInRegion()))
+			{
+				mOpaqueList.Clear();
+				mTransparencyList.Clear();
+
+				mOpaqueList.AddRange(region.BlockDict.Values.Where(v => !v.IsTransparent(VoxImporter.Materials)));
+				mTransparencyList.AddRange(region.BlockDict.Values.Where(v => v.IsTransparent(VoxImporter.Materials)));
+
+				VisualEffectItem visualEffectItem = Instantiate(VisualEffectItemPrefab, vfxHolders.transform, false);
+				visualEffectItem.transform.SetParent(vfxHolders.transform);
+				mVisualEffectItems.Add(visualEffectItem);
+				visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, Config.OpaqueVisualEffects);
+				visualEffectItem.TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, Config.OpaqueVisualEffects);
+
+				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+				visualEffectItem.TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+
+				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+				visualEffectItem.TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+
+				if (mOpaqueList.Count > 0)
+				{
+					GraphicsBuffer buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mOpaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+					buffer.SetData(mOpaqueList);
+					mOpaqueBuffers.Add(buffer);
+					visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", mOpaqueList.Count);
+					visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, buffer);
+					visualEffectItem.OpaqueVisualEffect.enabled = true;
+					visualEffectItem.OpaqueVisualEffect.Play();
+				}
+
+				if (mTransparencyList.Count > 0)
+				{
+					GraphicsBuffer buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, mTransparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
+					buffer.SetData(mTransparencyList);
+					mTransparencyBuffers.Add(buffer);
+					visualEffectItem.TransparenceVisualEffect.SetInt("InitialBurstCount", mTransparencyList.Count);
+					visualEffectItem.TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, buffer);
+					visualEffectItem.TransparenceVisualEffect.enabled = true;
+					visualEffectItem.TransparenceVisualEffect.Play();
+				}
+			}
+
+			Debug.Log("[RuntimeVoxController] OnLoadFinished");
+			int targetPositionX = VoxImporter.CustomSchematic.Width / 2;
+			int targetPositionY = VoxImporter.CustomSchematic.Height / 2;
+			int targetPositionZ = VoxImporter.CustomSchematic.Length / 2;
 			MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
 
-			List<VoxelVFX> opaqueList = new List<VoxelVFX>();
-			List<VoxelVFX> transparencyList = new List<VoxelVFX>();
-			opaqueList.AddRange(voxels.Where(v => !v.IsTransparent(voxelData.Materials)));
-			transparencyList.AddRange(voxels.Where(v => v.IsTransparent(voxelData.Materials)));
+			
+			VoxImporter.Clean();
+			GC.Collect();
+			
+			mIsLoaded = true;
+			LoadFinishedCallback?.Invoke();
+		}
 
-			OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(opaqueList.Count, Config.OpaqueVisualEffects);
-			TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(transparencyList.Count, Config.TransparenceVisualEffects);
+		private void UpdateDetailLoadDistance()
+		{
+			foreach (VisualEffectItem item in mVisualEffectItems)
+			{
+				item.OpaqueVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
+				item.TransparenceVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
+			}
+		}
 
-			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelData.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
-			mPaletteBuffer.SetData(voxelData.Materials);
-			OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-			TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+		private void UpdateCutOfMargin()
+		{
+			foreach (VisualEffectItem item in mVisualEffectItems)
+			{
+				item.OpaqueVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
+				item.TransparenceVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
+			}
+		}
 
+		private static List<VoxelRotationVFX> GetVoxelRotations()
+		{
 			List<VoxelRotationVFX> rotations = new List<VoxelRotationVFX>();
 			rotations.Add(new VoxelRotationVFX()
 			{
@@ -187,50 +270,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				rotation = new Vector3(0, 90, 0)
 			});
 
-			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Count, Marshal.SizeOf(typeof(VoxelRotationVFX)));
-			mRotationBuffer.SetData(rotations);
-
-			OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
-			TransparenceVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
-
-			
-
-			if (opaqueList.Count > 0)
-			{
-				mOpaqueBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, opaqueList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-				mOpaqueBuffer.SetData(opaqueList);
-
-				OpaqueVisualEffect.SetInt("InitialBurstCount", opaqueList.Count);
-				OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mOpaqueBuffer);
-				OpaqueVisualEffect.Play();
-			}
-
-			if (transparencyList.Count > 0)
-			{
-				mTransparencyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, transparencyList.Count, Marshal.SizeOf(typeof(VoxelVFX)));
-				mTransparencyBuffer.SetData(transparencyList);
-
-				TransparenceVisualEffect.SetInt("InitialBurstCount", transparencyList.Count);
-				TransparenceVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, mTransparencyBuffer);
-				TransparenceVisualEffect.Play();
-			}
-
-			OpaqueVisualEffect.enabled = true;
-			TransparenceVisualEffect.enabled = true;
-			mIsLoaded = true;
-			LoadFinishedCallback?.Invoke();
-		}
-
-		private void UpdateDetailLoadDistance()
-		{
-			OpaqueVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
-			TransparenceVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
-		}
-
-		private void UpdateCutOfMargin()
-		{
-			OpaqueVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
-			TransparenceVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
+			return rotations;
 		}
 
 		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)

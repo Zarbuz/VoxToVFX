@@ -13,40 +13,38 @@ using VoxelData = FileToVoxCore.Vox.VoxelData;
 
 namespace VoxToVFXFramework.Scripts.Importer
 {
-	public class VoxImporter
+	public static class VoxImporter
 	{
 		#region Fields
 
-		private CustomSchematic mCustomSchematic;
-		private VoxModel mVoxModel;
-		private readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
+		public static CustomSchematic CustomSchematic { get; private set; }
+		public static VoxelMaterialVFX[] Materials { get; private set; }
 
+		private static VoxModel mVoxModel;
+		private static readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
 
-		private int mLeft;
-		private int mRight;
-		private int mTop;
-		private int mBottom;
-		private int mFront;
-		private int mBack;
+		private static int mLeft;
+		private static int mRight;
+		private static int mTop;
+		private static int mBottom;
+		private static int mFront;
+		private static int mBack;
+
 		#endregion
 
 		#region PublicMethods
 
-		public IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<VoxelDataVFX> onFinishedCallback)
+		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<bool> onFinishedCallback)
 		{
+			Clean();
 			VoxReader voxReader = new VoxReader();
 			mVoxModel = voxReader.LoadModel(path, false, false, true);
-			mCustomSchematic = new CustomSchematic();
-			mModelMatrix.Clear();
-
 			if (mVoxModel == null)
 			{
-				onFinishedCallback?.Invoke(null);
+				onFinishedCallback?.Invoke(false);
 			}
 			else
 			{
-				VoxelDataVFX voxelDataVfx = new VoxelDataVFX();
-				voxelDataVfx.Materials = WriteMaterialData();
 				for (int i = 0; i < mVoxModel.TransformNodeChunks.Count; i++)
 				{
 					TransformNodeChunk transformNodeChunk = mVoxModel.TransformNodeChunks[i];
@@ -91,18 +89,27 @@ namespace VoxToVFXFramework.Scripts.Importer
 					yield return new WaitForEndOfFrame();
 				}
 
-				voxelDataVfx.CustomSchematic = mCustomSchematic;
-				onFinishedCallback?.Invoke(voxelDataVfx);
+				Materials = WriteMaterialData();
+				onFinishedCallback?.Invoke(true);
 			}
 
 			yield return null;
 		}
 
+		public static void Clean()
+		{
+			CustomSchematic?.Dispose();
+			Materials = null;
+			CustomSchematic = new CustomSchematic();
+			mModelMatrix.Clear();
+			mVoxModel = null;
+			GC.Collect();
+		}
 		#endregion
 
 		#region PrivateMethods
 
-		private VoxelMaterialVFX[] WriteMaterialData()
+		private static VoxelMaterialVFX[] WriteMaterialData()
 		{
 			VoxelMaterialVFX[] materials = new VoxelMaterialVFX[256];
 			for (int i = 0; i < mVoxModel.Palette.Length; i++)
@@ -124,7 +131,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return materials;
 		}
 
-		private void WriteVoxelFrameData(VoxelData data, Matrix4x4 matrix4X4)
+		private static void WriteVoxelFrameData(VoxelData data, Matrix4x4 matrix4X4)
 		{
 			IntVector3 originSize = new IntVector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 			originSize.y = data.VoxelsDeep;
@@ -163,7 +170,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 							if (canAdd)
 							{
-								mCustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, paletteIndex - 1);
+								CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, paletteIndex - 1);
 							}
 						}
 					}
@@ -171,7 +178,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			}
 		}
 
-		private IntVector3 GetVoxPosition(VoxelData data, int x, int y, int z, UnityEngine.Vector3 pivot, UnityEngine.Vector3 fpivot, Matrix4x4 matrix4X4)
+		private static IntVector3 GetVoxPosition(VoxelData data, int x, int y, int z, UnityEngine.Vector3 pivot, UnityEngine.Vector3 fpivot, Matrix4x4 matrix4X4)
 		{
 			IntVector3 tmpVoxel = new IntVector3(x, y, z);
 			IntVector3 origPos;
@@ -199,7 +206,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return tmpVoxel;
 		}
 
-		private Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, Vector3 transform)
+		private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, Vector3 transform)
 		{
 			Matrix4x4 result = Matrix4x4.identity;
 			{
