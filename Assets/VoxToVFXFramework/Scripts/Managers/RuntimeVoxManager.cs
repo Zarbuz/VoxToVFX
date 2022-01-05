@@ -180,7 +180,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				visualEffectItem.transform.SetParent(vfxHolders.transform);
 				mVisualEffectItems.Add(visualEffectItem);
 				visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(mOpaqueList.Count, Config.OpaqueVisualEffects);
-				visualEffectItem.TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, Config.OpaqueVisualEffects);
+				visualEffectItem.TransparenceVisualEffect.visualEffectAsset = GetVisualEffectAsset(mTransparencyList.Count, Config.TransparenceVisualEffects);
 
 				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 				visualEffectItem.TransparenceVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
 using UnityEngine;
@@ -22,13 +23,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static VoxModel mVoxModel;
 		private static readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
-
-		private static int mLeft;
-		private static int mRight;
-		private static int mTop;
-		private static int mBottom;
-		private static int mFront;
-		private static int mBack;
 
 		#endregion
 
@@ -140,42 +134,31 @@ namespace VoxToVFXFramework.Scripts.Importer
 			UnityEngine.Vector3 pivot = new UnityEngine.Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			UnityEngine.Vector3 fpivot = new UnityEngine.Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
-			for (int y = 0; y < data.VoxelsTall; y++)
+			Parallel.ForEach(data.Colors, item =>
 			{
-				for (int z = 0; z < data.VoxelsDeep; z++)
+				data.Get3DPos(item.Key, out int x, out int y, out int z);
+				IntVector3 tmpVoxel = GetVoxPosition(data, x, y, z, pivot, fpivot, matrix4X4);
+
+				bool canAdd = false;
+
+				int left = data.GetSafe(x - 1, y, z);
+				int right = data.GetSafe(x + 1, y, z);
+
+				int top = data.GetSafe(x, y + 1, z);
+				int bottom = data.GetSafe(x, y - 1, z);
+
+				int front = data.GetSafe(x, y, z + 1); //y
+				int back = data.GetSafe(x, y, z - 1); //y
+				if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
 				{
-					for (int x = 0; x < data.VoxelsWide; x++)
-					{
-						int paletteIndex = data.Get(x, y, z);
-						//Color color = paletteIndex == 0 ? Color.Empty : mVoxModel.Palette[paletteIndex - 1];
-
-						if (paletteIndex != 0)
-						{
-							IntVector3 tmpVoxel = GetVoxPosition(data, x, y, z, pivot, fpivot, matrix4X4);
-
-							bool canAdd = false;
-
-							mLeft = data.GetSafe(x - 1, y, z);
-							mRight = data.GetSafe(x + 1, y, z);
-
-							mTop = data.GetSafe(x, y + 1, z);
-							mBottom = data.GetSafe(x, y - 1, z);
-
-							mFront = data.GetSafe(x, y, z + 1); //y
-							mBack = data.GetSafe(x, y, z - 1); //y
-							if (mLeft == 0 || mRight == 0 || mTop == 0 || mBottom == 0 || mFront == 0 || mBack == 0)
-							{
-								canAdd = true;
-							}
-
-							if (canAdd)
-							{
-								CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, paletteIndex - 1);
-							}
-						}
-					}
+					canAdd = true;
 				}
-			}
+
+				if (canAdd)
+				{
+					CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, item.Value - 1);
+				}
+			});
 		}
 
 		private static IntVector3 GetVoxPosition(VoxelData data, int x, int y, int z, UnityEngine.Vector3 pivot, UnityEngine.Vector3 fpivot, Matrix4x4 matrix4X4)

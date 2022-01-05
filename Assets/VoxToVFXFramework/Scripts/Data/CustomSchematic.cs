@@ -1,6 +1,7 @@
 ﻿using FileToVoxCore.Utils;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -13,14 +14,14 @@ namespace VoxToVFXFramework.Scripts.Data
 		public int X;
 		public int Y;
 		public int Z;
-		public Dictionary<long, VoxelVFX> BlockDict { get; set; }
+		public ConcurrentDictionary<long, VoxelVFX> BlockDict { get; set; }
 
 		public Region(int x, int y, int z)
 		{
 			X = x;
 			Y = y;
 			Z = z;
-			BlockDict = new Dictionary<long, VoxelVFX>();
+			BlockDict = new ConcurrentDictionary<long, VoxelVFX>();
 		}
 
 		public bool HaveVoxelInRegion()
@@ -43,7 +44,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int MAX_WORLD_HEIGHT = 2000;
 		public const int MAX_WORLD_LENGTH = 2000;
 
-		public static int CHUNK_SIZE = 512;
+		public static int CHUNK_SIZE = 500;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static long GetVoxelIndex(int x, int y, int z)
@@ -57,7 +58,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 
-		public Dictionary<long, Region> RegionDict { get; private set; }
+		public ConcurrentDictionary<long, Region> RegionDict { get; private set; }
 
 		private ushort mWidth;
 
@@ -196,7 +197,7 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		private void CreateAllRegions()
 		{
-			RegionDict = new Dictionary<long, Region>();
+			RegionDict = new ConcurrentDictionary<long, Region>();
 
 			int worldRegionX = (int)Math.Ceiling((decimal)MAX_WORLD_WIDTH / CHUNK_SIZE);
 			int worldRegionY = (int)Math.Ceiling((decimal)MAX_WORLD_HEIGHT / CHUNK_SIZE);
