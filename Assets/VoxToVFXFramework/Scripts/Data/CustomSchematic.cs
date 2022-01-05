@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VoxToVFXFramework.Scripts.Data
@@ -127,10 +128,10 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		public void UpdateRotations()
 		{
-			foreach (Region region in RegionDict.Values)
+			Parallel.ForEach(RegionDict.Values, region =>
 			{
 				List<long> keys = region.BlockDict.Keys.ToList();
-				foreach (long key in keys)
+				Parallel.ForEach(keys, key =>
 				{
 					VoxelVFX voxel = region.BlockDict[key];
 					long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
@@ -152,34 +153,8 @@ namespace VoxToVFXFramework.Scripts.Data
 					{
 						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
 					}
-				}
-			}
-
-			//Dictionary<long, VoxelVFX> voxels = RegionDict.Values.SelectMany(region => region.BlockDict.Values).ToDictionary(voxel => GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z));
-			//foreach (VoxelVFX voxel in voxels.Values)
-			//{
-			//	long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
-			//	long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
-			//	long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
-			//	long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
-			//	long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
-			//	long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
-
-			//	if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack))
-			//	{
-			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
-			//	}
-			//	else if (voxels.ContainsKey(iLeft) && voxels.ContainsKey(iRight) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
-			//	{
-			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
-			//	}
-			//	else if (voxels.ContainsKey(iFront) && voxels.ContainsKey(iBack) && voxels.ContainsKey(iTop) && voxels.ContainsKey(iBottom))
-			//	{
-			//		UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
-			//	}
-			//}
-			
-			//voxels.Clear();
+				});
+			});
 		}
 
 		public void Dispose()
