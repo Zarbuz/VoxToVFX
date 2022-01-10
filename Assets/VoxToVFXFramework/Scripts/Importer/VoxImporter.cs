@@ -20,7 +20,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 	{
 		#region Fields
 
-		public static CustomSchematic CustomSchematic { get; private set; }
 		public static VoxelMaterialVFX[] Materials { get; private set; }
 
 		private static VoxModelCustom mVoxModel;
@@ -99,9 +98,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				voxelDataCustom.VoxelNativeArray.Dispose();
 			}
 
-			CustomSchematic?.Dispose();
 			Materials = null;
-			CustomSchematic = new CustomSchematic();
 			mModelMatrix.Clear();
 			mVoxModel = null;
 			GC.Collect();
@@ -139,64 +136,15 @@ namespace VoxToVFXFramework.Scripts.Importer
 			UnityEngine.Vector3 pivot = new UnityEngine.Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			UnityEngine.Vector3 fpivot = new UnityEngine.Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
+			//TODO: Support Job
 			for (int i = 0; i < data.VoxelNativeArray.Length; i++)
 			{
-
 				Vector4 voxel = data.VoxelNativeArray[i];
 				IntVector3 tmpVoxel = GetVoxPosition(data, (int)voxel.x, (int)voxel.y, (int)voxel.z, pivot, fpivot, matrix4X4);
 				data.VoxelNativeArray[i] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, voxel.w - 1);
-				//data.Get3DPos(key, out int x, out int y, out int z);
-
-				//bool canAdd = false;
-
-				//int left = data.GetSafe(x - 1, y, z);
-				//int right = data.GetSafe(x + 1, y, z);
-
-				//int top = data.GetSafe(x, y + 1, z);
-				//int bottom = data.GetSafe(x, y - 1, z);
-
-				//int front = data.GetSafe(x, y, z + 1); //y
-				//int back = data.GetSafe(x, y, z - 1); //y
-				//if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
-				//{
-				//	canAdd = true;
-				//}
-
-				//if (!canAdd)
-				//{
-				//	data.VoxelNativeArray.Remove(key);
-				//	continue;
-				//}
 			}
 
-			//TODO: Add this element in the buffer VFX
 			onFrameLoadedCallback?.Invoke(data.VoxelNativeArray);
-
-			//Parallel.ForEach(data.Colors, item =>
-			//{
-			//	data.Get3DPos(item.Key, out int x, out int y, out int z);
-			//	IntVector3 tmpVoxel = GetVoxPosition(data, x, y, z, pivot, fpivot, matrix4X4);
-
-			//	bool canAdd = false;
-
-			//	int left = data.GetSafe(x - 1, y, z);
-			//	int right = data.GetSafe(x + 1, y, z);
-
-			//	int top = data.GetSafe(x, y + 1, z);
-			//	int bottom = data.GetSafe(x, y - 1, z);
-
-			//	int front = data.GetSafe(x, y, z + 1); //y
-			//	int back = data.GetSafe(x, y, z - 1); //y
-			//	if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
-			//	{
-			//		canAdd = true;
-			//	}
-
-			//	if (canAdd)
-			//	{
-			//		CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, item.Value - 1);
-			//	}
-			//});
 		}
 
 		private static IntVector3 GetVoxPosition(VoxelData data, int x, int y, int z, UnityEngine.Vector3 pivot, UnityEngine.Vector3 fpivot, Matrix4x4 matrix4X4)

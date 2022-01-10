@@ -59,13 +59,6 @@ public class VisualEffectDataConfigEditor : Editor
 		mConfig.Material = VoxImporter.Materials;
 		mConfig.DataOpaque = new List<ListWrapper>();
 
-		foreach (Region region in VoxImporter.CustomSchematic.RegionDict.Values)
-		{
-			//mConfig.DataOpaque.Add(new ListWrapper()
-			//{
-			//	List = region.BlockDict.Values.ToList()
-			//});
-		}
 
 		if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(mConfig, out string guid, out long localId))
 		{
