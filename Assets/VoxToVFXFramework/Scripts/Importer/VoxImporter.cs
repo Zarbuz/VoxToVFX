@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Common;
 using VoxToVFXFramework.Scripts.Data;
@@ -21,18 +23,17 @@ namespace VoxToVFXFramework.Scripts.Importer
 		public static CustomSchematic CustomSchematic { get; private set; }
 		public static VoxelMaterialVFX[] Materials { get; private set; }
 
-		private static VoxModel mVoxModel;
+		private static VoxModelCustom mVoxModel;
 		private static readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
 
 		#endregion
 
 		#region PublicMethods
 
-		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<bool> onFinishedCallback)
+		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<Vector4>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
 		{
-			Clean();
-			VoxReader voxReader = new VoxReader();
-			mVoxModel = voxReader.LoadModel(path, false, false, true);
+			CustomVoxReader voxReader = new CustomVoxReader();
+			mVoxModel = voxReader.LoadModel(path) as VoxModelCustom;
 			if (mVoxModel == null)
 			{
 				onFinishedCallback?.Invoke(false);
@@ -73,8 +74,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 							foreach (ShapeModel shapeModel in shapeNodeChunk.Models)
 							{
 								int modelId = shapeModel.ModelId;
-								VoxelData voxelData = mVoxModel.VoxelFrames[modelId];
-								WriteVoxelFrameData(voxelData, mModelMatrix[transformNodeChunk.Id]);
+								VoxelDataCustom voxelData = mVoxModel.VoxelFramesCustom[modelId];
+								WriteVoxelFrameData(voxelData, mModelMatrix[transformNodeChunk.Id], onFrameLoadedCallback);
 							}
 						}
 					}
@@ -84,15 +85,20 @@ namespace VoxToVFXFramework.Scripts.Importer
 				}
 
 				Materials = WriteMaterialData();
-				mVoxModel = null;
 				onFinishedCallback?.Invoke(true);
+				Clean();
 			}
 
 			yield return null;
 		}
 
-		public static void Clean()
+		private static void Clean()
 		{
+			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom)
+			{
+				voxelDataCustom.VoxelNativeArray.Dispose();
+			}
+
 			CustomSchematic?.Dispose();
 			Materials = null;
 			CustomSchematic = new CustomSchematic();
@@ -119,14 +125,12 @@ namespace VoxToVFXFramework.Scripts.Importer
 				materials[i].emission = materialChunk.Emission == 0 ? 1 : materialChunk.Emission * 10;
 				materials[i].smoothness = materialChunk.Smoothness;
 				materials[i].metallic = materialChunk.Metallic;
-				materials[i].alpha = materialChunk.Alpha;
-				materials[i].softParticleFadeDistance = materialChunk.Type == MaterialType._media ? 1.2f : 0.01f;
 			}
 
 			return materials;
 		}
 
-		private static void WriteVoxelFrameData(VoxelData data, Matrix4x4 matrix4X4)
+		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<Vector4>> onFrameLoadedCallback)
 		{
 			IntVector3 originSize = new IntVector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 			originSize.y = data.VoxelsDeep;
@@ -135,31 +139,64 @@ namespace VoxToVFXFramework.Scripts.Importer
 			UnityEngine.Vector3 pivot = new UnityEngine.Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			UnityEngine.Vector3 fpivot = new UnityEngine.Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
-			Parallel.ForEach(data.Colors, item =>
+			for (int i = 0; i < data.VoxelNativeArray.Length; i++)
 			{
-				data.Get3DPos(item.Key, out int x, out int y, out int z);
-				IntVector3 tmpVoxel = GetVoxPosition(data, x, y, z, pivot, fpivot, matrix4X4);
 
-				bool canAdd = false;
+				Vector4 voxel = data.VoxelNativeArray[i];
+				IntVector3 tmpVoxel = GetVoxPosition(data, (int)voxel.x, (int)voxel.y, (int)voxel.z, pivot, fpivot, matrix4X4);
+				data.VoxelNativeArray[i] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, voxel.w - 1);
+				//data.Get3DPos(key, out int x, out int y, out int z);
 
-				int left = data.GetSafe(x - 1, y, z);
-				int right = data.GetSafe(x + 1, y, z);
+				//bool canAdd = false;
 
-				int top = data.GetSafe(x, y + 1, z);
-				int bottom = data.GetSafe(x, y - 1, z);
+				//int left = data.GetSafe(x - 1, y, z);
+				//int right = data.GetSafe(x + 1, y, z);
 
-				int front = data.GetSafe(x, y, z + 1); //y
-				int back = data.GetSafe(x, y, z - 1); //y
-				if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
-				{
-					canAdd = true;
-				}
+				//int top = data.GetSafe(x, y + 1, z);
+				//int bottom = data.GetSafe(x, y - 1, z);
 
-				if (canAdd)
-				{
-					CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, item.Value - 1);
-				}
-			});
+				//int front = data.GetSafe(x, y, z + 1); //y
+				//int back = data.GetSafe(x, y, z - 1); //y
+				//if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
+				//{
+				//	canAdd = true;
+				//}
+
+				//if (!canAdd)
+				//{
+				//	data.VoxelNativeArray.Remove(key);
+				//	continue;
+				//}
+			}
+
+			//TODO: Add this element in the buffer VFX
+			onFrameLoadedCallback?.Invoke(data.VoxelNativeArray);
+
+			//Parallel.ForEach(data.Colors, item =>
+			//{
+			//	data.Get3DPos(item.Key, out int x, out int y, out int z);
+			//	IntVector3 tmpVoxel = GetVoxPosition(data, x, y, z, pivot, fpivot, matrix4X4);
+
+			//	bool canAdd = false;
+
+			//	int left = data.GetSafe(x - 1, y, z);
+			//	int right = data.GetSafe(x + 1, y, z);
+
+			//	int top = data.GetSafe(x, y + 1, z);
+			//	int bottom = data.GetSafe(x, y - 1, z);
+
+			//	int front = data.GetSafe(x, y, z + 1); //y
+			//	int back = data.GetSafe(x, y, z - 1); //y
+			//	if (left == 0 || right == 0 || top == 0 || bottom == 0 || front == 0 || back == 0)
+			//	{
+			//		canAdd = true;
+			//	}
+
+			//	if (canAdd)
+			//	{
+			//		CustomSchematic.AddVoxel(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, item.Value - 1);
+			//	}
+			//});
 		}
 
 		private static IntVector3 GetVoxPosition(VoxelData data, int x, int y, int z, UnityEngine.Vector3 pivot, UnityEngine.Vector3 fpivot, Matrix4x4 matrix4X4)

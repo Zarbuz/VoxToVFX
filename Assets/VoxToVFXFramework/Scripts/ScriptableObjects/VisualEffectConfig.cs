@@ -9,6 +9,5 @@ namespace VoxToVFXFramework.Scripts.ScriptableObjects
 	{
 		public int StepCapacity = 100000;
 		public List<VisualEffectAsset> OpaqueVisualEffects;
-		public List<VisualEffectAsset> TransparenceVisualEffects;
 	}
 }

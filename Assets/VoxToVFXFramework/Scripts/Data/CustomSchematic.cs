@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 
 namespace VoxToVFXFramework.Scripts.Data
 {
 	public class Region
 	{
-		public ConcurrentDictionary<long, VoxelVFX> BlockDict { get; set; } = new ConcurrentDictionary<long, VoxelVFX>();
+		public NativeArray<Vector4> BlockDict { get; set; } = new NativeArray<Vector4>();
 	}
 
 
@@ -27,7 +28,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public static int CHUNK_SIZE = 500;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static long GetVoxelIndex(int x, int y, int z)
+		public static int GetVoxelIndex(int x, int y, int z)
 		{
 			return (y * MAX_WORLD_LENGTH + z) * MAX_WORLD_WIDTH + x;
 		}
@@ -101,43 +102,13 @@ namespace VoxToVFXFramework.Scripts.Data
 			}
 		}
 
-		public void UpdateRotations()
-		{
-			Parallel.ForEach(RegionDict.Values, region =>
-			{
-				List<long> keys = region.BlockDict.Keys.ToList();
-				Parallel.ForEach(keys, key =>
-				{
-					VoxelVFX voxel = region.BlockDict[key];
-					long iLeft = GetVoxelIndex((int)voxel.position.x - 1, (int)voxel.position.y, (int)voxel.position.z);
-					long iRight = GetVoxelIndex((int)voxel.position.x + 1, (int)voxel.position.y, (int)voxel.position.z);
-					long iTop = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y + 1, (int)voxel.position.z);
-					long iBottom = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y - 1, (int)voxel.position.z);
-					long iFront = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z + 1);
-					long iBack = GetVoxelIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z - 1);
-
-					if (region.BlockDict.ContainsKey(iLeft) && region.BlockDict.ContainsKey(iRight) && region.BlockDict.ContainsKey(iFront) && region.BlockDict.ContainsKey(iBack))
-					{
-						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 1);
-					}
-					else if (region.BlockDict.ContainsKey(iLeft) && region.BlockDict.ContainsKey(iRight) && region.BlockDict.ContainsKey(iTop) && region.BlockDict.ContainsKey(iBottom))
-					{
-						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 2);
-					}
-					else if (region.BlockDict.ContainsKey(iFront) && region.BlockDict.ContainsKey(iBack) && region.BlockDict.ContainsKey(iTop) && region.BlockDict.ContainsKey(iBottom))
-					{
-						UpdateRotationIndex((int)voxel.position.x, (int)voxel.position.y, (int)voxel.position.z, 3);
-					}
-				});
-			});
-		}
+		
 
 		public void Dispose()
 		{
 			foreach (Region region in RegionDict.Values)
 			{
-				region.BlockDict.Clear();
-				region.BlockDict = null;
+				region.BlockDict.Dispose();
 			}
 			RegionDict.Clear();
 			RegionDict = null;
@@ -149,38 +120,23 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		private void AddUsageForRegion(int x, int y, int z, int paletteIndex)
 		{
-			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+			//FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 
-			long chunkIndex = GetVoxelIndex(chunkX, chunkY, chunkZ);
-			long voxelIndex = GetVoxelIndex(x, y, z);
+			//int chunkIndex = GetVoxelIndex(chunkX, chunkY, chunkZ);
+			//int voxelIndex = GetVoxelIndex(x, y, z);
 
-			VoxelVFX voxelVfx = new VoxelVFX();
-			voxelVfx.position = new Vector3(x, y, z);
-			voxelVfx.paletteIndex = paletteIndex;
-			voxelVfx.rotationIndex = 0;
+			//VoxelVFX voxelVfx = new VoxelVFX();
+			//voxelVfx.position = ;
+			//voxelVfx.paletteIndex = paletteIndex;
 
-			if (!RegionDict.ContainsKey(chunkIndex))
-			{
-				RegionDict[chunkIndex] = new Region();
-			}
-			RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
-		}
+			//if (!RegionDict.ContainsKey(chunkIndex))
+			//{
+			//	RegionDict[chunkIndex] = new Region();
+			//}
+			//NativeArray<Vector4> test= new NativeArray<Vector4>();
+			//test[0] = Vector3.back;
 
-		private void UpdateRotationIndex(int x, int y, int z, int rotationIndex)
-		{
-			FastMath.FloorToInt(x / CHUNK_SIZE, y / CHUNK_SIZE, z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
-
-			long chunkIndex = GetVoxelIndex(chunkX, chunkY, chunkZ);
-			long voxelIndex = GetVoxelIndex(x, y, z);
-
-			VoxelVFX voxelVfx = RegionDict[chunkIndex].BlockDict[voxelIndex];
-			voxelVfx.rotationIndex = rotationIndex;
-
-			if (!RegionDict.ContainsKey(chunkIndex))
-			{
-				RegionDict[chunkIndex] = new Region();
-			}
-			RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
+			//RegionDict[chunkIndex].BlockDict[voxelIndex] = new Vector3(x, y, z);
 		}
 
 		private void ComputeMinMax(int x, int y, int z)
