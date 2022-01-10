@@ -84,6 +84,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				}
 
 				Materials = WriteMaterialData();
+				mVoxModel = null;
 				onFinishedCallback?.Invoke(true);
 			}
 

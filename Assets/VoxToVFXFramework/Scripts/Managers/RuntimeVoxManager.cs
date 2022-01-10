@@ -1,5 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		[Header("VisualEffectAssets")]
 		[SerializeField] private VisualEffectConfig Config;
+
+		[SerializeField] private VisualEffectDataConfig VisualEffectDataConfig;
 		#endregion
 
 		#region ConstStatic
@@ -79,7 +82,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			//ChunkDataLoaded += OnChunkDataLoaded;
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"), OnLoadProgress, OnLoadFinished));
 		}
 
 		private void OnDestroy()
@@ -144,11 +146,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		}
 
 
-		private void OnLoadProgress(float progress)
-		{
-			LoadProgressCallback?.Invoke(progress);
-		}
-
 		private void OnLoadFinished(bool success)
 		{
 			if (!success)
@@ -168,7 +165,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, rotations.Count, Marshal.SizeOf(typeof(VoxelRotationVFX)));
 			mRotationBuffer.SetData(rotations);
 
-			foreach (Region region in VoxImporter.CustomSchematic.RegionDict.Values.Where(r => r.HaveVoxelInRegion()))
+			foreach (Region region in VoxImporter.CustomSchematic.RegionDict.Values)
 			{
 				mOpaqueList.Clear();
 				mTransparencyList.Clear();

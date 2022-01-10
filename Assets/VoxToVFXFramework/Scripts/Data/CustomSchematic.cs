@@ -12,28 +12,7 @@ namespace VoxToVFXFramework.Scripts.Data
 {
 	public class Region
 	{
-		public int X;
-		public int Y;
-		public int Z;
-		public ConcurrentDictionary<long, VoxelVFX> BlockDict { get; set; }
-
-		public Region(int x, int y, int z)
-		{
-			X = x;
-			Y = y;
-			Z = z;
-			BlockDict = new ConcurrentDictionary<long, VoxelVFX>();
-		}
-
-		public bool HaveVoxelInRegion()
-		{
-			return BlockDict.Count > 0;
-		}
-
-		public override string ToString()
-		{
-			return $"{X} {Y} {Z}";
-		}
+		public ConcurrentDictionary<long, VoxelVFX> BlockDict { get; set; } = new ConcurrentDictionary<long, VoxelVFX>();
 	}
 
 
@@ -59,7 +38,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 
-		public ConcurrentDictionary<long, Region> RegionDict { get; private set; }
+		public ConcurrentDictionary<long, Region> RegionDict { get; private set; } = new ConcurrentDictionary<long, Region>();
 
 		private ushort mWidth;
 
@@ -108,10 +87,6 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		#region PublicMethods
 
-		public CustomSchematic()
-		{
-			CreateAllRegions();
-		}
 
 		public void AddVoxel(int x, int y, int z, int palettePosition)
 		{
@@ -162,34 +137,15 @@ namespace VoxToVFXFramework.Scripts.Data
 			foreach (Region region in RegionDict.Values)
 			{
 				region.BlockDict.Clear();
+				region.BlockDict = null;
 			}
 			RegionDict.Clear();
+			RegionDict = null;
 		}
 
 		#endregion
 
 		#region PrivateMethods
-
-		private void CreateAllRegions()
-		{
-			RegionDict = new ConcurrentDictionary<long, Region>();
-
-			int worldRegionX = (int)Math.Ceiling((decimal)MAX_WORLD_WIDTH / CHUNK_SIZE);
-			int worldRegionY = (int)Math.Ceiling((decimal)MAX_WORLD_HEIGHT / CHUNK_SIZE);
-			int worldRegionZ = (int)Math.Ceiling((decimal)MAX_WORLD_LENGTH / CHUNK_SIZE);
-
-			int countSize = worldRegionX * worldRegionY * worldRegionZ;
-
-			for (int i = 0; i < countSize; i++)
-			{
-				int x = i % worldRegionX;
-				int y = (i / worldRegionX) % worldRegionY;
-				int z = i / (worldRegionX * worldRegionY);
-
-				//Debug.Log($"x: {x} y: {y} z: {z}");
-				RegionDict[GetVoxelIndex(x, y, z)] = new Region(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
-			}
-		}
 
 		private void AddUsageForRegion(int x, int y, int z, int paletteIndex)
 		{
@@ -202,6 +158,11 @@ namespace VoxToVFXFramework.Scripts.Data
 			voxelVfx.position = new Vector3(x, y, z);
 			voxelVfx.paletteIndex = paletteIndex;
 			voxelVfx.rotationIndex = 0;
+
+			if (!RegionDict.ContainsKey(chunkIndex))
+			{
+				RegionDict[chunkIndex] = new Region();
+			}
 			RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
 		}
 
@@ -214,6 +175,11 @@ namespace VoxToVFXFramework.Scripts.Data
 
 			VoxelVFX voxelVfx = RegionDict[chunkIndex].BlockDict[voxelIndex];
 			voxelVfx.rotationIndex = rotationIndex;
+
+			if (!RegionDict.ContainsKey(chunkIndex))
+			{
+				RegionDict[chunkIndex] = new Region();
+			}
 			RegionDict[chunkIndex].BlockDict[voxelIndex] = voxelVfx;
 		}
 

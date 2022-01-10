@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using Color = FileToVoxCore.Drawing.Color;
@@ -6,6 +7,7 @@ using Color = FileToVoxCore.Drawing.Color;
 namespace VoxToVFXFramework.Scripts.Data
 {
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+    [Serializable]
     public struct VoxelVFX
     {
         public Vector3 position;
@@ -19,6 +21,7 @@ namespace VoxToVFXFramework.Scripts.Data
     }
 
     [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+    [Serializable]
     public struct VoxelMaterialVFX
     {
         public Vector3 color;
