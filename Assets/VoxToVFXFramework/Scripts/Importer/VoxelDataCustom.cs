@@ -6,6 +6,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 {
 	public class VoxelDataCustom : VoxelData
 	{
-		public NativeArray<Vector4> VoxelNativeArray;
+		public NativeHashMap<int, Vector4> VoxelNativeHashMap;
 	}
 }

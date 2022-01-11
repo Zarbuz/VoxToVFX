@@ -1,5 +1,4 @@
-﻿using System;
-using FileToVoxCore.Vox;
+﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -8,18 +7,21 @@ using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
 {
+	[BurstCompile]
 	public struct UpdateVoxelPositionJob : IJobParallelFor
 	{
 		[ReadOnly] public Vector3 Pivot;
 		[ReadOnly] public Vector3 FPivot;
 		[ReadOnly] public Matrix4x4 Matrix4X4;
-		[ReadOnly] public Vector3 Size;
+		[ReadOnly] public Vector3 VolumeSize;
+		[ReadOnly] public NativeArray<int> Keys;
+		[ReadOnly] public NativeHashMap<int, Vector4> HashMap;
 		public NativeArray<Vector4> Result;
-	
+
 		public void Execute(int index)
 		{
-			Vector4 voxel = Result[index];
-			IntVector3 tmpVoxel = GetVoxPosition(Size, (int)voxel.x, (int)voxel.y, (int)voxel.z, Pivot, FPivot, Matrix4X4);
+			Vector4 voxel = HashMap[Keys[index]];
+			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)voxel.x, (int)voxel.y, (int)voxel.z, Pivot, FPivot, Matrix4X4);
 			Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, voxel.w - 1);
 		}
 

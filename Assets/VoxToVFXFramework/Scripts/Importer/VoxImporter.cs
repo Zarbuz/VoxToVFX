@@ -84,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 								WriteVoxelFrameData(voxelData, mModelMatrix[transformNodeChunk.Id], onFrameLoadedCallback);
 								if (mShapeModelCounts[shapeModel.ModelId].Count == mShapeModelCounts[shapeModel.ModelId].Total)
 								{
-									voxelData.VoxelNativeArray.Dispose();
+									voxelData.VoxelNativeHashMap.Dispose();
 								}
 							}
 						}
@@ -102,6 +102,13 @@ namespace VoxToVFXFramework.Scripts.Importer
 			yield return null;
 		}
 
+		public static int GetGridPos(int x, int y, int z, Vector3 volumeSize)
+			=> (int)((volumeSize.x * volumeSize.y) * z + (volumeSize.x * y) + x);
+
+		#endregion
+
+		#region PrivateMethods
+
 		private static void InitShapeModelCounts()
 		{
 			foreach (ShapeModel shapeModel in mVoxModel.ShapeNodeChunks.SelectMany(shapeNodeChunk => shapeNodeChunk.Models))
@@ -117,9 +124,9 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static void Dispose()
 		{
-			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
+			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeHashMap.IsCreated))
 			{
-				voxelDataCustom.VoxelNativeArray.Dispose();
+				voxelDataCustom.VoxelNativeHashMap.Dispose();
 			}
 
 			Materials = null;
@@ -128,9 +135,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 			mVoxModel = null;
 			GC.Collect();
 		}
-		#endregion
-
-		#region PrivateMethods
 
 		private static VoxelMaterialVFX[] WriteMaterialData()
 		{
@@ -158,30 +162,35 @@ namespace VoxToVFXFramework.Scripts.Importer
 			originSize.y = data.VoxelsDeep;
 			originSize.z = data.VoxelsTall;
 
-			UnityEngine.Vector3 pivot = new UnityEngine.Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
-			UnityEngine.Vector3 fpivot = new UnityEngine.Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
+			Vector3 pivot = new Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
+			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
+			NativeArray<int> keys = data.VoxelNativeHashMap.GetKeyArray(Allocator.TempJob);
+			NativeArray<Vector4> finalResult = new NativeArray<Vector4>(keys.Length, Allocator.TempJob);
 			UpdateVoxelPositionJob job = new UpdateVoxelPositionJob();
 			job.Matrix4X4 = matrix4X4;
-			job.Size = new UnityEngine.Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
+			job.VolumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 			job.Pivot = pivot;
 			job.FPivot = fpivot;
-			job.Result = data.VoxelNativeArray;
+			job.Keys = keys;
+			job.HashMap = data.VoxelNativeHashMap;
+			job.Result = finalResult;
 
 			// Schedule a parallel-for job. First parameter is how many for-each iterations to perform.
 			// The second parameter is the batch size,
 			// essentially the no-overhead innerloop that just invokes Execute(i) in a loop.
 			// When there is a lot of work in each iteration then a value of 1 can be sensible.
 			// When there is very little work values of 32 or 64 can make sense.
-			JobHandle jobHandle = job.Schedule(data.VoxelNativeArray.Length, 64);
+			JobHandle jobHandle = job.Schedule(keys.Length, 64); 
 
 			// Ensure the job has completed.
 			// It is not recommended to Complete a job immediately,
 			// since that reduces the chance of having other jobs run in parallel with this one.
 			// You optimally want to schedule a job early in a frame and then wait for it later in the frame.
 			jobHandle.Complete();
-
-			onFrameLoadedCallback?.Invoke(data.VoxelNativeArray);
+			onFrameLoadedCallback?.Invoke(finalResult);
+			keys.Dispose();
+			finalResult.Dispose();
 		}
 
 		private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
