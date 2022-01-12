@@ -8,7 +8,7 @@ using VoxToVFXFramework.Scripts.Importer;
 namespace VoxToVFXFramework.Scripts.Jobs
 {
 	[BurstCompile]
-	public struct UpdateVoxelPositionJob : IJobParallelFor
+	public struct ComputeVoxelPositionJob : IJobParallelFor
 	{
 		[ReadOnly] public Vector3 Pivot;
 		[ReadOnly] public Vector3 FPivot;
@@ -41,6 +41,10 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			else if (front && back && top && bottom)
 			{
 				RotationArray[index] = 3;
+			}
+			else
+			{
+				RotationArray[index] = 0;
 			}
 
 			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);

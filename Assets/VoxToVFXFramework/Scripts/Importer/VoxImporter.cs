@@ -34,7 +34,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		#region PublicMethods
 
-		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<Vector4>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
+		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<Vector4>, NativeArray<int>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
 		{
 			CustomVoxReader voxReader = new CustomVoxReader();
 			mVoxModel = voxReader.LoadModel(path) as VoxModelCustom;
@@ -156,7 +156,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return materials;
 		}
 
-		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<Vector4>> onFrameLoadedCallback)
+		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<Vector4>, NativeArray<int>> onFrameLoadedCallback)
 		{
 			Vector3 volumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 
@@ -202,7 +202,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			// essentially the no-overhead innerloop that just invokes Execute(i) in a loop.
 			// When there is a lot of work in each iteration then a value of 1 can be sensible.
 			// When there is very little work values of 32 or 64 can make sense.
-			JobHandle jobHandle = new UpdateVoxelPositionJob
+			JobHandle jobHandle = new ComputeVoxelPositionJob
 			{
 				Matrix4X4 = matrix4X4,
 				VolumeSize = volumeSize,
@@ -222,7 +222,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			jobHandle.Complete();
 			keys.Dispose();
 
-			onFrameLoadedCallback?.Invoke(resultLod0);
+			onFrameLoadedCallback?.Invoke(resultLod0, rotationArray);
 			resultLod0.Dispose();
 			rotationArray.Dispose();
 		}
