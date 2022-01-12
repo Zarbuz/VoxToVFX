@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -21,4 +22,11 @@ namespace VoxToVFXFramework.Scripts.Data
         public float metallic;
         public float emission;
     }
+
+    public struct LodParameters
+	{
+		public Vector3 VolumeSize;
+		public NativeHashMap<int, Vector4> Data;
+		public NativeArray<byte> Work;
+	}
 }

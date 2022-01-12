@@ -16,13 +16,35 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public Vector3 VolumeSize;
 		[ReadOnly] public NativeArray<int> Keys;
 		[ReadOnly] public NativeHashMap<int, Vector4> HashMap;
+		[WriteOnly] public NativeArray<int> RotationArray;
 		public NativeArray<Vector4> Result;
 
 		public void Execute(int index)
 		{
-			Vector4 voxel = HashMap[Keys[index]];
-			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)voxel.x, (int)voxel.y, (int)voxel.z, Pivot, FPivot, Matrix4X4);
-			Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, voxel.w - 1);
+			Vector4 v = HashMap[Keys[index]];
+
+			bool left = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x - 1, (int)v.y, (int)v.z, VolumeSize));
+			bool right = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x + 1, (int)v.y, (int)v.z, VolumeSize));
+			bool top = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y + 1, (int)v.z, VolumeSize));
+			bool bottom = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y - 1, (int)v.z, VolumeSize));
+			bool front = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z + 1, VolumeSize));
+			bool back = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z - 1, VolumeSize));
+
+			if (left && right && front && back)
+			{
+				RotationArray[index] = 1;
+			}
+			else if (left && right && top && bottom)
+			{
+				RotationArray[index] = 2;
+			}
+			else if (front && back && top && bottom)
+			{
+				RotationArray[index] = 3;
+			}
+
+			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);
+			Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
 		}
 
 		private static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
