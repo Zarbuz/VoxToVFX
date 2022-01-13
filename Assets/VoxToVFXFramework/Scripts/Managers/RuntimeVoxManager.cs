@@ -44,7 +44,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string MAIN_VFX_BUFFER_KEY = "Buffer";
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
-		private const string ROTATION_INDEX_VFX_BUFFER_KEY = "IndexRotationBuffer";
 		private const string DETAIL_LOAD_DISTANCE_KEY = "DetailLoadDistance";
 		private const string CUT_OF_MARGIN_KEY = "CutOfMargin";
 
@@ -147,7 +146,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			LoadProgressCallback?.Invoke(progress);
 		}
 
-		private void OnFrameLoaded(NativeArray<Vector4> frameArray, NativeArray<int> indexRotationArray)
+		private void OnFrameLoaded(NativeArray<VoxelVFX> frameArray)
 		{
 			if (frameArray.Length == 0)
 			{
@@ -162,14 +161,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			buffer.SetData(frameArray);
 			mOpaqueBuffers.Add(buffer);
 
-			GraphicsBuffer indexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, indexRotationArray.Length, Marshal.SizeOf(typeof(int)));
-			indexBuffer.SetData(indexRotationArray);
-			mOpaqueBuffers.Add(indexBuffer);
-
 			visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(frameArray.Length, Config.OpaqueVisualEffects);
 			visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", frameArray.Length);
 			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER_KEY, buffer);
-			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_INDEX_VFX_BUFFER_KEY, indexBuffer);
 		}
 
 		private void OnLoadFinished(bool success)

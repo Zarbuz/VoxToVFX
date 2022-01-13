@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Common;
+using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
@@ -16,8 +17,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public Vector3 VolumeSize;
 		[ReadOnly] public NativeArray<int> Keys;
 		[ReadOnly] public NativeHashMap<int, Vector4> HashMap;
-		[WriteOnly] public NativeArray<int> RotationArray;
-		public NativeArray<Vector4> Result;
+		[WriteOnly] public NativeArray<VoxelVFX> Result;
 
 		public void Execute(int index)
 		{
@@ -29,26 +29,29 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			bool bottom = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y - 1, (int)v.z, VolumeSize));
 			bool front = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z + 1, VolumeSize));
 			bool back = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z - 1, VolumeSize));
-
+			int rotationIndex = 0;
+			
 			if (left && right && front && back)
 			{
-				RotationArray[index] = 1;
+				rotationIndex = 1;
 			}
 			else if (left && right && top && bottom)
 			{
-				RotationArray[index] = 2;
+				rotationIndex = 2;
 			}
 			else if (front && back && top && bottom)
 			{
-				RotationArray[index] = 3;
-			}
-			else
-			{
-				RotationArray[index] = 0;
+				rotationIndex = 3;
 			}
 
 			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);
-			Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
+			//Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
+			Result[index] = new VoxelVFX()
+			{
+				position = new Vector3(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000),
+				rotationIndex = rotationIndex,
+				paletteIndex = (int)(v.w - 1)
+			};
 		}
 
 		private static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)

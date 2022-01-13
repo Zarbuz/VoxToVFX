@@ -34,7 +34,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		#region PublicMethods
 
-		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<Vector4>, NativeArray<int>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
+		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
 		{
 			CustomVoxReader voxReader = new CustomVoxReader();
 			mVoxModel = voxReader.LoadModel(path) as VoxModelCustom;
@@ -156,7 +156,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return materials;
 		}
 
-		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<Vector4>, NativeArray<int>> onFrameLoadedCallback)
+		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback)
 		{
 			Vector3 volumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 
@@ -195,14 +195,14 @@ namespace VoxToVFXFramework.Scripts.Importer
 			Vector3 pivot = new Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 			NativeArray<int> keys = data.VoxelNativeHashMap.GetKeyArray(Allocator.TempJob);
-			NativeArray<Vector4> resultLod0 = new NativeArray<Vector4>(keys.Length, Allocator.TempJob);
-			NativeArray<int> rotationArray = new NativeArray<int>(keys.Length, Allocator.TempJob);
+			NativeArray<VoxelVFX> result = new NativeArray<VoxelVFX>(keys.Length, Allocator.TempJob);
+		
 			// Schedule a parallel-for job. First parameter is how many for-each iterations to perform.
 			// The second parameter is the batch size,
 			// essentially the no-overhead innerloop that just invokes Execute(i) in a loop.
 			// When there is a lot of work in each iteration then a value of 1 can be sensible.
 			// When there is very little work values of 32 or 64 can make sense.
-			JobHandle jobHandle = new ComputeVoxelPositionJob
+			JobHandle positionJobHandle = new ComputeVoxelPositionJob
 			{
 				Matrix4X4 = matrix4X4,
 				VolumeSize = volumeSize,
@@ -210,8 +210,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				FPivot = fpivot,
 				Keys = keys,
 				HashMap = data.VoxelNativeHashMap,
-				Result = resultLod0,
-				RotationArray = rotationArray
+				Result = result,
 			}.Schedule(keys.Length, 64);
 
 
@@ -219,12 +218,11 @@ namespace VoxToVFXFramework.Scripts.Importer
 			// It is not recommended to Complete a job immediately,
 			// since that reduces the chance of having other jobs run in parallel with this one.
 			// You optimally want to schedule a job early in a frame and then wait for it later in the frame.
-			jobHandle.Complete();
-			keys.Dispose();
+			positionJobHandle.Complete();
+			keys.Dispose(positionJobHandle);
 
-			onFrameLoadedCallback?.Invoke(resultLod0, rotationArray);
-			resultLod0.Dispose();
-			rotationArray.Dispose();
+			onFrameLoadedCallback?.Invoke(result);
+			result.Dispose();
 		}
 
 		private static NativeHashMap<int, Vector4> ComputeLod(LodParameters parameters)

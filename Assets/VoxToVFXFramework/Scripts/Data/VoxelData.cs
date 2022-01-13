@@ -11,6 +11,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	{
 		public Vector3 position;
 		public int paletteIndex;
+		public int rotationIndex;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
