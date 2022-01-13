@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using FileToVoxCore.Vox;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -22,34 +23,11 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		public void Execute(int index)
 		{
 			Vector4 v = HashMap[Keys[index]];
-
-			bool left = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x - 1, (int)v.y, (int)v.z, VolumeSize));
-			bool right = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x + 1, (int)v.y, (int)v.z, VolumeSize));
-			bool top = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y + 1, (int)v.z, VolumeSize));
-			bool bottom = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y - 1, (int)v.z, VolumeSize));
-			bool front = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z + 1, VolumeSize));
-			bool back = HashMap.ContainsKey(VoxImporter.GetGridPos((int)v.x, (int)v.y, (int)v.z - 1, VolumeSize));
-			int rotationIndex = 0;
-			
-			if (left && right && front && back)
-			{
-				rotationIndex = 1;
-			}
-			else if (left && right && top && bottom)
-			{
-				rotationIndex = 2;
-			}
-			else if (front && back && top && bottom)
-			{
-				rotationIndex = 3;
-			}
-
-			IntVector3 tmpVoxel = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);
+			IntVector3 worldPosition = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);
 			//Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
 			Result[index] = new VoxelVFX()
 			{
-				position = new Vector3(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000),
-				rotationIndex = rotationIndex,
+				position = new Vector3(worldPosition.x + 1000, worldPosition.y + 1000, worldPosition.z + 1000),
 				paletteIndex = (int)(v.w - 1)
 			};
 		}

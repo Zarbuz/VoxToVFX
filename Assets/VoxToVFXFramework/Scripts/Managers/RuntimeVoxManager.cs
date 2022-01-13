@@ -43,7 +43,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private const string MAIN_VFX_BUFFER_KEY = "Buffer";
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
-		private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
+		//private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
 		private const string DETAIL_LOAD_DISTANCE_KEY = "DetailLoadDistance";
 		private const string CUT_OF_MARGIN_KEY = "CutOfMargin";
 
@@ -61,7 +61,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private readonly List<VisualEffectItem> mVisualEffectItems = new List<VisualEffectItem>();
 
 		private GraphicsBuffer mPaletteBuffer;
-		private GraphicsBuffer mRotationBuffer;
+		//private GraphicsBuffer mRotationBuffer;
 
 		private bool mIsLoaded;
 		private int mPreviousDetailLoadDistance;
@@ -134,7 +134,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			mPaletteBuffer?.Release();
-			mRotationBuffer?.Release();
+			//mRotationBuffer?.Release();
 			mOpaqueBuffers.Clear();
 			mPaletteBuffer = null;
 			mVisualEffectItems.Clear();
@@ -177,13 +177,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
 
-			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4, Marshal.SizeOf(typeof(VoxelRotationVFX)));
-			VoxelRotationVFX[] rotationArray = GetRotationArray();
-			mRotationBuffer.SetData(rotationArray);
+			//mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4, Marshal.SizeOf(typeof(VoxelRotationVFX)));
+			//VoxelRotationVFX[] rotationArray = GetRotationArray();
+			//mRotationBuffer.SetData(rotationArray);
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-				item.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+				//item.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 				item.OpaqueVisualEffect.enabled = true;
 				item.OpaqueVisualEffect.Play();
 			}

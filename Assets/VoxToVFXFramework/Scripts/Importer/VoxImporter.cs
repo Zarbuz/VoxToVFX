@@ -81,7 +81,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 								int modelId = shapeModel.ModelId;
 								VoxelDataCustom voxelData = mVoxModel.VoxelFramesCustom[modelId];
 								mShapeModelCounts[shapeModel.ModelId].Count++;
-								WriteVoxelFrameData(voxelData, mModelMatrix[transformNodeChunk.Id], onFrameLoadedCallback);
+								WriteVoxelFrameData(transformNodeChunk.Id, voxelData, onFrameLoadedCallback);
 								if (mShapeModelCounts[shapeModel.ModelId].Count == mShapeModelCounts[shapeModel.ModelId].Total)
 								{
 									voxelData.VoxelNativeHashMap.Dispose();
@@ -156,7 +156,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return materials;
 		}
 
-		private static void WriteVoxelFrameData(VoxelDataCustom data, Matrix4x4 matrix4X4, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback)
+		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback)
 		{
 			Vector3 volumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 
@@ -204,7 +204,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			// When there is very little work values of 32 or 64 can make sense.
 			JobHandle positionJobHandle = new ComputeVoxelPositionJob
 			{
-				Matrix4X4 = matrix4X4,
+				Matrix4X4 = mModelMatrix[transformChunkId],
 				VolumeSize = volumeSize,
 				Pivot = pivot,
 				FPivot = fpivot,
@@ -283,7 +283,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return result;
 		}
 
-		private static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
+		public static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
 		{
 			Matrix4x4 result = Matrix4x4.identity;
 			{
@@ -316,8 +316,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 					case 3: result[2, 0] = signRow2 ? 1f : -1f; break;
 				}
 
-				result.SetColumn(3, new Vector4(transform.X, transform.Y, transform.Z, 1f));
-			}
+					result.SetColumn(3, new Vector4(transform.X, transform.Y, transform.Z, 1f));
+				}
 			return result;
 		}
 
