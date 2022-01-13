@@ -11,16 +11,7 @@ namespace VoxToVFXFramework.Scripts.ScriptableObjects
 	{
 		[ListDrawerSettings(NumberOfItemsPerPage = 20)]
 		public List<ListWrapper> DataOpaque;
-		[ListDrawerSettings(NumberOfItemsPerPage = 20)]
-		public List<ListWrapper> DataTransparent;
 		public VoxelMaterialVFX[] Material;
-	}
-
-	public class CustomSchematicValueEntry
-	{
-		public long Key;
-		[ListDrawerSettings(NumberOfItemsPerPage = 20)]
-		public List<VoxelVFX> List;
 	}
 
 	[System.Serializable]

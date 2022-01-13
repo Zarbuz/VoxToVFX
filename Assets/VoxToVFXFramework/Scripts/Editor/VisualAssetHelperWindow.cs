@@ -68,11 +68,6 @@ public class VisualAssetHelperWindow : EditorWindow
 		{
 			mVisualEffectConfig.OpaqueVisualEffects = l1;
 		}
-
-		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_VFX_FOLDER, "VoxImporterV2Transparency.vfx"), "Transparency", out List<VisualEffectAsset> l2))
-		{
-			mVisualEffectConfig.TransparenceVisualEffects = l2;
-		}
 	}
 
 	private bool WriteAllVisualAssets(string inputPath, string prefixName, out List<VisualEffectAsset> assets)

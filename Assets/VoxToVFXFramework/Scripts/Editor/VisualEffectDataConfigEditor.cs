@@ -15,8 +15,6 @@ public class VisualEffectDataConfigEditor : Editor
 	#region Fields
 
 	private VisualEffectDataConfig mConfig;
-	private readonly List<VoxelVFX> mOpaqueList = new List<VoxelVFX>();
-	private readonly List<VoxelVFX> mTransparencyList = new List<VoxelVFX>();
 
 	#endregion
 
@@ -31,7 +29,7 @@ public class VisualEffectDataConfigEditor : Editor
 			string path = EditorUtility.OpenFilePanel("Select vox file", "", "vox");
 			if (!string.IsNullOrEmpty(path))
 			{
-				EditorCoroutineUtility.StartCoroutine(VoxImporter.LoadVoxModelAsync(path, OnLoadProgress, OnLoadFinished), this);
+				//EditorCoroutineUtility.StartCoroutine(VoxImporter.LoadVoxModelAsync(path, OnLoadProgress, OnLoadFinished), this);
 			}
 		}
 
@@ -60,35 +58,7 @@ public class VisualEffectDataConfigEditor : Editor
 
 		mConfig.Material = VoxImporter.Materials;
 		mConfig.DataOpaque = new List<ListWrapper>();
-		mConfig.DataTransparent = new List<ListWrapper>();
 
-		VoxImporter.CustomSchematic.UpdateRotations();
-
-		foreach (Region region in VoxImporter.CustomSchematic.RegionDict.Values)
-		{
-			mOpaqueList.Clear();
-			mTransparencyList.Clear();
-
-			mOpaqueList.AddRange(region.BlockDict.Values.Where(v => !v.IsTransparent(VoxImporter.Materials)));
-			mTransparencyList.AddRange(region.BlockDict.Values.Where(v => v.IsTransparent(VoxImporter.Materials)));
-
-			
-			if (mOpaqueList.Count > 0)
-			{
-				mConfig.DataOpaque.Add(new ListWrapper()
-				{
-					List = mOpaqueList
-				});
-			}
-
-			if (mTransparencyList.Count > 0)
-			{
-				mConfig.DataTransparent.Add(new ListWrapper()
-				{
-					List = mTransparencyList
-				});
-			}
-		}
 
 		if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(mConfig, out string guid, out long localId))
 		{
@@ -103,9 +73,6 @@ public class VisualEffectDataConfigEditor : Editor
 		{
 			Debug.LogError("Failed to save");
 		}
-
-		VoxImporter.Clean();
-		GC.Collect();
 	}
 
 	#endregion
