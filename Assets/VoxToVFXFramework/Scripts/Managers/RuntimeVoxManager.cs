@@ -61,7 +61,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private readonly List<VisualEffectItem> mVisualEffectItems = new List<VisualEffectItem>();
 
 		private GraphicsBuffer mPaletteBuffer;
-		//private GraphicsBuffer mRotationBuffer;
 
 		private bool mIsLoaded;
 		private int mPreviousDetailLoadDistance;
@@ -71,7 +70,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Vector3 mPreviousAngle;
 
 		private Transform mVisualItemsParent;
-		//private CustomSchematic mCustomSchematic;
 
 		#endregion
 
@@ -79,7 +77,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		protected override void OnStart()
 		{
-			//ChunkDataLoaded += OnChunkDataLoaded;
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default2.vox"),
@@ -89,7 +86,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDestroy()
 		{
-			//ChunkDataLoaded -= OnChunkDataLoaded;
 			Release();
 		}
 
@@ -134,11 +130,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			mPaletteBuffer?.Release();
-			//mRotationBuffer?.Release();
 			mOpaqueBuffers.Clear();
 			mPaletteBuffer = null;
 			mVisualEffectItems.Clear();
-			//mCustomSchematic = null;
 		}
 
 		private void OnLoadProgress(float progress)
@@ -177,18 +171,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
 
-			//mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4, Marshal.SizeOf(typeof(VoxelRotationVFX)));
-			//VoxelRotationVFX[] rotationArray = GetRotationArray();
-			//mRotationBuffer.SetData(rotationArray);
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-				//item.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 				item.OpaqueVisualEffect.enabled = true;
 				item.OpaqueVisualEffect.Play();
 			}
 
-			//rotationArray.Dispose();
 			Debug.Log("[RuntimeVoxController] OnLoadFinished");
 			//int targetPositionX = VoxImporter.CustomSchematic.Width / 2;
 			//int targetPositionY = VoxImporter.CustomSchematic.Height / 2;
@@ -226,37 +215,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			return assets[index];
-		}
-
-
-		private static VoxelRotationVFX[] GetRotationArray()
-		{
-			var rotationArray = new VoxelRotationVFX[4];
-			rotationArray[0] = new VoxelRotationVFX()
-			{
-				pivot = Vector3.zero,
-				rotation = Vector3.zero
-			};
-
-			rotationArray[1] = new VoxelRotationVFX()
-			{
-				pivot = new Vector3(0, 0, 0.5f),
-				rotation = new Vector3(90, 0, 0)
-			};
-
-			rotationArray[2] = new VoxelRotationVFX()
-			{
-				pivot = new Vector3(0, 0, 0.5f),
-				rotation = new Vector3(0, 180, 0)
-			};
-
-			rotationArray[3] = new VoxelRotationVFX()
-			{
-				pivot = new Vector3(0, 0, 0.5f),
-				rotation = new Vector3(0, 90, 0)
-			};
-
-			return rotationArray;
 		}
 
 		#endregion
