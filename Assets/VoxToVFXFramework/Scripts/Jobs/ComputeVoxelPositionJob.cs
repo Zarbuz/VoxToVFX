@@ -45,7 +45,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			
 		}
 
-		private static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
+		public static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
 		{
 			IntVector3 tmpVoxel = new IntVector3(x, y, z);
 			IntVector3 origPos;

@@ -37,4 +37,12 @@ namespace VoxToVFXFramework.Scripts.Data
 		public Vector3 rotation;
 		public Vector3 pivot;
 	}
+
+	public struct VoxelResult
+	{
+		public NativeList<Vector4> DataLod0;
+		public NativeList<Vector4> DataLod1;
+		public NativeList<Vector4> DataLod2;
+		public Vector3 FrameWorldPosition; //0 0 0
+	}
 }

@@ -11,13 +11,14 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	public struct ComputeLodJob : IJobParallelFor
 	{
 		[ReadOnly] public int Step;
+		[ReadOnly] public int ModuloCheck;
 		[ReadOnly] public Vector3 VolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
 		[NativeDisableParallelForRestriction]
 		[WriteOnly] public NativeArray<byte> Result;
 		public void Execute(int z) 
 		{
-			if (z % 2 != 0)
+			if (z % ModuloCheck != 0)
 			{
 				return;
 			}
