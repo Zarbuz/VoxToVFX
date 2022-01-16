@@ -140,7 +140,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			LoadProgressCallback?.Invoke(progress);
 		}
 
-		private void OnFrameLoaded(NativeArray<VoxelVFX> frameArray)
+		private void OnFrameLoaded(NativeArray<Vector4> frameArray)
 		{
 			if (frameArray.Length == 0)
 			{
@@ -151,7 +151,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			visualEffectItem.transform.SetParent(mVisualItemsParent);
 			mVisualEffectItems.Add(visualEffectItem);
 
-			GraphicsBuffer buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, frameArray.Length, Marshal.SizeOf(typeof(VoxelVFX)));
+			GraphicsBuffer buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, frameArray.Length, Marshal.SizeOf(typeof(Vector4)));
 			buffer.SetData(frameArray);
 			mOpaqueBuffers.Add(buffer);
 
@@ -192,18 +192,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void UpdateDetailLoadDistance()
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems)
-			{
-				item.OpaqueVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
-			}
+			//foreach (VisualEffectItem item in mVisualEffectItems)
+			//{
+			//	item.OpaqueVisualEffect.SetInt(DETAIL_LOAD_DISTANCE_KEY, DetailLoadDistance);
+			//}
 		}
 
 		private void UpdateCutOfMargin()
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems)
-			{
-				item.OpaqueVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
-			}
+			//foreach (VisualEffectItem item in mVisualEffectItems)
+			//{
+			//	item.OpaqueVisualEffect.SetInt(CUT_OF_MARGIN_KEY, CutOfMargin);
+			//}
 		}
 
 		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)

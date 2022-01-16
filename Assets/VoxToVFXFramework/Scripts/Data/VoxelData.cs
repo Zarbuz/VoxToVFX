@@ -26,8 +26,9 @@ namespace VoxToVFXFramework.Scripts.Data
 	public struct LodParameters
 	{
 		public Vector3 VolumeSize;
-		public NativeHashMap<int, Vector4> Data;
+		public NativeArray<byte> Data;
 		public NativeArray<byte> Work;
+		public int Step;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]

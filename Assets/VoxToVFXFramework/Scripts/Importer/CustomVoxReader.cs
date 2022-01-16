@@ -70,8 +70,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			VoxModelCustom outputCasted = output as VoxModelCustom;
 			int voxelCountLastXyziChunk = chunkReader.ReadInt32();
 			VoxelDataCustom frame = outputCasted.VoxelFramesCustom[ChildCount - 1];
-			//frame.VoxelNativeArray = new NativeArray<Vector4>(frame.VoxelsWide * frame.VoxelsTall * frame.VoxelsDeep, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-			frame.VoxelNativeHashMap = new NativeHashMap<int, Vector4>(voxelCountLastXyziChunk, Allocator.Persistent);
+			frame.VoxelNativeArray = new NativeArray<byte>((frame.VoxelsWide) * (frame.VoxelsTall) * (frame.VoxelsDeep), Allocator.Persistent);
 			for (int i = 0; i < voxelCountLastXyziChunk; i++)
 			{
 				int x = frame.VoxelsWide - 1 - chunkReader.ReadByte(); //invert
@@ -80,11 +79,13 @@ namespace VoxToVFXFramework.Scripts.Importer
 				byte color = chunkReader.ReadByte();
 				if (color > 0)
 				{
-					frame.VoxelNativeHashMap[frame.GetGridPos(x, y, z)] = new Vector4(x, y, z, color);
+					frame.VoxelNativeArray[frame.GetGridPos(x, y, z)] = color;
 				}
 			}
 
 		
+
+
 		}
 	}
 }
