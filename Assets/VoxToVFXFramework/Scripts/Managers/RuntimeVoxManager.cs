@@ -31,12 +31,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		[SerializeField] private HDAdditionalLightData DirectionalLight;
 
-
 		[Header("VisualEffectAssets")]
 		[SerializeField]
 		private VisualEffectConfig Config;
 
-		[SerializeField] private VisualEffectDataConfig VisualEffectDataConfig;
+		[SerializeField] private bool DebugLod;
 
 		#endregion
 
@@ -48,7 +47,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string MAIN_VFX_BUFFER2_KEY = "Buffer3";
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string SIZE_VFX_KEY = "Size";
-
+		private const string DEBUG_LOD_KEY = "DebugLod";
 		#endregion
 
 		#region Fields
@@ -67,7 +66,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private bool mIsLoaded;
 		private Vector3 mCurrentCameraPosition;
 		private bool mCheckDistance;
-
+		private bool mDebugLod;
 		private Transform mVisualItemsParent;
 
 		#endregion
@@ -93,6 +92,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!mIsLoaded)
 			{
 				return;
+			}
+
+			if (mDebugLod != DebugLod)
+			{
+				mDebugLod = DebugLod;
+				RefreshDebugLod();
 			}
 
 			if (Vector3.Distance(mCurrentCameraPosition, MainCamera.transform.position) > 10 && !mCheckDistance)
@@ -205,9 +210,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 			LoadFinishedCallback?.Invoke();
 		}
 
+		private void RefreshDebugLod()
+		{
+			foreach (VisualEffectItem item in mVisualEffectItems)
+			{
+				item.OpaqueVisualEffect.Reinit();
+				item.OpaqueVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
+				item.OpaqueVisualEffect.Play();
+			}
+		}
+
 		private void CheckDistance()
 		{
-
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				float distance = Vector3.Distance(MainCamera.transform.position, item.FramePosition);
