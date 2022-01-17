@@ -16,7 +16,6 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public Vector3 FPivot;
 		[ReadOnly] public Matrix4x4 Matrix4X4;
 		[ReadOnly] public Vector3 VolumeSize;
-		[ReadOnly] public Vector3 InitialVolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
 		[WriteOnly] public NativeList<Vector4>.ParallelWriter Result;
 
@@ -26,11 +25,10 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			{
 				for (int x = 0; x < VolumeSize.x; x++)
 				{
-					int index = VoxImporter.GetGridPos(x, y, z, VolumeSize);
-					byte color = Data[index];
+					byte color = ComputeLodJob.GetSafe(x, y, z, Data, VolumeSize);
 					if (color != 0)
 					{
-						IntVector3 worldPosition = GetVoxPosition(InitialVolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
+						IntVector3 worldPosition = GetVoxPosition(VolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
 						Result.AddNoResize(new Vector4()
 						{
 							x = worldPosition.x + 1000,

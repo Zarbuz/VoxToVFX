@@ -7,7 +7,7 @@ using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
 {
-	//[BurstCompile]
+	[BurstCompile]
 	public struct ComputeLodJob : IJobParallelFor
 	{
 		[ReadOnly] public int Step;
@@ -30,33 +30,61 @@ namespace VoxToVFXFramework.Scripts.Jobs
 				for (int x = 0; x < VolumeSize.x; x += Step * 2)
 				{
 					int x1 = x + Step;
-					NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Temp); 
+					//NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Temp); 
 
-					work[0] = GetSafe(x, y, z, Data, VolumeSize);
-					work[1] = GetSafe(x1, y, z, Data, VolumeSize);
-					work[2] = GetSafe(x, y1, z, Data, VolumeSize);
-					work[3] = GetSafe(x1, y1, z, Data, VolumeSize);
-					work[4] = GetSafe(x, y, z1, Data, VolumeSize);
-					work[5] = GetSafe(x1, y, z1, Data, VolumeSize);
-					work[6] = GetSafe(x, y1, z1, Data, VolumeSize);
-					work[7] = GetSafe(x1, y1, z1, Data, VolumeSize);
+					//work[0] = GetSafe(x, y, z, Data, VolumeSize);
+					//work[1] = GetSafe(x1, y, z, Data, VolumeSize);
+					//work[2] = GetSafe(x, y1, z, Data, VolumeSize);
+					//work[3] = GetSafe(x1, y1, z, Data, VolumeSize);
+					//work[4] = GetSafe(x, y, z1, Data, VolumeSize);
+					//work[5] = GetSafe(x1, y, z1, Data, VolumeSize);
+					//work[6] = GetSafe(x, y1, z1, Data, VolumeSize);
+					//work[7] = GetSafe(x1, y1, z1, Data, VolumeSize);
 
-					if (work.Any(color => color != 0))
-					{
-						IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
-							.GroupBy(v => v).OrderByDescending(v => v.Count());
-						int count = groups.ElementAt(0).Count();
-						IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
-							.OrderByDescending(v => v.Key).First();
+					//if (work.Any(color => color != 0))
+					//{
+					//	IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
+					//		.GroupBy(v => v).OrderByDescending(v => v.Count());
+					//	int count = groups.ElementAt(0).Count();
+					//	IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
+					//		.OrderByDescending(v => v.Key).First();
 
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = group.Key;
-					}
+					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = group.Key;
+					//}
+					//else
+					//{
+					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
+					//}
+
+					//work.Dispose();
+
+					byte b0 = GetSafe(x, y, z, Data, VolumeSize);
+					byte b1 = GetSafe(x1, y, z, Data, VolumeSize);
+					byte b2 = GetSafe(x, y1, z, Data, VolumeSize);
+					byte b3 = GetSafe(x1, y1, z, Data, VolumeSize);
+					byte b4 = GetSafe(x, y, z1, Data, VolumeSize);
+					byte b5 = GetSafe(x1, y, z1, Data, VolumeSize);
+					byte b6 = GetSafe(x, y1, z1, Data, VolumeSize);
+					byte b7 = GetSafe(x1, y1, z1, Data, VolumeSize);
+
+					if (b0 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b0;
+					else if (b1 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b1;
+					else if (b2 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b2;
+					else if (b3 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b3;
+					else if (b4 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b4;
+					else if (b5 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b5;
+					else if (b6 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b6;
+					else if (b7 != 0)
+						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b7;
 					else
-					{
 						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
-					}
-
-					work.Dispose();
 				}
 			}
 		}

@@ -170,19 +170,28 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 			int maxCapacity = (int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z);
 
+			NativeArray<byte> initialDataClean = new NativeArray<byte>(data.VoxelNativeArray.Length, Allocator.TempJob);
+			JobHandle removeInvisibleVoxelJob = new RemoveInvisibleVoxelJob()
+			{
+				Data = data.VoxelNativeArray,
+				VolumeSize = initialVolumeSize,
+				Result = initialDataClean
+			}.Schedule((int)initialVolumeSize.z, 64);
+			removeInvisibleVoxelJob.Complete();
+
 			NativeList<Vector4> resultLod0 = new NativeList<Vector4>(Allocator.TempJob);
 			resultLod0.SetCapacity(maxCapacity);
 			JobHandle job = new ComputeVoxelPositionJob
 			{
 				Matrix4X4 = mModelMatrix[transformChunkId],
 				VolumeSize = initialVolumeSize,
-				InitialVolumeSize = initialVolumeSize,
 				Pivot = pivot,
 				FPivot = fpivot,
-				Data = data.VoxelNativeArray,
+				Data = initialDataClean,
 				Result = resultLod0.AsParallelWriter(),
 			}.Schedule((int)initialVolumeSize.z, 64);
 			job.Complete();
+			initialDataClean.Dispose();
 
 			//NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Persistent);
 			NativeArray<byte> arrayLod1 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
@@ -203,7 +212,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 			{
 				Matrix4X4 = mModelMatrix[transformChunkId],
 				VolumeSize = initialVolumeSize,
-				InitialVolumeSize = initialVolumeSize,
 				Pivot = pivot,
 				FPivot = fpivot,
 				Data = arrayLod1,
@@ -229,7 +237,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 			{
 				Matrix4X4 = mModelMatrix[transformChunkId],
 				VolumeSize = initialVolumeSize,
-				InitialVolumeSize = initialVolumeSize,
 				Pivot = pivot,
 				FPivot = fpivot,
 				Data = arrayLod2,
@@ -246,65 +253,14 @@ namespace VoxToVFXFramework.Scripts.Importer
 				DataLod1 = resultLod1,
 				DataLod2 = resultLod2
 			};
-			IntVector3 frameWorldPosition = ComputeVoxelPositionJob.GetVoxPosition(initialVolumeSize, (int)pivot.x, (int)pivot.y, (int)pivot.z, pivot, fpivot, mModelMatrix[transformChunkId]);
+
+			IntVector3 frameWorldPosition = ComputeVoxelPositionJob.GetVoxPosition(initialVolumeSize, (int)initialVolumeSize.x / 2, (int)initialVolumeSize.y / 2, (int)initialVolumeSize.z / 2, pivot, fpivot, mModelMatrix[transformChunkId]);
 			voxelResult.FrameWorldPosition = new Vector3(frameWorldPosition.x + 1000, frameWorldPosition.y + 1000, frameWorldPosition.z + 1000);
 
 			onFrameLoadedCallback?.Invoke(voxelResult);
 			resultLod0.Dispose();
 			resultLod1.Dispose();
 			resultLod2.Dispose();
-		}
-
-		public static bool Contains(int x, int y, int z, Vector3 volumeSize)
-			=> x >= 0 && y >= 0 && z >= 0 && x < volumeSize.x && y < volumeSize.y && z < volumeSize.z;
-		public static byte GetSafe(int x, int y, int z, NativeArray<byte> data, Vector3 volumeSize)
-			=> Contains(x, y, z, volumeSize) ? data[GetGridPos(x, y, z, volumeSize)] : (byte)0;
-
-		private static NativeArray<byte> ComputeLod(LodParameters parameters)
-		{
-			Vector3 volumeSize = parameters.VolumeSize;
-			NativeArray<byte> data = parameters.Data;
-			NativeArray<byte> work = parameters.Work;
-			//Vector3 volumeResultSize = new Vector3((int)(volumeSize.x + 1) >> 1, (int)(volumeSize.y + 1) >> 1, (int)(volumeSize.z + 1) >> 1);
-
-			NativeArray<byte> result = new NativeArray<byte>((int)(volumeSize.x * volumeSize.y * volumeSize.z), Allocator.TempJob);
-			for (int z = 0; z < volumeSize.z; z += parameters.Step * 2)
-			{
-				int z1 = z + parameters.Step;
-				for (int y = 0; y < volumeSize.y; y += parameters.Step * 2)
-				{
-					int y1 = y + parameters.Step;
-					for (int x = 0; x < volumeSize.x; x += parameters.Step * 2)
-					{
-						int x1 = x + parameters.Step;
-						work[0] = GetSafe(x, y, z, data, volumeSize);
-						work[1] = GetSafe(x1, y, z, data, volumeSize);
-						work[2] = GetSafe(x, y1, z, data, volumeSize);
-						work[3] = GetSafe(x1, y1, z, data, volumeSize);
-						work[4] = GetSafe(x, y, z1, data, volumeSize);
-						work[5] = GetSafe(x1, y, z1, data, volumeSize);
-						work[6] = GetSafe(x, y1, z1, data, volumeSize);
-						work[7] = GetSafe(x1, y1, z1, data, volumeSize);
-
-						if (work.Any(color => color != 0))
-						{
-							IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
-								.GroupBy(v => v).OrderByDescending(v => v.Count());
-							int count = groups.ElementAt(0).Count();
-							IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
-								.OrderByDescending(v => v.Key).First();
-
-							result[GetGridPos(x, y, z, volumeSize)] = group.Key;
-						}
-						else
-						{
-							result[GetGridPos(x, y, z, volumeSize)] = 0;
-						}
-					}
-				}
-			}
-
-			return result;
 		}
 
 		public static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
