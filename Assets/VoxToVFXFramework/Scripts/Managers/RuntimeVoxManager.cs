@@ -42,9 +42,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region ConstStatic
 
 
-		private const string MAIN_VFX_BUFFER0_KEY = "Buffer";
-		private const string MAIN_VFX_BUFFER1_KEY = "Buffer2";
-		private const string MAIN_VFX_BUFFER2_KEY = "Buffer3";
+		private const string MAIN_VFX_BUFFER1_KEY = "Buffer";
+		private const string MAIN_VFX_BUFFER2_KEY = "Buffer2";
+		private const string MAIN_VFX_BUFFER3_KEY = "Buffer3";
+		private const string MAIN_VFX_BUFFER4_KEY = "Buffer4";
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string SIZE_VFX_KEY = "Size";
 		private const string DEBUG_LOD_KEY = "DebugLod";
@@ -77,7 +78,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"),
+			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default 3.vox"),
 				OnLoadProgress, OnFrameLoaded, OnLoadFinished));
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
@@ -159,14 +160,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 			visualEffectItem.InitialBurstLod0 = voxelResult.DataLod0.Length;
 			visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(voxelResult.DataLod0.Length, Config.OpaqueVisualEffects);
 			visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", voxelResult.DataLod0.Length); //TODO: Move it in Update method
-			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER0_KEY, bufferLod0);
+			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER1_KEY, bufferLod0);
 
 			if (voxelResult.DataLod1.Length != 0)
 			{
 				GraphicsBuffer bufferLod1 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod1.Length, Marshal.SizeOf(typeof(Vector4)));
 				bufferLod1.SetData(voxelResult.DataLod1.AsArray());
 				mOpaqueBuffers.Add(bufferLod1);
-				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER1_KEY, bufferLod1);
+				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER2_KEY, bufferLod1);
 				visualEffectItem.InitialBurstLod1 = voxelResult.DataLod1.Length;
 			}
 
@@ -175,8 +176,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 				GraphicsBuffer bufferLod2 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod2.Length, Marshal.SizeOf(typeof(Vector4)));
 				bufferLod2.SetData(voxelResult.DataLod2.AsArray());
 				mOpaqueBuffers.Add(bufferLod2);
-				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER2_KEY, bufferLod2);
+				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER3_KEY, bufferLod2);
 				visualEffectItem.InitialBurstLod2 = voxelResult.DataLod2.Length;
+			}
+
+			if (voxelResult.DataLod3.Length != 0)
+			{
+				GraphicsBuffer bufferLod3 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod3.Length, Marshal.SizeOf(typeof(Vector4)));
+				bufferLod3.SetData(voxelResult.DataLod3.AsArray());
+				mOpaqueBuffers.Add(bufferLod3);
+				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER4_KEY, bufferLod3);
+				visualEffectItem.InitialBurstLod3 = voxelResult.DataLod3.Length;
 			}
 		}
 
@@ -225,7 +235,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				float distance = Vector3.Distance(MainCamera.transform.position, item.FramePosition);
-				Debug.Log(distance);
 				bool updated = false;
 				if (distance >= 0 && distance < 300 && item.InitialBurstLod0 != 0 && item.CurrentLod != 1)
 				{
@@ -243,12 +252,20 @@ namespace VoxToVFXFramework.Scripts.Managers
 					item.CurrentLod = 2;
 					updated = true;
 				}
-				else if (distance >= 600 && distance < int.MaxValue && item.InitialBurstLod2 != 0 && item.CurrentLod != 4)
+				else if (distance >= 600 && distance < 800 && item.InitialBurstLod2 != 0 && item.CurrentLod != 4)
 				{
 					item.OpaqueVisualEffect.Reinit();
 					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod2);
 					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 4);
 					item.CurrentLod = 4;
+					updated = true;
+				}
+				else if (distance >= 800 && distance < int.MaxValue && item.InitialBurstLod3 != 0 && item.CurrentLod != 8)
+				{
+					item.OpaqueVisualEffect.Reinit();
+					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod3);
+					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 8);
+					item.CurrentLod = 8;
 					updated = true;
 				}
 

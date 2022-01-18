@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Importer;
@@ -16,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public NativeArray<byte> Data;
 		[NativeDisableParallelForRestriction]
 		[WriteOnly] public NativeArray<byte> Result;
-		public void Execute(int z) 
+		public void Execute(int z)
 		{
 			if (z % ModuloCheck != 0)
 			{
@@ -41,22 +42,38 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					//work[6] = GetSafe(x, y1, z1, Data, VolumeSize);
 					//work[7] = GetSafe(x1, y1, z1, Data, VolumeSize);
 
-					//if (work.Any(color => color != 0))
-					//{
-					//	IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
-					//		.GroupBy(v => v).OrderByDescending(v => v.Count());
-					//	int count = groups.ElementAt(0).Count();
-					//	IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
-					//		.OrderByDescending(v => v.Key).First();
+					//NativeHashMap<byte, int> dictKeyValues = new NativeHashMap<byte, int>(8, Allocator.Temp);
 
-					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = group.Key;
+					//byte keyMax = 0;
+					//int max = 0;
+					//for (int i = 0; i < work.Length; i++)
+					//{
+					//	byte val = work[i];
+					//	if (val != 0)
+					//	{
+					//		if (dictKeyValues.ContainsKey(val))
+					//		{
+					//			dictKeyValues[val]++;
+					//		}
+					//		else
+					//		{
+					//			dictKeyValues.Add(val, 1);
+					//		}
+
+					//		if (dictKeyValues[val] > max)
+					//		{
+					//			max = dictKeyValues[val];
+					//			keyMax = val;
+					//		}
+					//	}
 					//}
+
+					//if (keyMax != 0)
+					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = (byte)dictKeyValues[keyMax];
 					//else
-					//{
 					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
-					//}
-
 					//work.Dispose();
+					//dictKeyValues.Dispose();
 
 					byte b0 = GetSafe(x, y, z, Data, VolumeSize);
 					byte b1 = GetSafe(x1, y, z, Data, VolumeSize);
@@ -85,6 +102,20 @@ namespace VoxToVFXFramework.Scripts.Jobs
 						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b7;
 					else
 						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
+					//if (work.Any(color => color != 0))
+					//{
+					//	IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
+					//		.GroupBy(v => v).OrderByDescending(v => v.Count());
+					//	int count = groups.ElementAt(0).Count();
+					//	IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
+					//		.OrderByDescending(v => v.Key).First();
+
+					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = group.Key;
+					//}
+					//else
+					//{
+					//	Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
+					//}
 				}
 			}
 		}
