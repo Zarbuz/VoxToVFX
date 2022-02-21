@@ -53,11 +53,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region Fields
 
-		public event Action<float> LoadProgressCallback;
+		public event Action<int, float> LoadProgressCallback;
 		public event Action LoadFinishedCallback;
-
-		public int DetailLoadDistance { get; set; } = 140;
-		public int CutOfMargin { get; set; } = 200;
 
 		private readonly List<GraphicsBuffer> mOpaqueBuffers = new List<GraphicsBuffer>();
 		private readonly List<VisualEffectItem> mVisualEffectItems = new List<VisualEffectItem>();
@@ -79,7 +76,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default 3.vox"),
-				OnLoadProgress, OnFrameLoaded, OnLoadFinished));
+				OnLoadFrameProgress, OnLoadFinished));
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
 
@@ -136,13 +133,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItems.Clear();
 		}
 
-		private void OnLoadProgress(float progress)
+		private void OnLoadFrameProgress(float progress)
 		{
-			LoadProgressCallback?.Invoke(progress);
+			LoadProgressCallback?.Invoke(1, progress);
 		}
 
-		private void OnFrameLoaded(VoxelResult voxelResult)
+		private void OnChunkLoadResult(float progress, VoxelResult voxelResult)
 		{
+			LoadProgressCallback?.Invoke(2, progress);
+
 			if (voxelResult.DataLod0.Length == 0)
 			{
 				return;
@@ -154,7 +153,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItems.Add(visualEffectItem);
 
 			GraphicsBuffer bufferLod0 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod0.Length, Marshal.SizeOf(typeof(Vector4)));
-			bufferLod0.SetData(voxelResult.DataLod0.AsArray());
+			bufferLod0.SetData(voxelResult.DataLod0);
 			mOpaqueBuffers.Add(bufferLod0);
 
 			visualEffectItem.InitialBurstLod0 = voxelResult.DataLod0.Length;
@@ -165,7 +164,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (voxelResult.DataLod1.Length != 0)
 			{
 				GraphicsBuffer bufferLod1 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod1.Length, Marshal.SizeOf(typeof(Vector4)));
-				bufferLod1.SetData(voxelResult.DataLod1.AsArray());
+				bufferLod1.SetData(voxelResult.DataLod1);
 				mOpaqueBuffers.Add(bufferLod1);
 				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER2_KEY, bufferLod1);
 				visualEffectItem.InitialBurstLod1 = voxelResult.DataLod1.Length;
@@ -174,7 +173,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (voxelResult.DataLod2.Length != 0)
 			{
 				GraphicsBuffer bufferLod2 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod2.Length, Marshal.SizeOf(typeof(Vector4)));
-				bufferLod2.SetData(voxelResult.DataLod2.AsArray());
+				bufferLod2.SetData(voxelResult.DataLod2);
 				mOpaqueBuffers.Add(bufferLod2);
 				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER3_KEY, bufferLod2);
 				visualEffectItem.InitialBurstLod2 = voxelResult.DataLod2.Length;
@@ -183,24 +182,26 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (voxelResult.DataLod3.Length != 0)
 			{
 				GraphicsBuffer bufferLod3 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod3.Length, Marshal.SizeOf(typeof(Vector4)));
-				bufferLod3.SetData(voxelResult.DataLod3.AsArray());
+				bufferLod3.SetData(voxelResult.DataLod3);
 				mOpaqueBuffers.Add(bufferLod3);
 				visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER4_KEY, bufferLod3);
 				visualEffectItem.InitialBurstLod3 = voxelResult.DataLod3.Length;
 			}
 		}
 
-		private void OnLoadFinished(bool success)
+		private void OnLoadFinished(WorldData worldData)
 		{
-			if (!success)
+			if (worldData == null)
 			{
 				Debug.LogError("[RuntimeVoxManager] Failed to load vox model");
 				return;
 			}
+			Debug.Log("OnLoadFinished");
 
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
-
+			worldData.ComputeLodsChunks(OnChunkLoadResult);
+			
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);

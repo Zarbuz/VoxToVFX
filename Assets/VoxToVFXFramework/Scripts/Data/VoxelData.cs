@@ -25,10 +25,10 @@ namespace VoxToVFXFramework.Scripts.Data
 
 	public struct VoxelResult
 	{
-		public NativeList<Vector4> DataLod0;
-		public NativeList<Vector4> DataLod1;
-		public NativeList<Vector4> DataLod2;
-		public NativeList<Vector4> DataLod3;
+		public NativeArray<Vector4> DataLod0;
+		public NativeArray<Vector4> DataLod1;
+		public NativeArray<Vector4> DataLod2;
+		public NativeArray<Vector4> DataLod3;
 		public Vector3 FrameWorldPosition; //0 0 0
 	}
 }

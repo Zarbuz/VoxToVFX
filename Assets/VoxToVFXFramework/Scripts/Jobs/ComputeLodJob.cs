@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
@@ -14,9 +15,9 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public int Step;
 		[ReadOnly] public int ModuloCheck;
 		[ReadOnly] public Vector3 VolumeSize;
-		[ReadOnly] public NativeArray<byte> Data;
+		[ReadOnly] public NativeHashMap<int, Vector4> Data;
 		[NativeDisableParallelForRestriction]
-		[WriteOnly] public NativeArray<byte> Result;
+		[WriteOnly] public NativeHashMap<int, Vector4>.ParallelWriter Result;
 		public void Execute(int z)
 		{
 			if (z % ModuloCheck != 0)
@@ -75,33 +76,70 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					//work.Dispose();
 					//dictKeyValues.Dispose();
 
-					byte b0 = GetSafe(x, y, z, Data, VolumeSize);
-					byte b1 = GetSafe(x1, y, z, Data, VolumeSize);
-					byte b2 = GetSafe(x, y1, z, Data, VolumeSize);
-					byte b3 = GetSafe(x1, y1, z, Data, VolumeSize);
-					byte b4 = GetSafe(x, y, z1, Data, VolumeSize);
-					byte b5 = GetSafe(x1, y, z1, Data, VolumeSize);
-					byte b6 = GetSafe(x, y1, z1, Data, VolumeSize);
-					byte b7 = GetSafe(x1, y1, z1, Data, VolumeSize);
+					int xFinal = x % WorldData.CHUNK_SIZE;
+					int x1Final = x1 % WorldData.CHUNK_SIZE;
 
-					if (b0 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b0;
-					else if (b1 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b1;
-					else if (b2 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b2;
-					else if (b3 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b3;
-					else if (b4 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b4;
-					else if (b5 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b5;
-					else if (b6 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b6;
-					else if (b7 != 0)
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = b7;
+					int yFinal = y % WorldData.CHUNK_SIZE;
+					int y1Final = y1 % WorldData.CHUNK_SIZE;
+
+					int zFinal = z % WorldData.CHUNK_SIZE;
+					int z1Final = z1 % WorldData.CHUNK_SIZE;
+
+					int worldPositionKey = VoxImporter.GetGridPos(x, y, z, VolumeSize);
+					int b0Key = VoxImporter.GetGridPos(xFinal, yFinal, zFinal, VolumeSize);
+					int b1Key = VoxImporter.GetGridPos(x1Final, yFinal, zFinal, VolumeSize);
+					int b2Key = VoxImporter.GetGridPos(xFinal, y1Final, zFinal, VolumeSize);
+					int b3Key = VoxImporter.GetGridPos(x1Final, y1Final, zFinal, VolumeSize);
+					int b4Key = VoxImporter.GetGridPos(xFinal, yFinal, z1Final, VolumeSize);
+					int b5Key = VoxImporter.GetGridPos(x1Final, yFinal, z1Final, VolumeSize);
+					int b6Key = VoxImporter.GetGridPos(xFinal, y1Final, z1Final, VolumeSize);
+					int b7Key = VoxImporter.GetGridPos(x1Final, y1Final, z1Final, VolumeSize);
+					if (Data.TryGetValue(b0Key, out Vector4 b0))
+					{
+						if (b0.w != 0) 
+							Result.TryAdd(worldPositionKey, b0);
+					}
+					else if (Data.TryGetValue(b1Key, out Vector4 b1))
+					{
+						if (b1.w != 0) 
+							Result.TryAdd(worldPositionKey, b1);
+					}
+					else if (Data.TryGetValue(b2Key, out Vector4 b2))
+					{
+						if (b2.w != 0)
+							Result.TryAdd(worldPositionKey, b2);
+					}
+					else if (Data.TryGetValue(b3Key, out Vector4 b3))
+					{
+						if (b3.w != 0)
+							Result.TryAdd(worldPositionKey, b3);
+					}
+					else if (Data.TryGetValue(b4Key, out Vector4 b4))
+					{
+						if (b4.w != 0)
+							Result.TryAdd(worldPositionKey, b4);
+					}
+					else if (Data.TryGetValue(b5Key, out Vector4 b5))
+					{
+						if (b5.w != 0)
+							Result.TryAdd(worldPositionKey, b5);
+					}
+					else if (Data.TryGetValue(b6Key, out Vector4 b6))
+					{
+						if (b6.w != 0)
+							Result.TryAdd(worldPositionKey, b6);
+					}
+					else if (Data.TryGetValue(b7Key, out Vector4 b7))
+					{
+						if (b7.w != 0)
+							Result.TryAdd(worldPositionKey, b7);
+					}
 					else
-						Result[VoxImporter.GetGridPos(x, y, z, VolumeSize)] = 0;
+					{
+						Result.TryAdd(worldPositionKey, Vector4.zero);
+					}
+
+
 					//if (work.Any(color => color != 0))
 					//{
 					//	IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
