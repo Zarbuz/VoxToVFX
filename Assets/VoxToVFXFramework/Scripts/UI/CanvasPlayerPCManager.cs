@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
-using VoxToVFXFramework.Scripts.UI.Settings;
 
 namespace VoxToVFXFramework.Scripts.UI
 {
@@ -18,7 +17,6 @@ namespace VoxToVFXFramework.Scripts.UI
 	{
 		#region ScriptParameters
 
-		[SerializeField] private SettingsPanel SettingsPanel;
 		[SerializeField] private TextMeshProUGUI LoadingProgressText;
 		
 
@@ -34,7 +32,6 @@ namespace VoxToVFXFramework.Scripts.UI
 			set
 			{
 				mCanvasPlayerPcState = value;
-				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
 				LoadingProgressText.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 			}
 		}

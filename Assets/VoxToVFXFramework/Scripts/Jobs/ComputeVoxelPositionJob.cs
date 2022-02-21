@@ -16,23 +16,34 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public Vector3 FPivot;
 		[ReadOnly] public Matrix4x4 Matrix4X4;
 		[ReadOnly] public Vector3 VolumeSize;
-		[ReadOnly] public NativeArray<int> Keys;
-		[ReadOnly] public NativeHashMap<int, Vector4> HashMap;
-		[WriteOnly] public NativeArray<VoxelVFX> Result;
+		[ReadOnly] public NativeArray<byte> Data;
+		[WriteOnly] public NativeList<Vector4>.ParallelWriter Result;
 
-		public void Execute(int index)
+		public void Execute(int z)
 		{
-			Vector4 v = HashMap[Keys[index]];
-			IntVector3 worldPosition = GetVoxPosition(VolumeSize, (int)v.x, (int)v.y, (int)v.z, Pivot, FPivot, Matrix4X4);
-			//Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
-			Result[index] = new VoxelVFX()
+			for (int y = 0; y < VolumeSize.y; y++)
 			{
-				position = new Vector3(worldPosition.x + 1000, worldPosition.y + 1000, worldPosition.z + 1000),
-				paletteIndex = (int)(v.w - 1)
-			};
+				for (int x = 0; x < VolumeSize.x; x++)
+				{
+					byte color = ComputeLodJob.GetSafe(x, y, z, Data, VolumeSize);
+					if (color != 0)
+					{
+						IntVector3 worldPosition = GetVoxPosition(VolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
+						Result.AddNoResize(new Vector4()
+						{
+							x = worldPosition.x + 1000,
+							y = worldPosition.y + 1000,
+							z = worldPosition.z + 1000,
+							w = color - 1
+						});
+						//Result[index] = new Vector4(tmpVoxel.x + 1000, tmpVoxel.y + 1000, tmpVoxel.z + 1000, v.w - 1);
+					}
+				}
+			}
+			
 		}
 
-		private static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
+		public static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
 		{
 			IntVector3 tmpVoxel = new IntVector3(x, y, z);
 			IntVector3 origPos;

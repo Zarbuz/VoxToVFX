@@ -64,7 +64,7 @@ public class VisualAssetHelperWindow : EditorWindow
 
 	private void GenerateAssets()
 	{
-		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_VFX_FOLDER, "VoxImporterV2.vfx"), "Opaque", out List<VisualEffectAsset> l1))
+		if (WriteAllVisualAssets(Path.Combine(Application.dataPath, FRAMEWORK_VFX_FOLDER, "VoxImporterV3.vfx"), "Opaque", out List<VisualEffectAsset> l1))
 		{
 			mVisualEffectConfig.OpaqueVisualEffects = l1;
 		}

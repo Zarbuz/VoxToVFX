@@ -34,7 +34,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		#region PublicMethods
 
-		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback, Action<bool> onFinishedCallback)
+		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<VoxelResult> onFrameLoadedCallback, Action<bool> onFinishedCallback)
 		{
 			CustomVoxReader voxReader = new CustomVoxReader();
 			mVoxModel = voxReader.LoadModel(path) as VoxModelCustom;
@@ -84,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 								WriteVoxelFrameData(transformNodeChunk.Id, voxelData, onFrameLoadedCallback);
 								if (mShapeModelCounts[shapeModel.ModelId].Count == mShapeModelCounts[shapeModel.ModelId].Total)
 								{
-									voxelData.VoxelNativeHashMap.Dispose();
+									voxelData.VoxelNativeArray.Dispose();
 								}
 							}
 						}
@@ -103,7 +103,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 		}
 
 		public static int GetGridPos(int x, int y, int z, Vector3 volumeSize)
-			=> (int)((volumeSize.x * volumeSize.y) * z + (volumeSize.x * y) + x);
+			=> (int)((volumeSize.x * volumeSize.y * z) + volumeSize.x * y + x);
 
 		#endregion
 
@@ -111,6 +111,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static void InitShapeModelCounts()
 		{
+
 			foreach (ShapeModel shapeModel in mVoxModel.ShapeNodeChunks.SelectMany(shapeNodeChunk => shapeNodeChunk.Models))
 			{
 				if (!mShapeModelCounts.ContainsKey(shapeModel.ModelId))
@@ -124,9 +125,9 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static void Dispose()
 		{
-			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeHashMap.IsCreated))
+			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
 			{
-				voxelDataCustom.VoxelNativeHashMap.Dispose();
+				voxelDataCustom.VoxelNativeArray.Dispose();
 			}
 
 			Materials = null;
@@ -156,131 +157,138 @@ namespace VoxToVFXFramework.Scripts.Importer
 			return materials;
 		}
 
-		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data, Action<NativeArray<VoxelVFX>> onFrameLoadedCallback)
+		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data, Action<VoxelResult> onFrameLoadedCallback)
 		{
-			Vector3 volumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
+			Vector3 initialVolumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 
-			//NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Temp);
-			////x0.5
-			//NativeHashMap<int, Vector4> hashMap0 = ComputeLod(new LodParameters()
-			//{
-			//	Data = data.VoxelNativeHashMap,
-			//	VolumeSize = volumeSize,
-			//	Work = work
-			//});
-
-			////x0.5
-			//Vector3 volumeSizeHasmap0 = new Vector3(((int)volumeSize.x + 1) >> 1, ((int)volumeSize.y + 1) >> 1, ((int)volumeSize.z + 1) >> 1);
-			//NativeHashMap<int, Vector4> hashMap1 = ComputeLod(new LodParameters()
-			//{
-			//	Data = hashMap0,
-			//	VolumeSize = volumeSizeHasmap0,
-			//	Work = work
-			//});
-
-			////x0.5
-			//Vector3 volumeSizeHasmap1 = new Vector3(((int)volumeSizeHasmap0.x + 1) >> 1, ((int)volumeSizeHasmap0.y + 1) >> 1, ((int)volumeSizeHasmap0.z + 1) >> 1);
-			//NativeHashMap<int, Vector4> hashMap2 = ComputeLod(new LodParameters()
-			//{
-			//	Data = hashMap1,
-			//	VolumeSize = volumeSizeHasmap1,
-			//	Work = work
-			//});
-			//work.Dispose();
-
-			IntVector3 originSize = new IntVector3((int)volumeSize.x, (int)volumeSize.y, (int)volumeSize.z);
+			IntVector3 originSize = new IntVector3((int)initialVolumeSize.x, (int)initialVolumeSize.y, (int)initialVolumeSize.z);
 			originSize.y = data.VoxelsDeep;
 			originSize.z = data.VoxelsTall;
 
 			Vector3 pivot = new Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
-			NativeArray<int> keys = data.VoxelNativeHashMap.GetKeyArray(Allocator.TempJob);
-			NativeArray<VoxelVFX> result = new NativeArray<VoxelVFX>(keys.Length, Allocator.TempJob);
-		
-			// Schedule a parallel-for job. First parameter is how many for-each iterations to perform.
-			// The second parameter is the batch size,
-			// essentially the no-overhead innerloop that just invokes Execute(i) in a loop.
-			// When there is a lot of work in each iteration then a value of 1 can be sensible.
-			// When there is very little work values of 32 or 64 can make sense.
-			JobHandle positionJobHandle = new ComputeVoxelPositionJob
+
+			int maxCapacity = (int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z);
+
+			NativeArray<byte> initialDataClean = new NativeArray<byte>(data.VoxelNativeArray.Length, Allocator.TempJob);
+			JobHandle removeInvisibleVoxelJob = new RemoveInvisibleVoxelJob()
+			{
+				Data = data.VoxelNativeArray,
+				VolumeSize = initialVolumeSize,
+				Result = initialDataClean
+			}.Schedule((int)initialVolumeSize.z, 64);
+			removeInvisibleVoxelJob.Complete();
+
+			NativeList<Vector4> resultLod0 = new NativeList<Vector4>(Allocator.TempJob);
+			resultLod0.SetCapacity(maxCapacity);
+			JobHandle job = new ComputeVoxelPositionJob
 			{
 				Matrix4X4 = mModelMatrix[transformChunkId],
-				VolumeSize = volumeSize,
+				VolumeSize = initialVolumeSize,
 				Pivot = pivot,
 				FPivot = fpivot,
-				Keys = keys,
-				HashMap = data.VoxelNativeHashMap,
-				Result = result,
-			}.Schedule(keys.Length, 64);
+				Data = initialDataClean,
+				Result = resultLod0.AsParallelWriter(),
+			}.Schedule((int)initialVolumeSize.z, 64);
+			job.Complete();
+			initialDataClean.Dispose();
 
-
-			// Ensure the job has completed.
-			// It is not recommended to Complete a job immediately,
-			// since that reduces the chance of having other jobs run in parallel with this one.
-			// You optimally want to schedule a job early in a frame and then wait for it later in the frame.
-			positionJobHandle.Complete();
-			keys.Dispose(positionJobHandle);
-
-			onFrameLoadedCallback?.Invoke(result);
-			result.Dispose();
-		}
-
-		private static NativeHashMap<int, Vector4> ComputeLod(LodParameters parameters)
-		{
-			Vector3 volumeSize = parameters.VolumeSize;
-			NativeHashMap<int, Vector4> data = parameters.Data;
-			NativeArray<byte> work = parameters.Work;
-			Vector3 resultVolumeSize = new Vector3(((int)volumeSize.x + 1) >> 1, ((int)volumeSize.y + 1) >> 1, ((int)volumeSize.z + 1) >> 1);
-			NativeHashMap<int, Vector4> result = new NativeHashMap<int, Vector4>(10, Allocator.TempJob);
-			for (int z = 0; z < volumeSize.z; z += 2)
+			//NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Persistent);
+			NativeArray<byte> arrayLod1 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
+			ComputeLodJob computeLodJob = new ComputeLodJob()
 			{
-				int z1 = z + 1;
-				for (int y = 0; y < volumeSize.y; y += 2)
-				{
-					int y1 = y + 1;
-					for (int x = 0; x < volumeSize.x; x += 2)
-					{
-						int x1 = x + 1;
-						work[0] = data.TryGetValue(VoxImporter.GetGridPos(x, y, z, volumeSize), out Vector4 v)
-							? (byte)v.w
-							: (byte)0;
-						work[1] = data.TryGetValue(VoxImporter.GetGridPos(x1, y, z, volumeSize), out Vector4 v1)
-							? (byte)v1.w
-							: (byte)0;
-						work[2] = data.TryGetValue(VoxImporter.GetGridPos(x, y1, z, volumeSize), out Vector4 v2)
-							? (byte)v2.w
-							: (byte)0;
-						work[3] = data.TryGetValue(VoxImporter.GetGridPos(x1, y1, z, volumeSize), out Vector4 v3)
-							? (byte)v3.w
-							: (byte)0;
-						work[4] = data.TryGetValue(VoxImporter.GetGridPos(x, y, z1, volumeSize), out Vector4 v4)
-							? (byte)v4.w
-							: (byte)0;
-						work[5] = data.TryGetValue(VoxImporter.GetGridPos(x1, y1, z1, volumeSize), out Vector4 v5)
-							? (byte)v5.w
-							: (byte)0;
-						work[6] = data.TryGetValue(VoxImporter.GetGridPos(x, y1, z1, volumeSize), out Vector4 v6)
-							? (byte)v6.w
-							: (byte)0;
-						work[7] = data.TryGetValue(VoxImporter.GetGridPos(x1, y1, z1, volumeSize), out Vector4 v7)
-							? (byte)v7.w
-							: (byte)0;
+				VolumeSize = initialVolumeSize,
+				Result = arrayLod1,
+				Data = data.VoxelNativeArray,
+				Step = 1,
+				ModuloCheck = 2
+			};
+			JobHandle jobHandle = computeLodJob.Schedule((int)initialVolumeSize.z, 64);
+			jobHandle.Complete();
 
-						if (work.Any(color => color != 0))
-						{
-							IOrderedEnumerable<IGrouping<byte, byte>> groups = work.Where(color => color != 0)
-								.GroupBy(v => v).OrderByDescending(v => v.Count());
-							int count = groups.ElementAt(0).Count();
-							IGrouping<byte, byte> group = groups.TakeWhile(v => v.Count() == count)
-								.OrderByDescending(v => v.Key).First();
+			NativeList<Vector4> resultLod1 = new NativeList<Vector4>(Allocator.TempJob);
+			resultLod1.SetCapacity(maxCapacity);
+			JobHandle job1 = new ComputeVoxelPositionJob
+			{
+				Matrix4X4 = mModelMatrix[transformChunkId],
+				VolumeSize = initialVolumeSize,
+				Pivot = pivot,
+				FPivot = fpivot,
+				Data = arrayLod1,
+				Result = resultLod1.AsParallelWriter(),
+			}.Schedule((int)initialVolumeSize.z, 64);
+			job1.Complete();
 
-							result[GetGridPos(x, y, z, resultVolumeSize)] = new Vector4(x, y, z, group.Key);
-						}
-					}
-				}
-			}
+			NativeArray<byte> arrayLod2 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
+			ComputeLodJob computeLodJob2 = new ComputeLodJob()
+			{
+				VolumeSize = initialVolumeSize,
+				Result = arrayLod2,
+				Data = arrayLod1,
+				Step = 2,
+				ModuloCheck = 4
+			};
+			JobHandle jobHandle2 = computeLodJob2.Schedule((int)initialVolumeSize.z, 64);
+			jobHandle2.Complete();
 
-			return result;
+			NativeList<Vector4> resultLod2 = new NativeList<Vector4>(Allocator.TempJob);
+			resultLod2.SetCapacity(maxCapacity);
+			JobHandle job2 = new ComputeVoxelPositionJob
+			{
+				Matrix4X4 = mModelMatrix[transformChunkId],
+				VolumeSize = initialVolumeSize,
+				Pivot = pivot,
+				FPivot = fpivot,
+				Data = arrayLod2,
+				Result = resultLod2.AsParallelWriter(),
+			}.Schedule((int)initialVolumeSize.z, 64);
+			job2.Complete();
+
+			NativeArray<byte> arrayLod3 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
+			ComputeLodJob computeLodJob3 = new ComputeLodJob()
+			{
+				VolumeSize = initialVolumeSize,
+				Result = arrayLod3,
+				Data = arrayLod2,
+				Step = 4,
+				ModuloCheck = 8
+			};
+			JobHandle jobHandle3 = computeLodJob3.Schedule((int)initialVolumeSize.z, 64);
+			jobHandle3.Complete();
+
+			NativeList<Vector4> resultLod3 = new NativeList<Vector4>(Allocator.TempJob);
+			resultLod3.SetCapacity(maxCapacity);
+			JobHandle job3 = new ComputeVoxelPositionJob
+			{
+				Matrix4X4 = mModelMatrix[transformChunkId],
+				VolumeSize = initialVolumeSize,
+				Pivot = pivot,
+				FPivot = fpivot,
+				Data = arrayLod3,
+				Result = resultLod3.AsParallelWriter(),
+			}.Schedule((int)initialVolumeSize.z, 64);
+			job3.Complete();
+
+			arrayLod1.Dispose();
+			arrayLod2.Dispose();
+			arrayLod3.Dispose();
+
+			VoxelResult voxelResult = new VoxelResult
+			{
+				DataLod0 = resultLod0,
+				DataLod1 = resultLod1,
+				DataLod2 = resultLod2,
+				DataLod3 = resultLod3
+			};
+
+			IntVector3 frameWorldPosition = ComputeVoxelPositionJob.GetVoxPosition(initialVolumeSize, (int)initialVolumeSize.x / 2, (int)initialVolumeSize.y / 2, (int)initialVolumeSize.z / 2, pivot, fpivot, mModelMatrix[transformChunkId]);
+			voxelResult.FrameWorldPosition = new Vector3(frameWorldPosition.x + 1000, frameWorldPosition.y + 1000, frameWorldPosition.z + 1000);
+
+			onFrameLoadedCallback?.Invoke(voxelResult);
+			resultLod0.Dispose();
+			resultLod1.Dispose();
+			resultLod2.Dispose();
+			resultLod3.Dispose();
 		}
 
 		public static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
@@ -316,8 +324,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 					case 3: result[2, 0] = signRow2 ? 1f : -1f; break;
 				}
 
-					result.SetColumn(3, new Vector4(transform.X, transform.Y, transform.Z, 1f));
-				}
+				result.SetColumn(3, new Vector4(transform.X, transform.Y, transform.Z, 1f));
+			}
 			return result;
 		}
 
