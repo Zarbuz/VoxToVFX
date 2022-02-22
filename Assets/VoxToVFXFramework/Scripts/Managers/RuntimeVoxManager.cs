@@ -37,12 +37,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private VisualEffectConfig Config;
 
 		[Header("Lods")]
+		[OnValueChanged(nameof(RefreshDebugLod))]
 		[SerializeField] private bool DebugLod;
 		[SerializeField] private Vector4 LodDistance;
+
+		[OnValueChanged(nameof(RefreshLodsDistance))]
 		[SerializeField] private bool ForceLevelLod;
 
 		[Range(0, 3)]
 		[ShowIf(nameof(ForceLevelLod))]
+		[OnValueChanged(nameof(RefreshLodsDistance))]
 		[SerializeField] private int ForcedLevelLod;
 		#endregion
 
@@ -71,7 +75,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private bool mIsLoaded;
 		private Vector3 mCurrentCameraPosition;
 		private bool mCheckDistance;
-		private bool mDebugLod;
 		private Transform mVisualItemsParent;
 
 		#endregion
@@ -99,18 +102,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			if (mDebugLod != DebugLod)
-			{
-				mDebugLod = DebugLod;
-				RefreshDebugLod();
-			}
-
 			if (Vector3.Distance(mCurrentCameraPosition, MainCamera.transform.position) > 10 && !mCheckDistance)
 			{
 				mCurrentCameraPosition = MainCamera.transform.position;
 				mCheckDistance = true;
 
-				CheckDistance();
+				RefreshLodsDistance();
 			}
 		}
 
@@ -248,7 +245,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		private void CheckDistance()
+		private void RefreshLodsDistance()
 		{
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
