@@ -68,7 +68,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				}
 				enumerator.Dispose();
 
-				NativeHashMap<int, Vector4> resultLod1 = new NativeHashMap<int, Vector4>(data.Count(), Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod1 = new NativeHashMap<int, Vector4>(data.Count(), Allocator.Persistent);
 				ComputeLodJob computeLodJob = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
@@ -81,7 +81,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				JobHandle jobHandle = computeLodJob.Schedule(CHUNK_SIZE, 64);
 				jobHandle.Complete();
 
-				NativeHashMap<int, Vector4> resultLod2 = new NativeHashMap<int, Vector4>(resultLod1.Count(), Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod2 = new NativeHashMap<int, Vector4>(resultLod1.Count(), Allocator.Persistent);
 				ComputeLodJob computeLodJob2 = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
@@ -94,7 +94,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				JobHandle jobHandle2 = computeLodJob2.Schedule(CHUNK_SIZE, 64);
 				jobHandle2.Complete();
 
-				NativeHashMap<int, Vector4> resultLod3 = new NativeHashMap<int, Vector4>(resultLod2.Count(), Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod3 = new NativeHashMap<int, Vector4>(resultLod2.Count(), Allocator.Persistent);
 				ComputeLodJob computeLodJob3 = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
@@ -113,7 +113,7 @@ namespace VoxToVFXFramework.Scripts.Data
 					DataLod1 = resultLod1.GetValueArray(Allocator.Persistent),
 					DataLod2 = resultLod2.GetValueArray(Allocator.Persistent),
 					DataLod3 = resultLod3.GetValueArray(Allocator.Persistent),
-					FrameWorldPosition = worldChunkPosition
+					FrameWorldPosition = GetCenterChunkWorldPosition(chunkIndex)
 				};
 
 				resultLod1.Dispose();
@@ -131,10 +131,18 @@ namespace VoxToVFXFramework.Scripts.Data
 			keys.Dispose();
 		}
 
-		private Vector3 GetChunkWorldPosition(int chunkIndex)
+		private static Vector3 GetChunkWorldPosition(int chunkIndex)
 		{
 			Vector3 pos3d = VoxImporter.Get3DPos(chunkIndex, WorldVolume);
 			return pos3d * CHUNK_SIZE;
+		}
+
+		private static Vector3 GetCenterChunkWorldPosition(int chunkIndex)
+		{
+			Vector3 chunkPosition = GetChunkWorldPosition(chunkIndex);
+			int halfChunkSize = CHUNK_SIZE / 2;
+
+			return new Vector3(chunkPosition.x + halfChunkSize, chunkPosition.y + halfChunkSize, chunkPosition.z + halfChunkSize);
 		}
 
 		public void Dispose()

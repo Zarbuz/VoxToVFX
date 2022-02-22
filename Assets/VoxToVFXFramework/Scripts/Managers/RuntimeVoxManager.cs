@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Sirenix.OdinInspector;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -35,8 +36,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField]
 		private VisualEffectConfig Config;
 
+		[Header("Lods")]
 		[SerializeField] private bool DebugLod;
+		[SerializeField] private Vector4 LodDistance;
+		[SerializeField] private bool ForceLevelLod;
 
+		[Range(0, 3)]
+		[ShowIf(nameof(ForceLevelLod))]
+		[SerializeField] private int ForcedLevelLod;
 		#endregion
 
 		#region ConstStatic
@@ -110,10 +117,20 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void OnDrawGizmosSelected()
 		{
 			Gizmos.color = Color.blue;
+			Vector3 position = MainCamera.transform.position;
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
-				Gizmos.DrawLine(MainCamera.transform.position, item.FramePosition);
+				Gizmos.DrawLine(position, item.FramePosition);
 			}
+
+			Gizmos.color = Color.green;
+			Gizmos.DrawWireSphere(position, LodDistance.y);
+
+			Gizmos.color = Color.yellow;
+			Gizmos.DrawWireSphere(position, LodDistance.z);
+
+			Gizmos.color = Color.red;
+			Gizmos.DrawWireSphere(position, LodDistance.w);
 		}
 
 		#endregion
@@ -201,7 +218,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
 			worldData.ComputeLodsChunks(OnChunkLoadResult);
-			
+
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
@@ -237,7 +254,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				float distance = Vector3.Distance(MainCamera.transform.position, item.FramePosition);
 				bool updated = false;
-				if (distance >= 0 && distance < 300 && item.InitialBurstLod0 != 0 && item.CurrentLod != 1)
+				if ((distance >= LodDistance.x && distance < LodDistance.y && !ForceLevelLod || ForceLevelLod && ForcedLevelLod == 0) && item.InitialBurstLod0 != 0 && item.CurrentLod != 1)
 				{
 					item.OpaqueVisualEffect.Reinit();
 					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod0);
@@ -245,7 +262,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					item.CurrentLod = 1;
 					updated = true;
 				}
-				else if (distance >= 300 && distance < 600 && item.InitialBurstLod1 != 0 && item.CurrentLod != 2)
+				else if ((distance >= LodDistance.y && distance < LodDistance.z && !ForceLevelLod || ForceLevelLod && ForcedLevelLod == 1) && item.InitialBurstLod1 != 0 && item.CurrentLod != 2)
 				{
 					item.OpaqueVisualEffect.Reinit();
 					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod1);
@@ -253,7 +270,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					item.CurrentLod = 2;
 					updated = true;
 				}
-				else if (distance >= 600 && distance < 800 && item.InitialBurstLod2 != 0 && item.CurrentLod != 4)
+				else if ((distance >= LodDistance.z && distance < LodDistance.w && !ForceLevelLod || ForceLevelLod && ForcedLevelLod == 2) && item.InitialBurstLod2 != 0 && item.CurrentLod != 4)
 				{
 					item.OpaqueVisualEffect.Reinit();
 					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod2);
@@ -261,7 +278,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					item.CurrentLod = 4;
 					updated = true;
 				}
-				else if (distance >= 800 && distance < int.MaxValue && item.InitialBurstLod3 != 0 && item.CurrentLod != 8)
+				else if ((distance >= LodDistance.w && distance < int.MaxValue && !ForceLevelLod || ForceLevelLod && ForcedLevelLod == 3) && item.InitialBurstLod3 != 0 && item.CurrentLod != 8)
 				{
 					item.OpaqueVisualEffect.Reinit();
 					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod3);
