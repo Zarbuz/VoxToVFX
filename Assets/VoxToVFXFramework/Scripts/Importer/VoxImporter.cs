@@ -109,7 +109,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 		public static Vector3 Get3DPos(int idx, Vector3 volumeSize)
 		{
 			Vector3 result = new Vector3();
-			result.z = idx / (volumeSize.x * volumeSize.y);
+			result.z = (int)(idx / (volumeSize.x * volumeSize.y));
 			idx -= (int)(result.z * volumeSize.x * volumeSize.y);
 			result.y = (int)(idx / volumeSize.x);
 			result.x = (int)(idx % volumeSize.x);
@@ -140,7 +140,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 				voxelDataCustom.VoxelNativeArray.Dispose();
 			}
 
-			mWorldData.Dispose();
 			Materials = null;
 			mShapeModelCounts.Clear();
 			mModelMatrix.Clear();
@@ -180,6 +179,12 @@ namespace VoxToVFXFramework.Scripts.Importer
 			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
 			int maxCapacity = (int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z);
+			
+			Debug.Log(data.VoxelNativeArray.Length);
+			if (data.VoxelNativeArray.Length == 0)
+			{
+				return;
+			}
 
 			NativeArray<byte> initialDataClean = new NativeArray<byte>(data.VoxelNativeArray.Length, Allocator.TempJob);
 			JobHandle removeInvisibleVoxelJob = new RemoveInvisibleVoxelJob()

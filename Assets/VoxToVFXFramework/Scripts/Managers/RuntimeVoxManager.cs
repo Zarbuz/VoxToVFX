@@ -141,7 +141,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void OnChunkLoadResult(float progress, VoxelResult voxelResult)
 		{
 			LoadProgressCallback?.Invoke(2, progress);
-
+			Debug.Log(progress);
 			if (voxelResult.DataLod0.Length == 0)
 			{
 				return;
@@ -282,7 +282,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
 		{
 			int index = voxels / Config.StepCapacity;
-			if (index > assets.Count)
+			if (index >= assets.Count)
 			{
 				index = assets.Count - 1;
 			}

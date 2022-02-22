@@ -16,7 +16,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 		public NativeMultiHashMap<int, Vector4> WorldDataPositions;
-
+		public NativeHashMap<int, int> WorldDataIndices;
 		#endregion
 
 		#region ConstStatic
@@ -31,6 +31,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public WorldData()
 		{
 			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(256, Allocator.Persistent); //double capacity strategy
+			WorldDataIndices = new NativeHashMap<int, int>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -39,36 +40,23 @@ namespace VoxToVFXFramework.Scripts.Data
 			{
 				FastMath.FloorToInt(vector4.x / CHUNK_SIZE, vector4.y / CHUNK_SIZE, vector4.z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldVolume);
-				int voxelIndex = VoxImporter.GetGridPos((int)vector4.x, (int)vector4.y, (int)vector4.z, ChunkVolume);
 				if (vector4.y > 0)
 				{
-					NativeMultiHashMap<int, Vector4>.Enumerator enumerator = WorldDataPositions.GetValuesForKey(chunkIndex).GetEnumerator();
-					bool canInsert = true;
-					while (enumerator.MoveNext())
-					{
-						if (enumerator.Current == vector4)
-						{
-							canInsert = false;
-							break;
-						}
-					}
-					enumerator.Dispose();
-
-					if (canInsert)
-					{
-						WorldDataPositions.Add(chunkIndex, vector4);
-					}
+					WorldDataPositions.Add(chunkIndex, vector4);
+					WorldDataIndices[chunkIndex] = chunkIndex;
 				}
 			}
 		}
 
 		public void ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback)
 		{
-			(NativeArray<int>, int) keys = WorldDataPositions.GetUniqueKeyArrayNBC(Allocator.Temp);
-			for (int index = 0; index < keys.Item2; index++)
+			NativeArray<int> keys = WorldDataIndices.GetKeyArray(Allocator.Temp);
+			for (int index = 0; index < keys.Length; index++)
 			{
-				NativeMultiHashMap<int, Vector4>.Enumerator enumerator= WorldDataPositions.GetValuesForKey(keys.Item1[index]).GetEnumerator();
+				int chunkIndex = keys[index];
+				NativeMultiHashMap<int, Vector4>.Enumerator enumerator = WorldDataPositions.GetValuesForKey(chunkIndex).GetEnumerator();
 				NativeHashMap<int, Vector4> data = new NativeHashMap<int, Vector4>(200, Allocator.Persistent);
+				Vector3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
 				while (enumerator.MoveNext())
 				{
 					Vector4 voxel = enumerator.Current;
@@ -80,10 +68,11 @@ namespace VoxToVFXFramework.Scripts.Data
 				}
 				enumerator.Dispose();
 
-				NativeHashMap<int, Vector4> resultLod1 = new NativeHashMap<int, Vector4>(200, Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod1 = new NativeHashMap<int, Vector4>(data.Count(), Allocator.TempJob);
 				ComputeLodJob computeLodJob = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
+					WorldChunkPosition = worldChunkPosition,
 					Result = resultLod1.AsParallelWriter(),
 					Data = data,
 					Step = 1,
@@ -92,10 +81,11 @@ namespace VoxToVFXFramework.Scripts.Data
 				JobHandle jobHandle = computeLodJob.Schedule(CHUNK_SIZE, 64);
 				jobHandle.Complete();
 
-				NativeHashMap<int, Vector4> resultLod2 = new NativeHashMap<int, Vector4>(200, Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod2 = new NativeHashMap<int, Vector4>(resultLod1.Count(), Allocator.TempJob);
 				ComputeLodJob computeLodJob2 = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
+					WorldChunkPosition = worldChunkPosition,
 					Result = resultLod2.AsParallelWriter(),
 					Data = resultLod1,
 					Step = 2,
@@ -104,10 +94,11 @@ namespace VoxToVFXFramework.Scripts.Data
 				JobHandle jobHandle2 = computeLodJob2.Schedule(CHUNK_SIZE, 64);
 				jobHandle2.Complete();
 
-				NativeHashMap<int, Vector4> resultLod3 = new NativeHashMap<int, Vector4>(200, Allocator.TempJob);
+				NativeHashMap<int, Vector4> resultLod3 = new NativeHashMap<int, Vector4>(resultLod2.Count(), Allocator.TempJob);
 				ComputeLodJob computeLodJob3 = new ComputeLodJob()
 				{
 					VolumeSize = ChunkVolume,
+					WorldChunkPosition = worldChunkPosition,
 					Result = resultLod3.AsParallelWriter(),
 					Data = resultLod2,
 					Step = 4,
@@ -122,14 +113,14 @@ namespace VoxToVFXFramework.Scripts.Data
 					DataLod1 = resultLod1.GetValueArray(Allocator.Persistent),
 					DataLod2 = resultLod2.GetValueArray(Allocator.Persistent),
 					DataLod3 = resultLod3.GetValueArray(Allocator.Persistent),
-					FrameWorldPosition = GetChunkWorldPosition(keys.Item1[index])
+					FrameWorldPosition = worldChunkPosition
 				};
 
 				resultLod1.Dispose();
 				resultLod2.Dispose();
 				resultLod3.Dispose();
 				data.Dispose();
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
 
 				voxelResult.DataLod0.Dispose();
 				voxelResult.DataLod1.Dispose();
@@ -137,17 +128,19 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.DataLod3.Dispose();
 			}
 
-			keys.Item1.Dispose();
+			keys.Dispose();
 		}
 
 		private Vector3 GetChunkWorldPosition(int chunkIndex)
 		{
-			return VoxImporter.Get3DPos(chunkIndex, WorldVolume); 
+			Vector3 pos3d = VoxImporter.Get3DPos(chunkIndex, WorldVolume);
+			return pos3d * CHUNK_SIZE;
 		}
 
 		public void Dispose()
 		{
 			WorldDataPositions.Dispose();
+			WorldDataIndices.Dispose();
 		}
 
 		#endregion
