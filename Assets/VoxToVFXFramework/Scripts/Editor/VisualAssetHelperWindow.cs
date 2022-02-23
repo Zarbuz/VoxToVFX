@@ -31,20 +31,16 @@ public class VisualAssetHelperWindow : EditorWindow
 
 		EditorGUILayout.EndHorizontal();
 
-		EditorGUILayout.BeginHorizontal();
 		mVisualEffectConfig = (VisualEffectConfig)EditorGUILayout.ObjectField(mVisualEffectConfig, typeof(VisualEffectConfig), false);
-
-		if (GUILayout.Button("GenerateAssets"))
+		if (mVisualEffectConfig != null)
 		{
-			if (mVisualEffectConfig == null)
-			{
-				EditorUtility.DisplayDialog("VoxToVFX - Error", "You must link a RuntimeVoxController before generating visual assets", "Ok");
-				return;
-			}
+			mVisualEffectConfig.StepCapacity = EditorGUILayout.IntField(mVisualEffectConfig.StepCapacity);
 
-			GenerateAssets();
+			if (GUILayout.Button("GenerateAssets"))
+			{
+				GenerateAssets();
+			}
 		}
-		EditorGUILayout.EndHorizontal();
 	}
 
 	#endregion

@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
-using VoxToVFXFramework.Scripts.Common;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Jobs;
 using Color = FileToVoxCore.Drawing.Color;
@@ -103,16 +103,16 @@ namespace VoxToVFXFramework.Scripts.Importer
 			yield return null;
 		}
 
-		public static int GetGridPos(int x, int y, int z, Vector3 volumeSize)
+		public static int GetGridPos(int x, int y, int z, int3 volumeSize)
 			=> (int)((volumeSize.x * volumeSize.y * z) + volumeSize.x * y + x);
 
-		public static Vector3 Get3DPos(int idx, Vector3 volumeSize)
+		public static int3 Get3DPos(int idx, int3 volumeSize)
 		{
-			Vector3 result = new Vector3();
-			result.z = (int)(idx / (volumeSize.x * volumeSize.y));
-			idx -= (int)(result.z * volumeSize.x * volumeSize.y);
-			result.y = (int)(idx / volumeSize.x);
-			result.x = (int)(idx % volumeSize.x);
+			int3 result = new int3();
+			result.z = idx / (volumeSize.x * volumeSize.y);
+			idx -= result.z * volumeSize.x * volumeSize.y;
+			result.y = idx / volumeSize.x;
+			result.x = idx % volumeSize.x;
 			return result;
 		}
 		#endregion
@@ -169,9 +169,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data)
 		{
-			Vector3 initialVolumeSize = new Vector3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
-
-			IntVector3 originSize = new IntVector3((int)initialVolumeSize.x, (int)initialVolumeSize.y, (int)initialVolumeSize.z);
+			int3 initialVolumeSize = new int3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
+			int3 originSize = new int3((int)initialVolumeSize.x, (int)initialVolumeSize.y, (int)initialVolumeSize.z);
 			originSize.y = data.VoxelsDeep;
 			originSize.z = data.VoxelsTall;
 
@@ -180,7 +179,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 			int maxCapacity = (int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z);
 			
-			Debug.Log(data.VoxelNativeArray.Length);
 			if (data.VoxelNativeArray.Length == 0)
 			{
 				return;
@@ -195,7 +193,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			}.Schedule((int)initialVolumeSize.z, 64);
 			removeInvisibleVoxelJob.Complete();
 
-			NativeList<Vector4> resultLod0 = new NativeList<Vector4>(Allocator.TempJob);
+			NativeList<int4> resultLod0 = new NativeList<int4>(Allocator.TempJob);
 			resultLod0.SetCapacity(maxCapacity);
 			JobHandle job = new ComputeVoxelPositionJob
 			{

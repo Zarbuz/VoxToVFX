@@ -39,6 +39,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[Header("Lods")]
 		[OnValueChanged(nameof(RefreshDebugLod))]
 		[SerializeField] private bool DebugLod;
+		
+		[OnValueChanged(nameof(RefreshLodsDistance))]
 		[SerializeField] private Vector4 LodDistance;
 
 		[OnValueChanged(nameof(RefreshLodsDistance))]
@@ -60,6 +62,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string SIZE_VFX_KEY = "Size";
 		private const string DEBUG_LOD_KEY = "DebugLod";
+		private const string POSITION_CHUNK_KEY = "CenterPosition";
+		private const string SIZE_CHUNK_KEY = "ChunkSize";
 		#endregion
 
 		#region Fields
@@ -174,7 +178,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(voxelResult.DataLod0.Length, Config.OpaqueVisualEffects);
 			visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", voxelResult.DataLod0.Length); //TODO: Move it in Update method
 			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER1_KEY, bufferLod0);
-
+			visualEffectItem.OpaqueVisualEffect.SetVector3(POSITION_CHUNK_KEY, voxelResult.FrameWorldPosition);
+			visualEffectItem.OpaqueVisualEffect.SetVector3(SIZE_CHUNK_KEY, new Vector3(WorldData.CHUNK_SIZE, WorldData.CHUNK_SIZE, WorldData.CHUNK_SIZE));
+			
 			if (voxelResult.DataLod1.Length != 0)
 			{
 				GraphicsBuffer bufferLod1 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.DataLod1.Length, Marshal.SizeOf(typeof(Vector4)));
@@ -215,7 +221,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
 			worldData.ComputeLodsChunks(OnChunkLoadResult);
-
+			worldData.Dispose();
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);

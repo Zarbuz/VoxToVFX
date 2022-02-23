@@ -1,6 +1,7 @@
 ﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Importer;
 
@@ -9,7 +10,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	[BurstCompile]
 	public struct RemoveInvisibleVoxelJob : IJobParallelFor
 	{
-		[ReadOnly] public Vector3 VolumeSize;
+		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
 		[NativeDisableParallelForRestriction]
 		[WriteOnly] public NativeArray<byte> Result;
