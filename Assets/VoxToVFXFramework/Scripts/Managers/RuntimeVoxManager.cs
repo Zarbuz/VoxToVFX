@@ -1,19 +1,12 @@
-﻿using FileToVoxCore.Utils;
+﻿using Sirenix.OdinInspector;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Sirenix.OdinInspector;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
-using VoxToVFXFramework.Scripts.ScriptableObjects;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.VFXItem;
@@ -27,14 +20,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private VisualEffectItem VisualEffectItemPrefab;
 
 		[Header("Camera Settings")]
-		[SerializeField]
-		private Transform MainCamera;
-
+		[SerializeField] private Transform MainCamera;
 		[SerializeField] private HDAdditionalLightData DirectionalLight;
 
-		[Header("VisualEffectAssets")]
-		[SerializeField]
-		private VisualEffectConfig Config;
 
 		[Header("Lods")]
 		[OnValueChanged(nameof(RefreshDebugLod))]
@@ -89,7 +77,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default 3.vox"),
+			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default2.vox"),
 				OnLoadFrameProgress, OnLoadFinished));
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
@@ -175,7 +163,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mOpaqueBuffers.Add(bufferLod0);
 
 			visualEffectItem.InitialBurstLod0 = voxelResult.DataLod0.Length;
-			visualEffectItem.OpaqueVisualEffect.visualEffectAsset = GetVisualEffectAsset(voxelResult.DataLod0.Length, Config.OpaqueVisualEffects);
 			visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", voxelResult.DataLod0.Length); //TODO: Move it in Update method
 			visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER1_KEY, bufferLod0);
 			visualEffectItem.OpaqueVisualEffect.SetVector3(POSITION_CHUNK_KEY, voxelResult.FrameWorldPosition);
@@ -299,16 +286,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mCheckDistance = false;
 		}
 
-		private VisualEffectAsset GetVisualEffectAsset(int voxels, List<VisualEffectAsset> assets)
-		{
-			int index = voxels / Config.StepCapacity;
-			if (index >= assets.Count)
-			{
-				index = assets.Count - 1;
-			}
-
-			return assets[index];
-		}
+		
 
 		#endregion
 	}
