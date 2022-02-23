@@ -25,14 +25,16 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int CHUNK_SIZE = 500;
 		public static int3 ChunkVolume = new int3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
 		public static int3 WorldVolume = new int3(Schematic.MAX_WORLD_WIDTH, Schematic.MAX_WORLD_HEIGHT, Schematic.MAX_WORLD_LENGTH);
+		private const int INITIAL_CAPACITY = 1000000;
+
 		#endregion
 
 		#region PublicMethods
 
 		public WorldData()
 		{
-			WorldDataPositions = new NativeMultiHashMap<int, int4>(256, Allocator.Persistent); //double capacity strategy
-			WorldDataIndices = new NativeHashMap<int, int>(256, Allocator.Persistent);
+			WorldDataPositions = new NativeMultiHashMap<int, int4>(INITIAL_CAPACITY, Allocator.Persistent); //double capacity strategy
+			WorldDataIndices = new NativeHashMap<int, int>(INITIAL_CAPACITY, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<int4> voxels)
@@ -55,107 +57,19 @@ namespace VoxToVFXFramework.Scripts.Data
 			for (int index = 0; index < keys.Length; index++)
 			{
 				int chunkIndex = keys[index];
-				NativeMultiHashMap<int, int4>.Enumerator enumerator = WorldDataPositions.GetValuesForKey(chunkIndex).GetEnumerator();
-				NativeHashMap<int, int4> data = new NativeHashMap<int, int4>(200, Allocator.TempJob);
 				int3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
-				while (enumerator.MoveNext())
-				{
-					int4 voxel = enumerator.Current;
-					int xFinal = voxel.x % CHUNK_SIZE;
-					int yFinal = voxel.y % CHUNK_SIZE;
-					int zFinal = voxel.z % CHUNK_SIZE;
+				NativeHashMap<int, int4> resultLod0 = ComputeInitialChunkData(WorldDataPositions, chunkIndex);
+				WorldDataPositions.Remove(chunkIndex);
 
-					data[VoxImporter.GetGridPos(xFinal, yFinal, zFinal, ChunkVolume)] = voxel;
-				}
-				enumerator.Dispose();
+				NativeHashMap<int, int4> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
+				NativeArray<Vector4> finalResultLod0 = ComputeFinalArrayResult(resultLod0); //will dispose resultLod0
 
-				NativeHashMap<int, int4> resultLod1 = new NativeHashMap<int, int4>(data.Count(), Allocator.TempJob);
-				ComputeLodJob computeLodJob = new ComputeLodJob()
-				{
-					VolumeSize = ChunkVolume,
-					WorldChunkPosition = worldChunkPosition,
-					Result = resultLod1.AsParallelWriter(),
-					Data = data,
-					Step = 1,
-					ModuloCheck = 2
-				};
-				JobHandle jobHandle = computeLodJob.Schedule(CHUNK_SIZE, 64);
-				jobHandle.Complete();
+				NativeHashMap<int, int4> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
+				NativeArray<Vector4> finalResultLod1 = ComputeFinalArrayResult(resultLod1);
 
-				NativeHashMap<int, int4> resultLod2 = new NativeHashMap<int, int4>(resultLod1.Count(), Allocator.TempJob);
-				ComputeLodJob computeLodJob2 = new ComputeLodJob()
-				{
-					VolumeSize = ChunkVolume,
-					WorldChunkPosition = worldChunkPosition,
-					Result = resultLod2.AsParallelWriter(),
-					Data = resultLod1,
-					Step = 2,
-					ModuloCheck = 4
-				};
-				JobHandle jobHandle2 = computeLodJob2.Schedule(CHUNK_SIZE, 64);
-				jobHandle2.Complete();
-
-				NativeHashMap<int, int4> resultLod3 = new NativeHashMap<int, int4>(resultLod2.Count(), Allocator.TempJob);
-				ComputeLodJob computeLodJob3 = new ComputeLodJob()
-				{
-					VolumeSize = ChunkVolume,
-					WorldChunkPosition = worldChunkPosition,
-					Result = resultLod3.AsParallelWriter(),
-					Data = resultLod2,
-					Step = 4,
-					ModuloCheck = 8
-				};
-				JobHandle jobHandle3 = computeLodJob3.Schedule(CHUNK_SIZE, 64);
-				jobHandle3.Complete();
-
-
-				NativeArray<int4> dataValue0 = data.GetValueArray(Allocator.TempJob);
-				NativeArray<Vector4> finalResultLod0 = new NativeArray<Vector4>(dataValue0.Length, Allocator.TempJob);
-				ConvertInt4ToVector4Job convertInt4Job = new ConvertInt4ToVector4Job()
-				{
-					Data = dataValue0,
-					Result = finalResultLod0
-				};
-
-				JobHandle jobHandle4 = convertInt4Job.Schedule(dataValue0.Length, 64);
-				jobHandle4.Complete();
-				dataValue0.Dispose();
-
-				NativeArray<int4> dataValue1 = resultLod1.GetValueArray(Allocator.TempJob);
-				NativeArray<Vector4> finalResultLod1 = new NativeArray<Vector4>(dataValue1.Length, Allocator.TempJob);
-				ConvertInt4ToVector4Job convertInt4Job1 = new ConvertInt4ToVector4Job()
-				{
-					Data = dataValue1,
-					Result = finalResultLod1
-				};
-
-				JobHandle jobHandle5 = convertInt4Job1.Schedule(dataValue1.Length, 64);
-				jobHandle5.Complete();
-				dataValue1.Dispose();
-
-				NativeArray<int4> dataValue2 = resultLod2.GetValueArray(Allocator.TempJob);
-				NativeArray<Vector4> finalResultLod2 = new NativeArray<Vector4>(dataValue2.Length, Allocator.TempJob);
-				ConvertInt4ToVector4Job convertInt4Job2 = new ConvertInt4ToVector4Job()
-				{
-					Data = dataValue2,
-					Result = finalResultLod2
-				};
-
-				JobHandle jobHandle6 = convertInt4Job2.Schedule(dataValue2.Length, 64);
-				jobHandle6.Complete();
-				dataValue2.Dispose();
-
-				NativeArray<int4> dataValue3 = resultLod3.GetValueArray(Allocator.TempJob);
-				NativeArray<Vector4> finalResultLod3 = new NativeArray<Vector4>(dataValue3.Length, Allocator.TempJob);
-				ConvertInt4ToVector4Job convertInt4Job3 = new ConvertInt4ToVector4Job()
-				{
-					Data = dataValue3,
-					Result = finalResultLod3
-				};
-
-				JobHandle jobHandle7 = convertInt4Job3.Schedule(dataValue3.Length, 64);
-				jobHandle7.Complete();
-				dataValue3.Dispose();
+				NativeHashMap<int, int4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
+				NativeArray<Vector4> finalResultLod2 = ComputeFinalArrayResult(resultLod2);
+				NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
 
 				VoxelResult voxelResult = new VoxelResult
 				{
@@ -166,12 +80,7 @@ namespace VoxToVFXFramework.Scripts.Data
 					FrameWorldPosition = GetCenterChunkWorldPosition(chunkIndex)
 				};
 
-				resultLod1.Dispose();
-				resultLod2.Dispose();
-				resultLod3.Dispose();
-				data.Dispose();
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
-
 				voxelResult.DataLod0.Dispose();
 				voxelResult.DataLod1.Dispose();
 				voxelResult.DataLod2.Dispose();
@@ -179,6 +88,69 @@ namespace VoxToVFXFramework.Scripts.Data
 			}
 
 			keys.Dispose();
+		}
+
+		public void Dispose()
+		{
+			WorldDataPositions.Dispose();
+			WorldDataIndices.Dispose();
+		}
+
+		#endregion
+
+		#region PrivateMethods
+
+		private static NativeHashMap<int, int4> ComputeInitialChunkData(NativeMultiHashMap<int, int4> worldDataPositions, int chunkIndex)
+		{
+			NativeMultiHashMap<int, int4>.Enumerator enumerator = worldDataPositions.GetValuesForKey(chunkIndex).GetEnumerator();
+			NativeHashMap<int, int4> data = new NativeHashMap<int, int4>(INITIAL_CAPACITY, Allocator.TempJob);
+			while (enumerator.MoveNext())
+			{
+				int4 voxel = enumerator.Current;
+				int xFinal = voxel.x % CHUNK_SIZE;
+				int yFinal = voxel.y % CHUNK_SIZE;
+				int zFinal = voxel.z % CHUNK_SIZE;
+
+				data[VoxImporter.GetGridPos(xFinal, yFinal, zFinal, ChunkVolume)] = voxel;
+			}
+			enumerator.Dispose();
+
+			return data;
+		}
+
+		private static NativeHashMap<int, int4> ComputeLod(NativeHashMap<int, int4> data, int3 worldChunkPosition, int step, int moduloCheck)
+		{
+			NativeHashMap<int, int4> resultLod1 = new NativeHashMap<int, int4>(data.Count(), Allocator.TempJob);
+			ComputeLodJob computeLodJob = new ComputeLodJob()
+			{
+				VolumeSize = ChunkVolume,
+				WorldChunkPosition = worldChunkPosition,
+				Result = resultLod1.AsParallelWriter(),
+				Data = data,
+				Step = step,
+				ModuloCheck = moduloCheck
+			};
+			JobHandle jobHandle = computeLodJob.Schedule(CHUNK_SIZE, 64);
+			jobHandle.Complete();
+
+			return resultLod1;
+		}
+
+		private static NativeArray<Vector4> ComputeFinalArrayResult(NativeHashMap<int, int4> resultLod0)
+		{
+			NativeArray<int4> dataValue0 = resultLod0.GetValueArray(Allocator.TempJob);
+			NativeArray<Vector4> finalResultLod0 = new NativeArray<Vector4>(dataValue0.Length, Allocator.TempJob);
+			ConvertInt4ToVector4Job convertInt4Job = new ConvertInt4ToVector4Job()
+			{
+				Data = dataValue0,
+				Result = finalResultLod0
+			};
+
+			JobHandle jobHandle4 = convertInt4Job.Schedule(dataValue0.Length, 64);
+			jobHandle4.Complete();
+			dataValue0.Dispose();
+			resultLod0.Dispose();
+			return finalResultLod0;
 		}
 
 		private static int3 GetChunkWorldPosition(int chunkIndex)
@@ -194,17 +166,6 @@ namespace VoxToVFXFramework.Scripts.Data
 
 			return new Vector3(chunkPosition.x + halfChunkSize, chunkPosition.y + halfChunkSize, chunkPosition.z + halfChunkSize);
 		}
-
-		public void Dispose()
-		{
-			WorldDataPositions.Dispose();
-			WorldDataIndices.Dispose();
-		}
-
-		#endregion
-
-		#region PrivateMethods
-
 
 		#endregion
 	}

@@ -77,7 +77,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default2.vox"),
+			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"),
 				OnLoadFrameProgress, OnLoadFinished));
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
