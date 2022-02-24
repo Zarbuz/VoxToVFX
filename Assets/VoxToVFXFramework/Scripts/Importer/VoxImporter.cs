@@ -170,14 +170,14 @@ namespace VoxToVFXFramework.Scripts.Importer
 		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data)
 		{
 			int3 initialVolumeSize = new int3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
-			int3 originSize = new int3((int)initialVolumeSize.x, (int)initialVolumeSize.y, (int)initialVolumeSize.z);
+			int3 originSize = new int3(initialVolumeSize.x, initialVolumeSize.y, initialVolumeSize.z);
 			originSize.y = data.VoxelsDeep;
 			originSize.z = data.VoxelsTall;
 
 			Vector3 pivot = new Vector3(originSize.x / 2, originSize.y / 2, originSize.z / 2);
 			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
-			int maxCapacity = (int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z);
+			int maxCapacity = initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z;
 			
 			if (data.VoxelNativeArray.Length == 0)
 			{
@@ -190,7 +190,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				Data = data.VoxelNativeArray,
 				VolumeSize = initialVolumeSize,
 				Result = initialDataClean
-			}.Schedule((int)initialVolumeSize.z, 64);
+			}.Schedule(initialVolumeSize.z, 64);
 			removeInvisibleVoxelJob.Complete();
 
 			NativeList<int4> resultLod0 = new NativeList<int4>(Allocator.TempJob);
@@ -203,109 +203,12 @@ namespace VoxToVFXFramework.Scripts.Importer
 				FPivot = fpivot,
 				Data = initialDataClean,
 				Result = resultLod0.AsParallelWriter(),
-			}.Schedule((int)initialVolumeSize.z, 64);
+			}.Schedule(initialVolumeSize.z, 64);
 			job.Complete();
 			initialDataClean.Dispose();
 
 			mWorldData.AddVoxels(resultLod0);
 			resultLod0.Dispose();
-			/*
-			//NativeArray<byte> work = new NativeArray<byte>(8, Allocator.Persistent);
-			NativeArray<byte> arrayLod1 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
-			ComputeLodJob computeLodJob = new ComputeLodJob()
-			{
-				VolumeSize = initialVolumeSize,
-				Result = arrayLod1,
-				Data = data.VoxelNativeArray,
-				Step = 1,
-				ModuloCheck = 2
-			};
-			JobHandle jobHandle = computeLodJob.Schedule((int)initialVolumeSize.z, 64);
-			jobHandle.Complete();
-
-			NativeList<Vector4> resultLod1 = new NativeList<Vector4>(Allocator.TempJob);
-			resultLod1.SetCapacity(maxCapacity);
-			JobHandle job1 = new ComputeVoxelPositionJob
-			{
-				Matrix4X4 = mModelMatrix[transformChunkId],
-				VolumeSize = initialVolumeSize,
-				Pivot = pivot,
-				FPivot = fpivot,
-				Data = arrayLod1,
-				Result = resultLod1.AsParallelWriter(),
-			}.Schedule((int)initialVolumeSize.z, 64);
-			job1.Complete();
-
-			NativeArray<byte> arrayLod2 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
-			ComputeLodJob computeLodJob2 = new ComputeLodJob()
-			{
-				VolumeSize = initialVolumeSize,
-				Result = arrayLod2,
-				Data = arrayLod1,
-				Step = 2,
-				ModuloCheck = 4
-			};
-			JobHandle jobHandle2 = computeLodJob2.Schedule((int)initialVolumeSize.z, 64);
-			jobHandle2.Complete();
-
-			NativeList<Vector4> resultLod2 = new NativeList<Vector4>(Allocator.TempJob);
-			resultLod2.SetCapacity(maxCapacity);
-			JobHandle job2 = new ComputeVoxelPositionJob
-			{
-				Matrix4X4 = mModelMatrix[transformChunkId],
-				VolumeSize = initialVolumeSize,
-				Pivot = pivot,
-				FPivot = fpivot,
-				Data = arrayLod2,
-				Result = resultLod2.AsParallelWriter(),
-			}.Schedule((int)initialVolumeSize.z, 64);
-			job2.Complete();
-
-			NativeArray<byte> arrayLod3 = new NativeArray<byte>((int)(initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z), Allocator.TempJob);
-			ComputeLodJob computeLodJob3 = new ComputeLodJob()
-			{
-				VolumeSize = initialVolumeSize,
-				Result = arrayLod3,
-				Data = arrayLod2,
-				Step = 4,
-				ModuloCheck = 8
-			};
-			JobHandle jobHandle3 = computeLodJob3.Schedule((int)initialVolumeSize.z, 64);
-			jobHandle3.Complete();
-
-			NativeList<Vector4> resultLod3 = new NativeList<Vector4>(Allocator.TempJob);
-			resultLod3.SetCapacity(maxCapacity);
-			JobHandle job3 = new ComputeVoxelPositionJob
-			{
-				Matrix4X4 = mModelMatrix[transformChunkId],
-				VolumeSize = initialVolumeSize,
-				Pivot = pivot,
-				FPivot = fpivot,
-				Data = arrayLod3,
-				Result = resultLod3.AsParallelWriter(),
-			}.Schedule((int)initialVolumeSize.z, 64);
-			job3.Complete();
-
-			arrayLod1.Dispose();
-			arrayLod2.Dispose();
-			arrayLod3.Dispose();
-
-			VoxelResult voxelResult = new VoxelResult
-			{
-				DataLod0 = resultLod0,
-				DataLod1 = resultLod1,
-				DataLod2 = resultLod2,
-				DataLod3 = resultLod3
-			};
-
-			IntVector3 frameWorldPosition = ComputeVoxelPositionJob.GetVoxPosition(initialVolumeSize, (int)initialVolumeSize.x / 2, (int)initialVolumeSize.y / 2, (int)initialVolumeSize.z / 2, pivot, fpivot, mModelMatrix[transformChunkId]);
-			voxelResult.FrameWorldPosition = new Vector3(frameWorldPosition.x + 1000, frameWorldPosition.y + 1000, frameWorldPosition.z + 1000);
-			
-			onFrameLoadedCallback?.Invoke(voxelResult);
-			resultLod0.Dispose();
-			resultLod1.Dispose();
-			resultLod2.Dispose();
-			resultLod3.Dispose();*/
 		}
 
 		public static Matrix4x4 ReadMatrix4X4FromRotation(Rotation rotation, FileToVoxCore.Schematics.Tools.Vector3 transform)
