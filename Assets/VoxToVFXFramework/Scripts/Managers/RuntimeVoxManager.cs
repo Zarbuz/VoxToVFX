@@ -68,6 +68,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Vector3 mCurrentCameraPosition;
 		private bool mCheckDistance;
 		private Transform mVisualItemsParent;
+		private WorldData mWorldData;
 
 		#endregion
 
@@ -77,8 +78,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
 			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default.vox"),
-				OnLoadFrameProgress, OnLoadFinished));
+			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default 3.vox"),
+				OnLoadFrameProgress, OnVoxLoadFinished));
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
 
@@ -196,19 +197,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		private void OnLoadFinished(WorldData worldData)
+		private void OnVoxLoadFinished(WorldData worldData)
 		{
 			if (worldData == null)
 			{
 				Debug.LogError("[RuntimeVoxManager] Failed to load vox model");
 				return;
 			}
-			Debug.Log("OnLoadFinished");
-
+			Debug.Log("[RuntimeVoxController] OnVoxLoadFinished");
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
 			mPaletteBuffer.SetData(VoxImporter.Materials);
-			worldData.ComputeLodsChunks(OnChunkLoadResult);
-			worldData.Dispose();
+			mWorldData = worldData;
+			StartCoroutine(worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
+			
+		}
+
+		private void OnChunkLoadedFinished()
+		{
+			mWorldData.Dispose();
 			foreach (VisualEffectItem item in mVisualEffectItems)
 			{
 				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
@@ -216,7 +222,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				//item.OpaqueVisualEffect.Play();
 			}
 
-			Debug.Log("[RuntimeVoxController] OnLoadFinished");
+			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
 			//int targetPositionX = VoxImporter.CustomSchematic.Width / 2;
 			//int targetPositionY = VoxImporter.CustomSchematic.Height / 2;
 			//int targetPositionZ = VoxImporter.CustomSchematic.Length / 2;

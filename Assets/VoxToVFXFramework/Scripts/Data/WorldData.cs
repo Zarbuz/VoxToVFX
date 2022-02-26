@@ -1,5 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
+using System.Collections;
 using FileToVoxCore.Schematics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -51,9 +52,9 @@ namespace VoxToVFXFramework.Scripts.Data
 			}
 		}
 
-		public void ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback)
+		public IEnumerator ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback, Action onChunkLoadedFinished)
 		{
-			NativeArray<int> keys = WorldDataIndices.GetKeyArray(Allocator.Temp);
+			NativeArray<int> keys = WorldDataIndices.GetKeyArray(Allocator.Persistent);
 			for (int index = 0; index < keys.Length; index++)
 			{
 				int chunkIndex = keys[index];
@@ -85,9 +86,11 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.DataLod1.Dispose();
 				voxelResult.DataLod2.Dispose();
 				voxelResult.DataLod3.Dispose();
+				yield return new WaitForEndOfFrame();
 			}
 
 			keys.Dispose();
+			onChunkLoadedFinished?.Invoke();
 		}
 
 		public void Dispose()
