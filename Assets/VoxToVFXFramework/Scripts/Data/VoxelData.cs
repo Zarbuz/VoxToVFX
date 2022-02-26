@@ -25,10 +25,9 @@ namespace VoxToVFXFramework.Scripts.Data
 
 	public struct VoxelResult
 	{
-		public NativeArray<Vector4> DataLod0;
-		public NativeArray<Vector4> DataLod1;
-		public NativeArray<Vector4> DataLod2;
-		public NativeArray<Vector4> DataLod3;
-		public Vector3 FrameWorldPosition; //0 0 0
+		public int ChunkIndex;
+		public int LodLevel;
+		public NativeArray<Vector4> Data;
+		public Vector3 FrameWorldPosition;
 	}
 }

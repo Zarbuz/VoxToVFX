@@ -59,33 +59,47 @@ namespace VoxToVFXFramework.Scripts.Data
 			{
 				int chunkIndex = keys[index];
 				int3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
+				Vector3 centerChunkWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
 				NativeHashMap<int, int4> resultLod0 = ComputeInitialChunkData(WorldDataPositions, chunkIndex);
 				WorldDataPositions.Remove(chunkIndex);
 
 				NativeHashMap<int, int4> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
 				NativeArray<Vector4> finalResultLod0 = ComputeFinalArrayResult(resultLod0); //will dispose resultLod0
 
+				VoxelResult voxelResult = new VoxelResult
+				{
+					Data = finalResultLod0,
+					ChunkIndex = chunkIndex,
+					FrameWorldPosition = centerChunkWorldPosition,
+					LodLevel = 1
+				};
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				voxelResult.Data.Dispose();
+				yield return new WaitForEndOfFrame();
+
 				NativeHashMap<int, int4> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
 				NativeArray<Vector4> finalResultLod1 = ComputeFinalArrayResult(resultLod1);
+				voxelResult.Data = finalResultLod1;
+				voxelResult.LodLevel = 2;
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				voxelResult.Data.Dispose();
+				yield return new WaitForEndOfFrame();
 
 				NativeHashMap<int, int4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
 				NativeArray<Vector4> finalResultLod2 = ComputeFinalArrayResult(resultLod2);
-				NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
-
-				VoxelResult voxelResult = new VoxelResult
-				{
-					DataLod0 = finalResultLod0,
-					DataLod1 = finalResultLod1,
-					DataLod2 = finalResultLod2,
-					DataLod3 = finalResultLod3,
-					FrameWorldPosition = GetCenterChunkWorldPosition(chunkIndex)
-				};
-
+				voxelResult.Data = finalResultLod2;
+				voxelResult.LodLevel = 3;
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
-				voxelResult.DataLod0.Dispose();
-				voxelResult.DataLod1.Dispose();
-				voxelResult.DataLod2.Dispose();
-				voxelResult.DataLod3.Dispose();
+				voxelResult.Data.Dispose();
+				yield return new WaitForEndOfFrame();
+
+
+				NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
+				voxelResult.Data = finalResultLod3;
+				voxelResult.LodLevel = 4;
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				finalResultLod3.Dispose();
+				
 				yield return new WaitForEndOfFrame();
 			}
 
