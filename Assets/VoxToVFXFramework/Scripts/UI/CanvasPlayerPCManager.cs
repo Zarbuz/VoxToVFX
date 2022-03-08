@@ -68,9 +68,9 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		#region PrivateMethods
 
-		private void OnLoadProgressUpdate(float progress)
+		private void OnLoadProgressUpdate(int step, float progress)
 		{
-			LoadingProgressText.text = "Progress: " + progress.ToString("P");
+			LoadingProgressText.text = "Step: " + step + " - Progress: " + progress.ToString("P");
 		}
 
 		private void OnLoadFinished()

@@ -45,7 +45,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cfc790d2d454e04590abad71b3abbb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  FramePosition: {x: 0, y: 0, z: 0}
+  InitialBurstLod0: 0
+  InitialBurstLod1: 0
+  InitialBurstLod2: 0
+  InitialBurstLod3: 0
   OpaqueVisualEffect: {fileID: 8323934504495446624}
+  CurrentLod: 0
 --- !u!1 &7445973037657605190
 GameObject:
   m_ObjectHideFlags: 0
@@ -127,7 +133,7 @@ VisualEffect:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7445973037657605190}
   m_Enabled: 0
-  m_Asset: {fileID: 0}
+  m_Asset: {fileID: 8926484042661614526, guid: badf5bf553c056c41aea88ce782cd9b9, type: 3}
   m_InitialEventName: OnPlay
   m_InitialEventNameOverriden: 0
   m_StartSeed: 0

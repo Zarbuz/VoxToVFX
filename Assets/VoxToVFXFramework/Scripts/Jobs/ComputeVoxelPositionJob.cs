@@ -1,21 +1,18 @@
-﻿using FileToVoxCore.Vox;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
-using VoxToVFXFramework.Scripts.Common;
-using VoxToVFXFramework.Scripts.Data;
-using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
 {
 	[BurstCompile]
 	public struct ComputeVoxelPositionJob : IJobParallelFor
 	{
-		[ReadOnly] public Vector3 Pivot;
-		[ReadOnly] public Vector3 FPivot;
+		[ReadOnly] public float3 Pivot;
+		[ReadOnly] public float3 FPivot;
 		[ReadOnly] public Matrix4x4 Matrix4X4;
-		[ReadOnly] public Vector3 VolumeSize;
+		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
 		[WriteOnly] public NativeList<Vector4>.ParallelWriter Result;
 
@@ -28,7 +25,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					byte color = ComputeLodJob.GetSafe(x, y, z, Data, VolumeSize);
 					if (color != 0)
 					{
-						IntVector3 worldPosition = GetVoxPosition(VolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
+						int3 worldPosition = GetVoxPosition(VolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
 						Result.AddNoResize(new Vector4()
 						{
 							x = worldPosition.x + 1000,
@@ -43,16 +40,16 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			
 		}
 
-		public static IntVector3 GetVoxPosition(Vector3 size, int x, int y, int z, Vector3 pivot, Vector3 fpivot, Matrix4x4 matrix4X4)
+		public static int3 GetVoxPosition(int3 size, int x, int y, int z, float3 pivot, float3 fpivot, Matrix4x4 matrix4X4)
 		{
-			IntVector3 tmpVoxel = new IntVector3(x, y, z);
-			IntVector3 origPos;
+			int3 tmpVoxel = new int3(x, y, z);
+			int3 origPos;
 
-			origPos.x = (int)(size.x - 1 - tmpVoxel.x); //invert
-			origPos.y = (int)(size.z - 1 - tmpVoxel.z); //swapYZ //invert
+			origPos.x = size.x - 1 - tmpVoxel.x; //invert
+			origPos.y = size.z - 1 - tmpVoxel.z; //swapYZ //invert
 			origPos.z = tmpVoxel.y;
 
-			Vector3 pos = new(origPos.x + 0.5f, origPos.y + 0.5f, origPos.z + 0.5f);
+			float3 pos = new(origPos.x + 0.5f, origPos.y + 0.5f, origPos.z + 0.5f);
 			pos -= pivot;
 			pos = matrix4X4.MultiplyPoint(pos);
 			pos += pivot;
@@ -65,8 +62,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			origPos.y = Mathf.FloorToInt(pos.y);
 			origPos.z = Mathf.FloorToInt(pos.z);
 
-			tmpVoxel.x = (int)(size.x - 1 - origPos.x); //invert
-			tmpVoxel.z = (int)(size.z - 1 - origPos.y); //swapYZ  //invert
+			tmpVoxel.x = size.x - 1 - origPos.x; //invert
+			tmpVoxel.z = size.z - 1 - origPos.y; //swapYZ  //invert
 			tmpVoxel.y = origPos.z;
 
 			return tmpVoxel;
