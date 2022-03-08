@@ -7,6 +7,7 @@ public class PerformancePanelUI : MonoBehaviour
 {
 	#region ScriptParamaters
 
+	[SerializeField] private Button TogglePanelButton;
 	[SerializeField] private TextMeshProUGUI ForceLevelLODText;
 	[SerializeField] private Slider ForceLevelLODSlider;
 
@@ -14,6 +15,7 @@ public class PerformancePanelUI : MonoBehaviour
 	[SerializeField] private Slider VoxelScaleSlider;
 
 	[SerializeField] private Toggle ShowLODToggle;
+	[SerializeField] private GameObject ContentPanel;
 
 	#endregion
 
@@ -21,6 +23,7 @@ public class PerformancePanelUI : MonoBehaviour
 
 	private void OnEnable()
 	{
+		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.AddListener(OnForceLevelLODValueChanged);
 		VoxelScaleSlider.onValueChanged.AddListener(OnVoxelScaleValueChanged);
 		ShowLODToggle.onValueChanged.AddListener(OnShowLODValueChanged);
@@ -29,6 +32,7 @@ public class PerformancePanelUI : MonoBehaviour
 
 	private void OnDisable()
 	{
+		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.RemoveListener(OnForceLevelLODValueChanged);
 		VoxelScaleSlider.onValueChanged.RemoveListener(OnVoxelScaleValueChanged);
 		ShowLODToggle.onValueChanged.RemoveListener(OnShowLODValueChanged);
@@ -37,6 +41,11 @@ public class PerformancePanelUI : MonoBehaviour
 	#endregion
 
 	#region PrivateMethods
+
+	private void OnTogglePanelClicked()
+	{
+		ContentPanel.SetActive(!ContentPanel.activeSelf);
+	}
 
 	private void RefreshValues()
 	{

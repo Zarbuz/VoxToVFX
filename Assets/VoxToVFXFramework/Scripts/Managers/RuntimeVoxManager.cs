@@ -19,10 +19,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		[SerializeField] private VisualEffectItem VisualEffectItemPrefab;
 
-		[Header("Camera Settings")]
-		[SerializeField] private Transform MainCamera;
-		[SerializeField] private HDAdditionalLightData DirectionalLight;
-
 		[Header("Lods")]
 		[OnValueChanged(nameof(RefreshDebugLod))]
 		public bool DebugLod;
@@ -68,17 +64,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private bool mCheckDistance;
 		private Transform mVisualItemsParent;
 		private WorldData mWorldData;
-
+		private Transform mMainCamera;
 		#endregion
 
 		#region UnityMethods
 
 		protected override void OnStart()
 		{
-			DirectionalLight.shadowUpdateMode = ShadowUpdateMode.OnDemand;
-			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
-			StartCoroutine(VoxImporter.LoadVoxModelAsync(Path.Combine(Application.streamingAssetsPath, "default 3.vox"),
-				OnLoadFrameProgress, OnVoxLoadFinished));
+			mMainCamera = UnityEngine.Camera.main.transform;
+			
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
 
@@ -94,9 +88,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			if (Vector3.Distance(mCurrentCameraPosition, MainCamera.transform.position) > 10 && !mCheckDistance)
+			if (Vector3.Distance(mCurrentCameraPosition, mMainCamera.transform.position) > 10 && !mCheckDistance)
 			{
-				mCurrentCameraPosition = MainCamera.transform.position;
+				mCurrentCameraPosition = mMainCamera.transform.position;
 				mCheckDistance = true;
 
 				RefreshLodsDistance();
@@ -106,7 +100,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void OnDrawGizmosSelected()
 		{
 			Gizmos.color = Color.blue;
-			Vector3 position = MainCamera.transform.position;
+			Vector3 position = mMainCamera.transform.position;
 			foreach (VisualEffectItem item in mVisualEffectItems.Values)
 			{
 				Gizmos.DrawLine(position, item.FramePosition);
@@ -125,6 +119,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#endregion
 
 		#region PublicMethods
+
+		
 
 		public void SetForceLODValue(int value)
 		{
@@ -219,20 +215,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		}
 
-		private void OnVoxLoadFinished(WorldData worldData)
-		{
-			if (worldData == null)
-			{
-				Debug.LogError("[RuntimeVoxManager] Failed to load vox model");
-				return;
-			}
-			Debug.Log("[RuntimeVoxController] OnVoxLoadFinished");
-			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, VoxImporter.Materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
-			mPaletteBuffer.SetData(VoxImporter.Materials);
-			mWorldData = worldData;
-			StartCoroutine(worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
-			
-		}
+		
 
 		private void OnChunkLoadedFinished()
 		{
@@ -249,7 +232,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			//int targetPositionY = VoxImporter.CustomSchematic.Height / 2;
 			//int targetPositionZ = VoxImporter.CustomSchematic.Length / 2;
 			//MainCamera.position = new Vector3(targetPositionX, targetPositionY, targetPositionZ);
-			MainCamera.position = new Vector3(1000, 1000, 1000);
+			mMainCamera.position = new Vector3(1000, 1000, 1000);
 
 
 			mIsLoaded = true;
@@ -270,7 +253,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			foreach (VisualEffectItem item in mVisualEffectItems.Values)
 			{
-				float distance = Vector3.Distance(MainCamera.transform.position, item.FramePosition * VoxelScale);
+				float distance = Vector3.Distance(mMainCamera.transform.position, item.FramePosition * VoxelScale);
 				bool updated = false;
 				if ((distance >= LodDistance.x && distance < LodDistance.y || ForcedLevelLod == 0) && item.InitialBurstLod0 != 0 && item.CurrentLod != 1)
 				{

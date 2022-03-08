@@ -1,10 +1,8 @@
-﻿using FileToVoxCore.Utils;
+﻿using FileToVoxCore.Schematics;
+using FileToVoxCore.Utils;
 using System;
 using System.Collections;
-using FileToVoxCore.Schematics;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Collections.NotBurstCompatible;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -26,7 +24,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int CHUNK_SIZE = 500;
 		public static int3 ChunkVolume = new int3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
 		public static int3 WorldVolume = new int3(Schematic.MAX_WORLD_WIDTH, Schematic.MAX_WORLD_HEIGHT, Schematic.MAX_WORLD_LENGTH);
-		private const int INITIAL_CAPACITY = 1000000;
 
 		#endregion
 
@@ -34,8 +31,8 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		public WorldData()
 		{
-			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(INITIAL_CAPACITY, Allocator.Persistent); //double capacity strategy
-			WorldDataIndices = new NativeHashMap<int, int>(INITIAL_CAPACITY, Allocator.Persistent);
+			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(256, Allocator.Persistent); //double capacity strategy
+			WorldDataIndices = new NativeHashMap<int, int>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -119,7 +116,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		private static NativeHashMap<int, Vector4> ComputeInitialChunkData(NativeMultiHashMap<int, Vector4> worldDataPositions, int chunkIndex)
 		{
 			NativeMultiHashMap<int, Vector4>.Enumerator enumerator = worldDataPositions.GetValuesForKey(chunkIndex).GetEnumerator();
-			NativeHashMap<int, Vector4> data = new NativeHashMap<int, Vector4>(INITIAL_CAPACITY, Allocator.TempJob);
+			NativeHashMap<int, Vector4> data = new NativeHashMap<int, Vector4>(256, Allocator.TempJob);
 			while (enumerator.MoveNext())
 			{
 				Vector4 voxel = enumerator.Current;
