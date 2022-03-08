@@ -14,7 +14,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public Matrix4x4 Matrix4X4;
 		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
-		[WriteOnly] public NativeList<int4>.ParallelWriter Result;
+		[WriteOnly] public NativeList<Vector4>.ParallelWriter Result;
 
 		public void Execute(int z)
 		{
@@ -26,7 +26,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					if (color != 0)
 					{
 						int3 worldPosition = GetVoxPosition(VolumeSize, x, y, z, Pivot, FPivot, Matrix4X4);
-						Result.AddNoResize(new int4()
+						Result.AddNoResize(new Vector4()
 						{
 							x = worldPosition.x + 1000,
 							y = worldPosition.y + 1000,

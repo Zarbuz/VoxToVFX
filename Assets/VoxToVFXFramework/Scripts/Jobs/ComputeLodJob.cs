@@ -17,8 +17,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public int ModuloCheck;
 		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public int3 WorldChunkPosition;
-		[ReadOnly] public NativeHashMap<int, int4> Data;
-		public NativeHashMap<int, int4>.ParallelWriter Result;
+		[ReadOnly] public NativeHashMap<int, Vector4> Data;
+		public NativeHashMap<int, Vector4>.ParallelWriter Result;
 		public void Execute(int z)
 		{
 			if (z % ModuloCheck != 0)
@@ -42,45 +42,45 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					int b5Key = VoxImporter.GetGridPos(x1, y, z1, VolumeSize);
 					int b6Key = VoxImporter.GetGridPos(x, y1, z1, VolumeSize);
 					int b7Key = VoxImporter.GetGridPos(x1, y1, z1, VolumeSize);
-					if (Data.TryGetValue(b0Key, out int4 b0))
+					if (Data.TryGetValue(b0Key, out Vector4 b0))
 					{
 						if (b0.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b0.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b0.w));
 					}
-					else if (Data.TryGetValue(b1Key, out int4 b1))
+					else if (Data.TryGetValue(b1Key, out Vector4 b1))
 					{
 						if (b1.w != 0) 
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b1.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b1.w));
 					}
-					else if (Data.TryGetValue(b2Key, out int4 b2))
+					else if (Data.TryGetValue(b2Key, out Vector4 b2))
 					{
 						if (b2.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b2.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b2.w));
 					}
-					else if (Data.TryGetValue(b3Key, out int4 b3))
+					else if (Data.TryGetValue(b3Key, out Vector4 b3))
 					{
 						if (b3.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b3.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b3.w));
 					}
-					else if (Data.TryGetValue(b4Key, out int4 b4))
+					else if (Data.TryGetValue(b4Key, out Vector4 b4))
 					{
 						if (b4.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b4.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b4.w));
 					}
-					else if (Data.TryGetValue(b5Key, out int4 b5))
+					else if (Data.TryGetValue(b5Key, out Vector4 b5))
 					{
 						if (b5.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b5.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b5.w));
 					}
-					else if (Data.TryGetValue(b6Key, out int4 b6))
+					else if (Data.TryGetValue(b6Key, out Vector4 b6))
 					{
 						if (b6.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b6.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b6.w));
 					}
-					else if (Data.TryGetValue(b7Key, out int4 b7))
+					else if (Data.TryGetValue(b7Key, out Vector4 b7))
 					{
 						if (b7.w != 0)
-							Result.TryAdd(worldPositionKey, new int4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b7.w));
+							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b7.w));
 					}
 
 				}

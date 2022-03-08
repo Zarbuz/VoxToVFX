@@ -193,7 +193,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			}.Schedule(initialVolumeSize.z, 64);
 			removeInvisibleVoxelJob.Complete();
 
-			NativeList<int4> resultLod0 = new NativeList<int4>(Allocator.TempJob);
+			NativeList<Vector4> resultLod0 = new NativeList<Vector4>(Allocator.TempJob);
 			resultLod0.SetCapacity(maxCapacity);
 			JobHandle job = new ComputeVoxelPositionJob
 			{
