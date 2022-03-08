@@ -45,7 +45,7 @@ public class DataImportPanelUI : MonoBehaviour
 			string outputPath = StandaloneFileBrowser.SaveFilePanel("Select destination", "", "", "zip");
 			if (!string.IsNullOrEmpty(outputPath))
 			{
-
+				VoxelDataCreatorManager.Instance.CreateZipFile(paths[0], outputPath);
 			}
 		}
 	}
