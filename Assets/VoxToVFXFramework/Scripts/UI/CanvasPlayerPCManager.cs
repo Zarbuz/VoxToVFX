@@ -41,7 +41,6 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		protected override void OnStart()
 		{
-			RuntimeVoxManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			RuntimeVoxManager.Instance.LoadFinishedCallback += OnLoadFinished;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadFinished;
@@ -52,7 +51,6 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			if (RuntimeVoxManager.Instance != null)
 			{
-				RuntimeVoxManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
 				VoxelDataCreatorManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
 				RuntimeVoxManager.Instance.LoadFinishedCallback -= OnLoadFinished;
 				VoxelDataCreatorManager.Instance.LoadFinishedCallback -= OnLoadFinished;

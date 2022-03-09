@@ -20,12 +20,14 @@ public class DataImportPanelUI : MonoBehaviour
 	{
 		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		MagicaVoxelImportButton.onClick.AddListener(OnMagicaVoxelImportClicked);
+		VoxelDataImportButton.onClick.AddListener(OnVoxelDataImportClicked);
 	}
 
 	private void OnDisable()
 	{
 		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		MagicaVoxelImportButton.onClick.RemoveListener(OnMagicaVoxelImportClicked);
+		VoxelDataImportButton.onClick.RemoveListener(OnVoxelDataImportClicked);
 	}
 
 	#endregion
@@ -50,6 +52,14 @@ public class DataImportPanelUI : MonoBehaviour
 		}
 	}
 
+	private void OnVoxelDataImportClicked()
+	{
+		string[] paths = StandaloneFileBrowser.OpenFilePanel("Select ZIP file", "", "zip", false);
+		if (paths.Length > 0)
+		{
+			VoxelDataCreatorManager.Instance.ReadZipFile(paths[0]);
+		}
+	}
 
 	#endregion
 }
