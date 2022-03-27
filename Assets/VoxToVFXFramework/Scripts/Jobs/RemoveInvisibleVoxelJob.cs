@@ -32,13 +32,13 @@ namespace VoxToVFXFramework.Scripts.Jobs
 						byte front = ComputeLodJob.GetSafe(x, y, z - 1, Data, VolumeSize);
 						byte back = ComputeLodJob.GetSafe(x, y, z + 1, Data, VolumeSize);
 
-						if (right != 0 && left != 0 && bottom != 0 && top != 0 && front != 0 && back != 0)
+						if (right == 0 || left == 0 || bottom == 0 || top == 0 || front == 0 || back == 0)
 						{
-							Result[index] = 0;
+							Result[index] = color;
 						}
 						else
 						{
-							Result[index] = color;
+							Result[index] = 0;
 						}
 					}
 				}
