@@ -1,5 +1,41 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8534804400273890274
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46a79c9cffef5cc469553b1341c2ecdf, type: 3}
+  m_Name: RecursiveRendering
+  m_EditorClassIdentifier: 
+  active: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  layerMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  maxDepth:
+    m_OverrideState: 1
+    m_Value: 4
+  rayLength:
+    m_OverrideState: 1
+    m_Value: 10
+  minSmoothness:
+    m_OverrideState: 0
+    m_Value: 0.5
+  rayMiss:
+    m_OverrideState: 0
+    m_Value: 3
+  lastBounce:
+    m_OverrideState: 0
+    m_Value: 3
 --- !u!114 &-8270805892195868307
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -294,6 +330,8 @@ MonoBehaviour:
   - {fileID: 7510369330037078171}
   - {fileID: -8270805892195868307}
   - {fileID: 8077523188636303685}
+  - {fileID: -8534804400273890274}
+  - {fileID: 8743208753413718224}
 --- !u!114 &4467897769481732948
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -309,10 +347,10 @@ MonoBehaviour:
   active: 1
   quality:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 1
   rayTracing:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   intensity:
     m_OverrideState: 1
     m_Value: 1.22
@@ -347,7 +385,7 @@ MonoBehaviour:
     m_Value: 1
   m_StepCount:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 6
   m_FullResolution:
     m_OverrideState: 1
     m_Value: 0
@@ -358,7 +396,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   m_DirectionCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   m_RayLength:
     m_OverrideState: 1
@@ -386,7 +424,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   mode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   color:
     m_OverrideState: 0
@@ -531,7 +569,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d877a03bef431a847adca8ab343db3e1, type: 3}
   m_Name: RayTracingSettings
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   rayBias:
     m_OverrideState: 1
     m_Value: 0
@@ -587,13 +625,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42ef2681fa3dc8c4fa031f044e68c63f, type: 3}
   m_Name: GlobalIllumination
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
   enable:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   tracing:
     m_OverrideState: 0
     m_Value: 1
@@ -668,3 +706,39 @@ MonoBehaviour:
   receiverMotionRejection:
     m_OverrideState: 0
     m_Value: 1
+--- !u!114 &8743208753413718224
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31394aa05878563408489d5c1688f3a0, type: 3}
+  m_Name: PathTracing
+  m_EditorClassIdentifier: 
+  active: 1
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  layerMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  maximumSamples:
+    m_OverrideState: 1
+    m_Value: 256
+  minimumDepth:
+    m_OverrideState: 0
+    m_Value: 1
+  maximumDepth:
+    m_OverrideState: 0
+    m_Value: 4
+  maximumIntensity:
+    m_OverrideState: 0
+    m_Value: 10
+  tilingParameters:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1, z: 0, w: 0}

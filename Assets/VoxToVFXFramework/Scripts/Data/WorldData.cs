@@ -16,7 +16,8 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 		public NativeMultiHashMap<int, Vector4> WorldDataPositions;
-		public NativeHashMap<int, int> WorldDataIndices;
+		public NativeHashSet<int> WorldDataHashCode;
+		public NativeHashSet<int> WorldDataChunkIndex;
 		#endregion
 
 		#region ConstStatic
@@ -32,7 +33,8 @@ namespace VoxToVFXFramework.Scripts.Data
 		public WorldData()
 		{
 			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(256, Allocator.Persistent); //double capacity strategy
-			WorldDataIndices = new NativeHashMap<int, int>(256, Allocator.Persistent);
+			WorldDataHashCode = new NativeHashSet<int>(256, Allocator.Persistent);
+			WorldDataChunkIndex = new NativeHashSet<int>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -41,17 +43,19 @@ namespace VoxToVFXFramework.Scripts.Data
 			{
 				FastMath.FloorToInt(vector4.x / CHUNK_SIZE, vector4.y / CHUNK_SIZE, vector4.z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldVolume);
-				if (vector4.y > 0)
+				int hashcode = chunkIndex.GetHashCode() + vector4.GetHashCode();
+				if (vector4.y > 0 && !WorldDataHashCode.Contains(hashcode))
 				{
 					WorldDataPositions.Add(chunkIndex, vector4);
-					WorldDataIndices[chunkIndex] = chunkIndex;
+					WorldDataHashCode.Add(hashcode);
+					WorldDataChunkIndex.Add(chunkIndex);
 				}
 			}
 		}
 
 		public IEnumerator ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback, Action onChunkLoadedFinished)
 		{
-			NativeArray<int> keys = WorldDataIndices.GetKeyArray(Allocator.Persistent);
+			NativeArray<int> keys = WorldDataChunkIndex.ToNativeArray(Allocator.Persistent);
 			for (int index = 0; index < keys.Length; index++)
 			{
 				int chunkIndex = keys[index];
@@ -106,7 +110,8 @@ namespace VoxToVFXFramework.Scripts.Data
 		public void Dispose()
 		{
 			WorldDataPositions.Dispose();
-			WorldDataIndices.Dispose();
+			WorldDataChunkIndex.Dispose();
+			WorldDataHashCode.Dispose();
 		}
 
 		#endregion
