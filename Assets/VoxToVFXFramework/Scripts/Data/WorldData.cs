@@ -16,13 +16,12 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 		public NativeMultiHashMap<int, Vector4> WorldDataPositions;
-		public NativeHashSet<int> WorldDataHashCode;
 		public NativeHashSet<int> WorldDataChunkIndex;
 		#endregion
 
 		#region ConstStatic
 
-		public const int CHUNK_SIZE = 500;
+		public const int CHUNK_SIZE = 200;
 		public static int3 ChunkVolume = new int3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
 		public static int3 WorldVolume = new int3(Schematic.MAX_WORLD_WIDTH, Schematic.MAX_WORLD_HEIGHT, Schematic.MAX_WORLD_LENGTH);
 
@@ -33,7 +32,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		public WorldData()
 		{
 			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(256, Allocator.Persistent); //double capacity strategy
-			WorldDataHashCode = new NativeHashSet<int>(256, Allocator.Persistent);
 			WorldDataChunkIndex = new NativeHashSet<int>(256, Allocator.Persistent);
 		}
 
@@ -43,11 +41,9 @@ namespace VoxToVFXFramework.Scripts.Data
 			{
 				FastMath.FloorToInt(vector4.x / CHUNK_SIZE, vector4.y / CHUNK_SIZE, vector4.z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldVolume);
-				int hashcode = chunkIndex.GetHashCode() + vector4.GetHashCode();
-				if (vector4.y > 0 && !WorldDataHashCode.Contains(hashcode))
+				if (vector4.y > 0)
 				{
 					WorldDataPositions.Add(chunkIndex, vector4);
-					WorldDataHashCode.Add(hashcode);
 					WorldDataChunkIndex.Add(chunkIndex);
 				}
 			}
@@ -88,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				NativeHashMap<int, Vector4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
 				NativeArray<Vector4> finalResultLod2 = ComputeFinalArrayResult(resultLod2);
 				voxelResult.Data = finalResultLod2;
-				voxelResult.LodLevel = 3;
+				voxelResult.LodLevel = 4;
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
@@ -96,7 +92,7 @@ namespace VoxToVFXFramework.Scripts.Data
 
 				NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
 				voxelResult.Data = finalResultLod3;
-				voxelResult.LodLevel = 4;
+				voxelResult.LodLevel = 8;
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
 				finalResultLod3.Dispose();
 				
@@ -111,7 +107,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		{
 			WorldDataPositions.Dispose();
 			WorldDataChunkIndex.Dispose();
-			WorldDataHashCode.Dispose();
 		}
 
 		#endregion

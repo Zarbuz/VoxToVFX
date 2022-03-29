@@ -24,7 +24,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		#region Fields
 
-		public static VoxelMaterialVFX[] Materials { get; private set; }
+		public static VoxelMaterialVFX[] Materials { get; set; }
 
 		private static VoxModelCustom mVoxModel;
 		private static readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
@@ -140,7 +140,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 				voxelDataCustom.VoxelNativeArray.Dispose();
 			}
 
-			Materials = null;
 			mShapeModelCounts.Clear();
 			mModelMatrix.Clear();
 			mVoxModel = null;

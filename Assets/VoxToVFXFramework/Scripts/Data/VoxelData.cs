@@ -11,6 +11,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	{
 		public Vector3 position;
 		public int paletteIndex;
+		public int lodLevel;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -21,6 +22,15 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float smoothness;
 		public float metallic;
 		public float emission;
+	}
+
+
+	public struct Chunk
+	{
+		public string Filename;
+		public Vector3 Position;
+		public int ChunkIndex;
+		public int LodLevel;
 	}
 
 	public struct VoxelResult
