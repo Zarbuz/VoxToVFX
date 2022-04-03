@@ -24,7 +24,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public const int CHUNK_SIZE = 200;
 		public static int3 ChunkVolume = new int3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
 		public static int3 WorldVolume = new int3(Schematic.MAX_WORLD_WIDTH, Schematic.MAX_WORLD_HEIGHT, Schematic.MAX_WORLD_LENGTH);
-
+		public static int3 RelativeWorldVolume = new int3(2000 / CHUNK_SIZE, 2000 / CHUNK_SIZE, 2000 / CHUNK_SIZE);
 		#endregion
 
 		#region PublicMethods
@@ -40,12 +40,9 @@ namespace VoxToVFXFramework.Scripts.Data
 			foreach (Vector4 vector4 in voxels)
 			{
 				FastMath.FloorToInt(vector4.x / CHUNK_SIZE, vector4.y / CHUNK_SIZE, vector4.z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
-				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldVolume);
-				if (vector4.y > 0)
-				{
-					WorldDataPositions.Add(chunkIndex, vector4);
-					WorldDataChunkIndex.Add(chunkIndex);
-				}
+				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, RelativeWorldVolume);
+				WorldDataPositions.Add(chunkIndex, vector4);
+				WorldDataChunkIndex.Add(chunkIndex);
 			}
 		}
 
@@ -95,7 +92,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.LodLevel = 8;
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
 				finalResultLod3.Dispose();
-				
+
 				yield return new WaitForEndOfFrame();
 			}
 
@@ -158,7 +155,7 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		private static int3 GetChunkWorldPosition(int chunkIndex)
 		{
-			int3 pos3d = VoxImporter.Get3DPos(chunkIndex, WorldVolume);
+			int3 pos3d = VoxImporter.Get3DPos(chunkIndex, RelativeWorldVolume);
 			return pos3d * CHUNK_SIZE;
 		}
 
