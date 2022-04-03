@@ -16,14 +16,12 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 
 		public NativeMultiHashMap<int, Vector4> WorldDataPositions;
-		public NativeHashSet<int> WorldDataChunkIndex;
 		#endregion
 
 		#region ConstStatic
 
 		public const int CHUNK_SIZE = 200;
 		public static int3 ChunkVolume = new int3(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
-		public static int3 WorldVolume = new int3(Schematic.MAX_WORLD_WIDTH, Schematic.MAX_WORLD_HEIGHT, Schematic.MAX_WORLD_LENGTH);
 		public static int3 RelativeWorldVolume = new int3(2000 / CHUNK_SIZE, 2000 / CHUNK_SIZE, 2000 / CHUNK_SIZE);
 		#endregion
 
@@ -32,7 +30,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		public WorldData()
 		{
 			WorldDataPositions = new NativeMultiHashMap<int, Vector4>(256, Allocator.Persistent); //double capacity strategy
-			WorldDataChunkIndex = new NativeHashSet<int>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -42,16 +39,15 @@ namespace VoxToVFXFramework.Scripts.Data
 				FastMath.FloorToInt(vector4.x / CHUNK_SIZE, vector4.y / CHUNK_SIZE, vector4.z / CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 				int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, RelativeWorldVolume);
 				WorldDataPositions.Add(chunkIndex, vector4);
-				WorldDataChunkIndex.Add(chunkIndex);
 			}
 		}
 
 		public IEnumerator ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback, Action onChunkLoadedFinished)
 		{
-			NativeArray<int> keys = WorldDataChunkIndex.ToNativeArray(Allocator.Persistent);
-			for (int index = 0; index < keys.Length; index++)
+			(NativeArray<int>, int) keys = WorldDataPositions.GetUniqueKeyArray(Allocator.Persistent);
+			for (int index = 0; index < keys.Item2; index++)
 			{
-				int chunkIndex = keys[index];
+				int chunkIndex = keys.Item1[index];
 				int3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
 				Vector3 centerChunkWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
 				NativeHashMap<int, Vector4> resultLod0 = ComputeInitialChunkData(WorldDataPositions, chunkIndex);
@@ -66,7 +62,7 @@ namespace VoxToVFXFramework.Scripts.Data
 					FrameWorldPosition = centerChunkWorldPosition,
 					LodLevel = 1
 				};
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
@@ -74,7 +70,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				NativeArray<Vector4> finalResultLod1 = ComputeFinalArrayResult(resultLod1);
 				voxelResult.Data = finalResultLod1;
 				voxelResult.LodLevel = 2;
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
@@ -82,7 +78,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				NativeArray<Vector4> finalResultLod2 = ComputeFinalArrayResult(resultLod2);
 				voxelResult.Data = finalResultLod2;
 				voxelResult.LodLevel = 4;
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
@@ -90,20 +86,19 @@ namespace VoxToVFXFramework.Scripts.Data
 				NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
 				voxelResult.Data = finalResultLod3;
 				voxelResult.LodLevel = 8;
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
+				onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
 				finalResultLod3.Dispose();
 
 				yield return new WaitForEndOfFrame();
 			}
 
-			keys.Dispose();
+			keys.Item1.Dispose();
 			onChunkLoadedFinished?.Invoke();
 		}
 
 		public void Dispose()
 		{
 			WorldDataPositions.Dispose();
-			WorldDataChunkIndex.Dispose();
 		}
 
 		#endregion

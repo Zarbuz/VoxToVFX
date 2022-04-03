@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using FileToVoxCore.Utils;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -36,7 +38,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int ForcedLevelLod;
 
 		public bool ShowOnlyActiveChunkGizmos;
-		public float DistanceCheck;
 		#endregion
 
 		#region ConstStatic
@@ -51,22 +52,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region Fields
 
 		public event Action LoadFinishedCallback;
+		
+		[HideInInspector]
 		public NativeArray<Chunk> Chunks;
 
-		private NativeMultiHashMap<int, VoxelVFX> mChunksLoaded;
+		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
 		private VisualEffectItem mVisualEffectItem;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
 		private Plane[] mPlanes;
 
 		private bool mIsLoaded;
-		private bool mCheckDistance;
 		private Transform mVisualItemsParent;
 		private WorldData mWorldData;
 
+		private int mPreviousPlayerChunkIndex;
 		private UnityEngine.Camera mCamera;
-		private Quaternion mPreviousCameraRotation;
-		private Vector3 mPreviousCameraPosition;
 		#endregion
 
 		#region UnityMethods
@@ -89,12 +90,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
-
-			if (Vector3.Distance(mPreviousCameraPosition, mCamera.transform.position) > DistanceCheck && !mCheckDistance)
+			int chunkIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
+			if (mPreviousPlayerChunkIndex != chunkIndex)
 			{
-				mCheckDistance = true;
-				mPreviousCameraPosition = mCamera.transform.position;
-				mPreviousCameraRotation = mCamera.transform.rotation;
+				mPreviousPlayerChunkIndex = chunkIndex;
 				RefreshLodsDistance();
 			}
 		}
@@ -158,6 +157,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			if (mChunksLoaded.IsCreated)
 			{
+				foreach (KeyValue<int, UnsafeList<VoxelVFX>> item in mChunksLoaded)
+				{
+					item.Value.Dispose();
+				}
 				mChunksLoaded.Dispose();
 			}
 		}
@@ -183,20 +186,23 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void SetVoxelChunk(int chunkIndex, int lodLevel, NativeArray<VoxelVFX> array)
 		{
-			if (array.Length == 0)
-			{
-				return;
-			}
-
 			if (!mChunksLoaded.IsCreated)
 			{
-				mChunksLoaded = new NativeMultiHashMap<int, VoxelVFX>(256, Allocator.Persistent);
+				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
 			}
 
-			foreach (VoxelVFX voxel in array)
+			int uniqueIndex = GetUniqueChunkIndexWithLodLevel(chunkIndex, lodLevel);
+			UnsafeList<VoxelVFX> unsafeList = new UnsafeList<VoxelVFX>(array.Length, Allocator.Persistent);
+			unsafe
 			{
-				mChunksLoaded.Add(chunkIndex, voxel);
+				unsafeList.AddRangeNoResize(array.GetUnsafePtr(), array.Length);
+				mChunksLoaded[uniqueIndex] = unsafeList;
 			}
+		}
+
+		public static int GetUniqueChunkIndexWithLodLevel(int chunkIndex, int lodLevel)
+		{
+			return chunkIndex + lodLevel * 2000;
 		}
 
 		public void OnChunkLoadedFinished()
@@ -270,7 +276,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			buffer.Dispose();
-			mCheckDistance = false;
 		}
 
 		private void RefreshRender(NativeList<VoxelVFX> chunks)
@@ -284,7 +289,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItem.OpaqueVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, chunks.Length);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.Play();
+		}
 
+		private int GetPlayerCurrentChunkIndex(Vector3 position)
+		{
+			FastMath.FloorToInt(position.x / WorldData.CHUNK_SIZE, position.y / WorldData.CHUNK_SIZE, position.z / WorldData.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+			int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldData.RelativeWorldVolume);
+			return chunkIndex;
 		}
 
 		#endregion

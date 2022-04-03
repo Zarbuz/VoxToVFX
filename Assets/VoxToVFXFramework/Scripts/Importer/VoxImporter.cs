@@ -206,6 +206,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			job.Complete();
 			initialDataClean.Dispose();
 
+			
 			mWorldData.AddVoxels(resultLod0);
 			resultLod0.Dispose();
 		}
