@@ -61,7 +61,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 				outputCasted.VoxelFramesCustom.Add(new VoxelDataCustom());
 
 			//Swap XZ
-			outputCasted.VoxelFramesCustom[ChildCount].Resize(xSize, zSize, ySize);
+			//Dirty but resize add +1 
+			outputCasted.VoxelFramesCustom[ChildCount].Resize(xSize - 1, zSize - 1, ySize - 1);
 			ChildCount++;
 		}
 
@@ -83,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				}
 			}
 
-		
+
 
 
 		}

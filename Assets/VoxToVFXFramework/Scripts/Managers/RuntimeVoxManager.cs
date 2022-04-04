@@ -1,12 +1,19 @@
 ﻿using Sirenix.OdinInspector;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using FileToVoxCore.Utils;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
+using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.VFXItem;
@@ -22,55 +29,52 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[Header("Lods")]
 		[OnValueChanged(nameof(RefreshDebugLod))]
 		public bool DebugLod;
-		
+
 		[OnValueChanged(nameof(RefreshLodsDistance))]
-		public Vector4 LodDistance;
+		public Vector3 LodDistance;
 
 		[Range(-1, 3)]
 		[OnValueChanged(nameof(RefreshLodsDistance))]
 		public int ForcedLevelLod;
 
-		[OnValueChanged(nameof(RefreshLodsDistance))]
-		[Range(0.1f,1f)]
-		public float VoxelScale = 1;
+		public bool ShowOnlyActiveChunkGizmos;
 		#endregion
 
 		#region ConstStatic
 
-		private const string MAIN_VFX_BUFFER1_KEY = "Buffer";
-		private const string MAIN_VFX_BUFFER2_KEY = "Buffer2";
-		private const string MAIN_VFX_BUFFER3_KEY = "Buffer3";
-		private const string MAIN_VFX_BUFFER4_KEY = "Buffer4";
+		private const string VFX_BUFFER_KEY = "Buffer";
+
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
-		private const string SIZE_VFX_KEY = "Size";
 		private const string DEBUG_LOD_KEY = "DebugLod";
-		private const string POSITION_CHUNK_KEY = "CenterPosition";
-		private const string SIZE_CHUNK_KEY = "ChunkSize";
-		private const string VOXEL_SCALE_KEY = "VoxelScale";
+		private const string INITIAL_BURST_COUNT_KEY = "InitialBurstCount";
 		#endregion
 
 		#region Fields
 
 		public event Action LoadFinishedCallback;
+		
+		[HideInInspector]
+		public NativeArray<Chunk> Chunks;
 
-		private readonly List<GraphicsBuffer> mOpaqueBuffers = new List<GraphicsBuffer>();
-		private readonly Dictionary<int, VisualEffectItem> mVisualEffectItems = new Dictionary<int, VisualEffectItem>();
-
+		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
+		private VisualEffectItem mVisualEffectItem;
 		private GraphicsBuffer mPaletteBuffer;
+		private GraphicsBuffer mGraphicsBuffer;
+		private Plane[] mPlanes;
 
 		private bool mIsLoaded;
-		private Vector3 mCurrentCameraPosition;
-		private bool mCheckDistance;
 		private Transform mVisualItemsParent;
 		private WorldData mWorldData;
-		private Transform mMainCamera;
+
+		private int mPreviousPlayerChunkIndex;
+		private UnityEngine.Camera mCamera;
 		#endregion
 
 		#region UnityMethods
 
 		protected override void OnStart()
 		{
-			mMainCamera = UnityEngine.Camera.main.transform;
+			mCamera = UnityEngine.Camera.main;
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 		}
 
@@ -85,24 +89,41 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				return;
 			}
-
-			if (Vector3.Distance(mCurrentCameraPosition, mMainCamera.transform.position) > 10 * VoxelScale && !mCheckDistance)
+			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
+			int chunkIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
+			if (mPreviousPlayerChunkIndex != chunkIndex)
 			{
-				mCurrentCameraPosition = mMainCamera.transform.position;
-				mCheckDistance = true;
-
+				mPreviousPlayerChunkIndex = chunkIndex;
 				RefreshLodsDistance();
 			}
 		}
 
 		private void OnDrawGizmosSelected()
 		{
-			Gizmos.color = Color.blue;
-			Vector3 position = mMainCamera.transform.position;
-			foreach (VisualEffectItem item in mVisualEffectItems.Values)
+			if (!Application.isPlaying)
 			{
-				Gizmos.DrawLine(position, item.FramePosition);
+				return;
 			}
+
+			Vector3 position = mCamera.transform.position;
+			if (ShowOnlyActiveChunkGizmos)
+			{
+				Gizmos.color = Color.green;
+
+				foreach (var item in Chunks.Where(t => t.IsActive == 1).GroupBy(t => t.ChunkIndex, t => t.Position, (key, g) => new { ChunkIndex = key, Position = g.First() }))
+				{
+					Gizmos.DrawWireCube(item.Position, Vector3.one * WorldData.CHUNK_SIZE);
+				}
+			}
+			else
+			{
+				Gizmos.color = Color.white;
+				foreach (var item in Chunks.GroupBy(t => t.ChunkIndex, t => t.Position, (key, g) => new { ChunkIndex = key, Position = g.First() }))
+				{
+					Gizmos.DrawWireCube(item.Position, Vector3.one * WorldData.CHUNK_SIZE);
+				}
+			}
+			
 
 			Gizmos.color = Color.green;
 			Gizmos.DrawWireSphere(position, LodDistance.y);
@@ -110,8 +131,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Gizmos.color = Color.yellow;
 			Gizmos.DrawWireSphere(position, LodDistance.z);
 
-			Gizmos.color = Color.red;
-			Gizmos.DrawWireSphere(position, LodDistance.w);
+			//Gizmos.color = Color.red;
+			//Gizmos.DrawWireSphere(position, LodDistance.w);
 		}
 
 		#endregion
@@ -120,37 +141,34 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void Release()
 		{
-			foreach (GraphicsBuffer buffer in mOpaqueBuffers)
-			{
-				buffer.Release();
-			}
-
+			mGraphicsBuffer?.Release();
 			mPaletteBuffer?.Release();
-			mOpaqueBuffers.Clear();
 			mPaletteBuffer = null;
-
-			foreach (VisualEffectItem visualEffectItem in mVisualEffectItems.Values)
+			mGraphicsBuffer = null;
+			if (mVisualEffectItem != null)
 			{
-				if (visualEffectItem.gameObject != null)
-				{
-					Destroy(visualEffectItem.gameObject);
-				}
+				Destroy(mVisualEffectItem.gameObject);
 			}
 
-			mVisualEffectItems.Clear();
+			if (Chunks.IsCreated)
+			{
+				Chunks.Dispose();
+			}
+
+			if (mChunksLoaded.IsCreated)
+			{
+				foreach (KeyValue<int, UnsafeList<VoxelVFX>> item in mChunksLoaded)
+				{
+					item.Value.Dispose();
+				}
+				mChunksLoaded.Dispose();
+			}
 		}
 
 
 		public void SetForceLODValue(int value)
 		{
 			ForcedLevelLod = value;
-			RefreshLodsDistance();
-		}
-
-		public void SetVoxelScaleValue(float value)
-		{
-			VoxelScale = value;
-			RefreshVoxelScale();
 			RefreshLodsDistance();
 		}
 
@@ -166,71 +184,49 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer.SetData(materials);
 		}
 
-		public void SetVoxelChunk(VoxelResult voxelResult)
+		public void SetVoxelChunk(int chunkIndex, int lodLevel, NativeArray<VoxelVFX> array)
 		{
-			if (voxelResult.Data.Length == 0)
+			if (!mChunksLoaded.IsCreated)
 			{
-				return;
+				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
 			}
 
-			VisualEffectItem visualEffectItem;
-			if (!mVisualEffectItems.ContainsKey(voxelResult.ChunkIndex))
+			int uniqueIndex = GetUniqueChunkIndexWithLodLevel(chunkIndex, lodLevel);
+			UnsafeList<VoxelVFX> unsafeList = new UnsafeList<VoxelVFX>(array.Length, Allocator.Persistent);
+			unsafe
 			{
-				visualEffectItem = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
-				visualEffectItem.FramePosition = voxelResult.FrameWorldPosition;
-				visualEffectItem.transform.SetParent(mVisualItemsParent);
-				visualEffectItem.ChunkIndex = voxelResult.ChunkIndex;
-				visualEffectItem.OpaqueVisualEffect.SetVector3(POSITION_CHUNK_KEY, voxelResult.FrameWorldPosition);
-				visualEffectItem.OpaqueVisualEffect.SetVector3(SIZE_CHUNK_KEY, new Vector3(WorldData.CHUNK_SIZE, WorldData.CHUNK_SIZE, WorldData.CHUNK_SIZE));
-				visualEffectItem.OpaqueVisualEffect.SetFloat(VOXEL_SCALE_KEY, VoxelScale);
-				visualEffectItem.OpaqueVisualEffect.enabled = true;
-				mVisualEffectItems.Add(voxelResult.ChunkIndex, visualEffectItem);
+				unsafeList.AddRangeNoResize(array.GetUnsafePtr(), array.Length);
+				mChunksLoaded[uniqueIndex] = unsafeList;
 			}
-			else
-			{
-				visualEffectItem = mVisualEffectItems[voxelResult.ChunkIndex];
-			}
+		}
 
-			GraphicsBuffer bufferLod = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxelResult.Data.Length, Marshal.SizeOf(typeof(Vector4)));
-			bufferLod.SetData(voxelResult.Data);
-			mOpaqueBuffers.Add(bufferLod);
-
-			switch (voxelResult.LodLevel)
-			{
-				case 1:
-					visualEffectItem.OpaqueVisualEffect.SetInt("InitialBurstCount", voxelResult.Data.Length);
-					visualEffectItem.InitialBurstLod0 = voxelResult.Data.Length;
-					visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER1_KEY, bufferLod);
-					break;
-				case 2:
-					visualEffectItem.InitialBurstLod1 = voxelResult.Data.Length;
-					visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER2_KEY, bufferLod);
-					break;
-				case 3:
-					visualEffectItem.InitialBurstLod2 = voxelResult.Data.Length;
-					visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER3_KEY, bufferLod);
-					break;
-				case 4:
-					visualEffectItem.InitialBurstLod3 = voxelResult.Data.Length;
-					visualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MAIN_VFX_BUFFER4_KEY, bufferLod);
-					break;
-			}
-
+		public static int GetUniqueChunkIndexWithLodLevel(int chunkIndex, int lodLevel)
+		{
+			return chunkIndex + lodLevel * 10000;
 		}
 
 		public void OnChunkLoadedFinished()
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems.Values)
-			{
-				item.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-				//item.OpaqueVisualEffect.enabled = true;
-			}
+			mVisualEffectItem = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
+			mVisualEffectItem.transform.SetParent(mVisualItemsParent);
+			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+			mVisualEffectItem.OpaqueVisualEffect.enabled = true;
 
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
-			mMainCamera.position = new Vector3(1000, 1000, 1000);
+			mCamera.transform.position = new Vector3(1000, 1000, 1000);
 			mIsLoaded = true;
 			LoadFinishedCallback?.Invoke();
 		}
+
+		public void SetChunks(Chunk[] chunks)
+		{
+			Chunks = new NativeArray<Chunk>(chunks.Length, Allocator.Persistent);
+			for (int i = 0; i < chunks.Length; i++)
+			{
+				Chunks[i] = chunks[i];
+			}
+		}
+
 
 		#endregion
 
@@ -238,70 +234,68 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void RefreshDebugLod()
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems.Values)
-			{
-				item.OpaqueVisualEffect.Reinit();
-				item.OpaqueVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
-				item.OpaqueVisualEffect.Play();
-			}
+			mVisualEffectItem.OpaqueVisualEffect.Reinit();
+			mVisualEffectItem.OpaqueVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
+			mVisualEffectItem.OpaqueVisualEffect.Play();
 		}
 
 		private void RefreshLodsDistance()
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems.Values)
-			{
-				float distance = Vector3.Distance(mMainCamera.transform.position, item.FramePosition * VoxelScale);
-				bool updated = false;
-				if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && item.InitialBurstLod0 != 0 && item.CurrentLod != 1)
-				{
-					item.OpaqueVisualEffect.Reinit();
-					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod0);
-					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 1);
-					item.CurrentLod = 1;
-					updated = true;
-				}
-				else if ((distance >= LodDistance.y && distance < LodDistance.z && ForcedLevelLod == -1 || ForcedLevelLod == 1) && item.InitialBurstLod1 != 0 && item.CurrentLod != 2)
-				{
-					item.OpaqueVisualEffect.Reinit();
-					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod1);
-					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 2);
-					item.CurrentLod = 2;
-					updated = true;
-				}
-				else if ((distance >= LodDistance.z && distance < LodDistance.w && ForcedLevelLod == -1 || ForcedLevelLod == 2) && item.InitialBurstLod2 != 0 && item.CurrentLod != 4)
-				{
-					item.OpaqueVisualEffect.Reinit();
-					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod2);
-					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 4);
-					item.CurrentLod = 4;
-					updated = true;
-				}
-				else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && item.InitialBurstLod3 != 0 && item.CurrentLod != 8)
-				{
-					item.OpaqueVisualEffect.Reinit();
-					item.OpaqueVisualEffect.SetInt("InitialBurstCount", item.InitialBurstLod3);
-					item.OpaqueVisualEffect.SetInt(SIZE_VFX_KEY, 8);
-					item.CurrentLod = 8;
-					updated = true;
-				}
+			if (!Chunks.IsCreated)
+				return;
 
-				if (updated)
+			NativeList<Chunk> activeChunks = new NativeList<Chunk>(Allocator.TempJob);
+			for (int index = 0; index < Chunks.Length; index++)
+			{
+				Chunk chunk = Chunks[index];
+				chunk.IsActive = GeometryUtility.TestPlanesAABB(mPlanes, new Bounds(Chunks[index].Position, Vector3.one * WorldData.CHUNK_SIZE)) ? 1 : 0;
+				Chunks[index] = chunk;
+				if (chunk.IsActive == 1)
 				{
-					item.OpaqueVisualEffect.Play();
+					activeChunks.Add(chunk);
 				}
 			}
+			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
+			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
+			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
+			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
+			{
+				LodDistance = LodDistance,
+				ForcedLevelLod = ForcedLevelLod,
+				CameraPosition = mCamera.transform.position,
+				Data = mChunksLoaded,
+				Chunks = activeChunks,
+				Buffer = buffer.AsParallelWriter()
+			}.Schedule(totalActive, 64);
+			computeRenderingChunkJob.Complete();
+			activeChunks.Dispose();
 
-			mCheckDistance = false;
+			if (buffer.Length > 0)
+			{
+				RefreshRender(buffer);
+			}
+
+			buffer.Dispose();
 		}
 
-		private void RefreshVoxelScale()
+		private void RefreshRender(NativeList<VoxelVFX> chunks)
 		{
-			foreach (VisualEffectItem item in mVisualEffectItems.Values)
-			{
-				item.OpaqueVisualEffect.Reinit();
-				item.OpaqueVisualEffect.SetFloat(VOXEL_SCALE_KEY, VoxelScale);
-				item.OpaqueVisualEffect.Play();
-			}
+			mVisualEffectItem.OpaqueVisualEffect.Reinit();
+
+			mGraphicsBuffer?.Release();
+			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, chunks.Length, Marshal.SizeOf(typeof(VoxelVFX)));
+			mGraphicsBuffer.SetData(chunks.AsArray());
+
+			mVisualEffectItem.OpaqueVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, chunks.Length);
+			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
+			mVisualEffectItem.OpaqueVisualEffect.Play();
+		}
+
+		private int GetPlayerCurrentChunkIndex(Vector3 position)
+		{
+			FastMath.FloorToInt(position.x / WorldData.CHUNK_SIZE, position.y / WorldData.CHUNK_SIZE, position.z / WorldData.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
+			int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldData.RelativeWorldVolume);
+			return chunkIndex;
 		}
 
 		#endregion
