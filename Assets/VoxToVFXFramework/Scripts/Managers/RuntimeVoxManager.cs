@@ -31,7 +31,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public bool DebugLod;
 
 		[OnValueChanged(nameof(RefreshLodsDistance))]
-		public Vector4 LodDistance;
+		public Vector3 LodDistance;
 
 		[Range(-1, 3)]
 		[OnValueChanged(nameof(RefreshLodsDistance))]
@@ -131,8 +131,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Gizmos.color = Color.yellow;
 			Gizmos.DrawWireSphere(position, LodDistance.z);
 
-			Gizmos.color = Color.red;
-			Gizmos.DrawWireSphere(position, LodDistance.w);
+			//Gizmos.color = Color.red;
+			//Gizmos.DrawWireSphere(position, LodDistance.w);
 		}
 
 		#endregion
@@ -202,7 +202,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public static int GetUniqueChunkIndexWithLodLevel(int chunkIndex, int lodLevel)
 		{
-			return chunkIndex + lodLevel * 2000;
+			return chunkIndex + lodLevel * 10000;
 		}
 
 		public void OnChunkLoadedFinished()

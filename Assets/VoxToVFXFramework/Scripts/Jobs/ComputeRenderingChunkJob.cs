@@ -12,8 +12,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	[BurstCompile]
 	public struct ComputeRenderingChunkJob : IJobParallelFor
 	{
-		[ReadOnly] public NativeList<Chunk> Chunks;
-		[ReadOnly] public Vector4 LodDistance;
+		[ReadOnly] public NativeArray<Chunk> Chunks;
+		[ReadOnly] public Vector3 LodDistance;
 		[ReadOnly] public int ForcedLevelLod;
 		[ReadOnly] public UnsafeHashMap<int, UnsafeList<VoxelVFX>> Data;
 		[ReadOnly] public Vector3 CameraPosition;
@@ -24,8 +24,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		{
 			Chunk chunk = Chunks[index];
 
-			if (chunk.IsActive == 0)
-				return;
+			//if (chunk.IsActive == 0)
+			//	return;
 
 			float distance = Vector3.Distance(CameraPosition, chunk.Position);
 			if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && chunk.LodLevel == 1)
@@ -37,27 +37,15 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			{
 				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
 			}
-			else if ((distance >= LodDistance.z && distance < LodDistance.w && ForcedLevelLod == -1 || ForcedLevelLod == 2) && chunk.LodLevel == 4)
+			else if ((distance >= LodDistance.z && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 2) && chunk.LodLevel == 4)
 			{
 				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
 
 			}
-			else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
-			{
-				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
-			}
-		}
-
-		private void AddToBuffer(NativeMultiHashMap<int, VoxelVFX>.Enumerator enumerator, int lodLevel)
-		{
-			while (enumerator.MoveNext())
-			{
-				VoxelVFX voxel = enumerator.Current;
-				if (voxel.lodLevel == lodLevel)
-				{
-					Buffer.AddNoResize(voxel);
-				}
-			}
+			//else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
+			//{
+			//	Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
+			//}
 		}
 	}
 }
