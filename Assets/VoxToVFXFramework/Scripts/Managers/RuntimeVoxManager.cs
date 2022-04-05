@@ -56,7 +56,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[HideInInspector]
 		public NativeArray<Chunk> Chunks;
 
-		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
+		private UnsafeHashMap<int, UnsafeList<VoxelData>> mChunksLoaded;
 		private VisualEffectItem mVisualEffectItem;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
@@ -157,7 +157,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			if (mChunksLoaded.IsCreated)
 			{
-				foreach (KeyValue<int, UnsafeList<VoxelVFX>> item in mChunksLoaded)
+				foreach (KeyValue<int, UnsafeList<VoxelData>> item in mChunksLoaded)
 				{
 					item.Value.Dispose();
 				}
@@ -184,15 +184,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer.SetData(materials);
 		}
 
-		public void SetVoxelChunk(int chunkIndex, int lodLevel, NativeArray<VoxelVFX> array)
+		public void SetVoxelChunk(int chunkIndex, int lodLevel, NativeArray<VoxelData> array)
 		{
 			if (!mChunksLoaded.IsCreated)
 			{
-				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
+				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelData>>(Chunks.Length, Allocator.Persistent);
 			}
 
 			int uniqueIndex = GetUniqueChunkIndexWithLodLevel(chunkIndex, lodLevel);
-			UnsafeList<VoxelVFX> unsafeList = new UnsafeList<VoxelVFX>(array.Length, Allocator.Persistent);
+			UnsafeList<VoxelData> unsafeList = new UnsafeList<VoxelData>(array.Length, Allocator.Persistent);
 			unsafe
 			{
 				unsafeList.AddRangeNoResize(array.GetUnsafePtr(), array.Length);

@@ -15,8 +15,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	public class WorldData : IDisposable
 	{
 		#region Fields
-
-		public UnsafeHashMap<int, UnsafeHashMap<int, Vector4>> WorldDataPositions;
+		public UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> WorldDataPositions;
 		#endregion
 
 		#region ConstStatic
@@ -30,7 +29,7 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		public WorldData()
 		{
-			WorldDataPositions = new UnsafeHashMap<int, UnsafeHashMap<int, Vector4>>(256, Allocator.Persistent);
+			WorldDataPositions = new UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -51,10 +50,10 @@ namespace VoxToVFXFramework.Scripts.Data
 				int chunkIndex = keys[index];
 				int3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
 				Vector3 centerChunkWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
-				UnsafeHashMap<int, Vector4> resultLod0 = WorldDataPositions[chunkIndex];
+				UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
 
-				UnsafeHashMap<int, Vector4> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
-				NativeArray<Vector4> finalResultLod0 = resultLod0.GetValueArray(Allocator.Temp);
+				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
+				NativeArray<VoxelData> finalResultLod0 = resultLod0.GetValueArray(Allocator.Temp);
 				resultLod0.Dispose();
 				WorldDataPositions[chunkIndex] = resultLod0;
 
@@ -69,8 +68,8 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
-				UnsafeHashMap<int, Vector4> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
-				NativeArray<Vector4> finalResultLod1 = resultLod1.GetValueArray(Allocator.Temp);
+				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
+				NativeArray<VoxelData> finalResultLod1 = resultLod1.GetValueArray(Allocator.Temp);
 				resultLod1.Dispose();
 				voxelResult.Data = finalResultLod1;
 				voxelResult.LodLevel = 2;
@@ -79,7 +78,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				yield return new WaitForEndOfFrame();
 
 				//NativeHashMap<int, Vector4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
-				NativeArray<Vector4> finalResultLod2 = resultLod2.GetValueArray(Allocator.Temp);
+				NativeArray<VoxelData> finalResultLod2 = resultLod2.GetValueArray(Allocator.Temp);
 				resultLod2.Dispose();
 				voxelResult.Data = finalResultLod2;
 				voxelResult.LodLevel = 4;
@@ -109,9 +108,9 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		#region PrivateMethods
 
-		private static UnsafeHashMap<int, Vector4> ComputeLod(UnsafeHashMap<int, Vector4> data, int3 worldChunkPosition, int step, int moduloCheck)
+		private static UnsafeHashMap<int, VoxelData> ComputeLod(UnsafeHashMap<int, VoxelData> data, int3 worldChunkPosition, int step, int moduloCheck)
 		{
-			UnsafeHashMap<int, Vector4> resultLod1 = new UnsafeHashMap<int, Vector4>(data.Count(), Allocator.TempJob);
+			UnsafeHashMap<int, VoxelData> resultLod1 = new UnsafeHashMap<int, VoxelData>(data.Count(), Allocator.TempJob);
 			ComputeLodJob computeLodJob = new ComputeLodJob()
 			{
 				VolumeSize = ChunkVolume,

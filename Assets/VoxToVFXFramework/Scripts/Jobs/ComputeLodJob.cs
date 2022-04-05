@@ -17,8 +17,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public int ModuloCheck;
 		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public int3 WorldChunkPosition;
-		[ReadOnly] public UnsafeHashMap<int, Vector4> Data;
-		public UnsafeHashMap<int, Vector4>.ParallelWriter Result;
+		[ReadOnly] public UnsafeHashMap<int, VoxelData> Data;
+		public UnsafeHashMap<int, VoxelData>.ParallelWriter Result;
 		public void Execute(int z)
 		{
 			if (z % ModuloCheck != 0)
@@ -42,47 +42,38 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					int b5Key = VoxImporter.GetGridPos(x1, y, z1, VolumeSize);
 					int b6Key = VoxImporter.GetGridPos(x, y1, z1, VolumeSize);
 					int b7Key = VoxImporter.GetGridPos(x1, y1, z1, VolumeSize);
-					if (Data.TryGetValue(b0Key, out Vector4 b0))
+					if (Data.TryGetValue(b0Key, out VoxelData b0) && b0.Color != 0)
 					{
-						if (b0.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b0.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b0.Color));
 					}
-					else if (Data.TryGetValue(b1Key, out Vector4 b1))
+					else if (Data.TryGetValue(b1Key, out VoxelData b1) && b1.Color != 0)
 					{
-						if (b1.w != 0) 
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b1.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b1.Color));
 					}
-					else if (Data.TryGetValue(b2Key, out Vector4 b2))
+					else if (Data.TryGetValue(b2Key, out VoxelData b2) && b2.Color != 0)
 					{
-						if (b2.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b2.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b2.Color));
 					}
-					else if (Data.TryGetValue(b3Key, out Vector4 b3))
+					else if (Data.TryGetValue(b3Key, out VoxelData b3) && b3.Color != 0)
 					{
-						if (b3.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b3.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b3.Color));
 					}
-					else if (Data.TryGetValue(b4Key, out Vector4 b4))
+					else if (Data.TryGetValue(b4Key, out VoxelData b4) && b4.Color != 0)
 					{
-						if (b4.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b4.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b4.Color));
 					}
-					else if (Data.TryGetValue(b5Key, out Vector4 b5))
+					else if (Data.TryGetValue(b5Key, out VoxelData b5) && b5.Color != 0)
 					{
-						if (b5.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b5.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b5.Color));
 					}
-					else if (Data.TryGetValue(b6Key, out Vector4 b6))
+					else if (Data.TryGetValue(b6Key, out VoxelData b6) && b6.Color != 0)
 					{
-						if (b6.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b6.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b6.Color));
 					}
-					else if (Data.TryGetValue(b7Key, out Vector4 b7))
+					else if (Data.TryGetValue(b7Key, out VoxelData b7) && b7.Color != 0)
 					{
-						if (b7.w != 0)
-							Result.TryAdd(worldPositionKey, new Vector4(x + WorldChunkPosition.x, y + WorldChunkPosition.y, z + WorldChunkPosition.z, b7.w));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b7.Color));
 					}
-
 				}
 			}
 		}

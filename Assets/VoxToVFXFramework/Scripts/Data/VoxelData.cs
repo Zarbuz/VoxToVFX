@@ -26,12 +26,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float emission;
 	}
 
-	public struct ChunkData
-	{
-		public NativeArray<VoxelVFX> Data;
-		public int LodLevel;
-	}
-
 	public struct Chunk
 	{
 		public Vector3 Position;
@@ -50,26 +44,27 @@ namespace VoxToVFXFramework.Scripts.Data
 		public int Length;
 	}
 
+	public struct VoxelData
+	{
+		public byte PosX;
+		public byte PosY;
+		public byte PosZ;
+		public byte Color;
+
+		public VoxelData(byte posX, byte posY, byte posZ, byte color)
+		{
+			PosX = posX;
+			PosY = posY;
+			PosZ = posZ;
+			Color = color;
+		}
+	}
+
 	public struct VoxelResult
 	{
 		public int ChunkIndex;
 		public int LodLevel;
-		public NativeArray<Vector4> Data;
+		public NativeArray<VoxelData> Data;
 		public Vector3 FrameWorldPosition;
-	}
-
-	public class ChunkParent
-	{
-		public List<ChunkData> ChunkData;
-
-		public ChunkParent()
-		{
-			ChunkData = new List<ChunkData>();
-		}
-
-		public ChunkData GetChunkForLodLevel(int lodLevel)
-		{
-			return ChunkData.FirstOrDefault(chunk => chunk.LodLevel == lodLevel);
-		}
 	}
 }

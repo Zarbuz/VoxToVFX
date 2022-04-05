@@ -15,7 +15,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public NativeArray<Chunk> Chunks;
 		[ReadOnly] public Vector3 LodDistance;
 		[ReadOnly] public int ForcedLevelLod;
-		[ReadOnly] public UnsafeHashMap<int, UnsafeList<VoxelVFX>> Data;
+		[ReadOnly] public UnsafeHashMap<int, UnsafeList<VoxelData>> Data;
 		[ReadOnly] public Vector3 CameraPosition;
 		public NativeList<VoxelVFX>.ParallelWriter Buffer;
 
@@ -30,22 +30,36 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			float distance = Vector3.Distance(CameraPosition, chunk.Position);
 			if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && chunk.LodLevel == 1)
 			{
-				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
-
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunk, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]));
 			}
 			else if ((distance >= LodDistance.y && distance < LodDistance.z && ForcedLevelLod == -1 || ForcedLevelLod == 1) && chunk.LodLevel == 2)
 			{
-				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunk, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]));
 			}
 			else if ((distance >= LodDistance.z && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 2) && chunk.LodLevel == 4)
 			{
-				Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
-
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunk, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]));
 			}
 			//else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
 			//{
 			//	Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
 			//}
+		}
+
+		//TODO : Make this in a Job
+		private NativeList<VoxelVFX> ConvertToVoxelVFX(Chunk chunk, UnsafeList<VoxelData> list)
+		{
+			NativeList<VoxelVFX> result = new NativeList<VoxelVFX>(list.Length, Allocator.Temp);
+			foreach (VoxelData voxelData in list)
+			{
+				result.AddNoResize(new VoxelVFX()
+				{
+					lodLevel = chunk.LodLevel,
+					paletteIndex = voxelData.Color,
+					position = new Vector3(voxelData.PosX + chunk.Position.x, voxelData.PosY + chunk.Position.y, voxelData.PosZ + chunk.Position.z)
+				});
+			}
+			return result;
 		}
 	}
 }

@@ -160,14 +160,15 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		using BinaryReader reader = new BinaryReader(stream);
 
 		int length = reader.ReadInt32();
-		NativeArray<VoxelVFX> data = new NativeArray<VoxelVFX>(length, Allocator.Temp);
+		NativeArray<VoxelData> data = new NativeArray<VoxelData>(length, Allocator.Temp);
 		for (int i = 0; i < length; i++)
 		{
-			data[i] = new VoxelVFX()
+			data[i] = new VoxelData()
 			{
-				position = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
-				paletteIndex = reader.ReadInt32(),
-				lodLevel = lodLevel
+				PosX = reader.ReadByte(),
+				PosY = reader.ReadByte(),
+				PosZ = reader.ReadByte(),
+				Color = reader.ReadByte()
 			};
 		}
 
@@ -229,10 +230,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(voxelResult.Data.Length);
 			for (int i = 0; i < voxelResult.Data.Length; i++)
 			{
-				binaryWriter.Write((int)voxelResult.Data[i].x);
-				binaryWriter.Write((int)voxelResult.Data[i].y);
-				binaryWriter.Write((int)voxelResult.Data[i].z);
-				binaryWriter.Write((int)voxelResult.Data[i].w);
+				binaryWriter.Write(voxelResult.Data[i].PosX);
+				binaryWriter.Write(voxelResult.Data[i].PosY);
+				binaryWriter.Write(voxelResult.Data[i].PosZ);
+				binaryWriter.Write(voxelResult.Data[i].Color);
 			}
 		}
 
