@@ -18,7 +18,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			OffsetPalette = offsetPalette;
 			ChildCount = 0;
 			ChunkCount = 0;
-			using (var reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(absolutePath))))
+			using (BinaryReader reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(absolutePath))))
 			{
 				var head = new string(reader.ReadChars(4));
 				if (!head.Equals(HEADER))

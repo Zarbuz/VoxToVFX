@@ -53,9 +53,9 @@ namespace VoxToVFXFramework.Scripts.Data
 				UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
 
 				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
-				NativeArray<VoxelData> finalResultLod0 = resultLod0.GetValueArray(Allocator.Temp);
+				NativeList<VoxelData> finalResultLod0 = ComputeRotation(WorldDataPositions[chunkIndex], 1);
 				resultLod0.Dispose();
-				WorldDataPositions[chunkIndex] = resultLod0;
+				WorldDataPositions[chunkIndex] = resultLod0; //TODO Check WorldDataPositions[chunkIndex].Dispose()
 
 				VoxelResult voxelResult = new VoxelResult
 				{
@@ -69,7 +69,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				yield return new WaitForEndOfFrame();
 
 				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
-				NativeArray<VoxelData> finalResultLod1 = resultLod1.GetValueArray(Allocator.Temp);
+				NativeList<VoxelData> finalResultLod1 = ComputeRotation(resultLod1, 2);
 				resultLod1.Dispose();
 				voxelResult.Data = finalResultLod1;
 				voxelResult.LodLevel = 2;
@@ -78,7 +78,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				yield return new WaitForEndOfFrame();
 
 				//NativeHashMap<int, Vector4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
-				NativeArray<VoxelData> finalResultLod2 = resultLod2.GetValueArray(Allocator.Temp);
+				NativeList<VoxelData> finalResultLod2 = ComputeRotation(resultLod2, 4);
 				resultLod2.Dispose();
 				voxelResult.Data = finalResultLod2;
 				voxelResult.LodLevel = 4;
@@ -124,6 +124,25 @@ namespace VoxToVFXFramework.Scripts.Data
 			jobHandle.Complete();
 
 			return resultLod1;
+		}
+
+		private static NativeList<VoxelData> ComputeRotation(UnsafeHashMap<int, VoxelData> data, int step)
+		{
+			NativeArray<int> keys = data.GetKeyArray(Allocator.TempJob);
+			NativeList<VoxelData> result = new NativeList<VoxelData>(data.Count(), Allocator.TempJob);
+
+			JobHandle computeRotationJob = new ComputeVoxelRotationJob()
+			{
+				Data = data,
+				Result = result.AsParallelWriter(),
+				Step = step,
+				VolumeSize = ChunkVolume,
+				Keys = keys
+			}.Schedule(data.Count(), 64);
+			computeRotationJob.Complete();
+
+			keys.Dispose();
+			return result;
 		}
 
 		private static int3 GetChunkWorldPosition(int chunkIndex)

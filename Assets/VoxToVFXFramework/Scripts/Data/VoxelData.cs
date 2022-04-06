@@ -50,13 +50,15 @@ namespace VoxToVFXFramework.Scripts.Data
 		public byte PosY;
 		public byte PosZ;
 		public byte Color;
+		public byte RotationIndex;
 
-		public VoxelData(byte posX, byte posY, byte posZ, byte color)
+		public VoxelData(byte posX, byte posY, byte posZ, byte color, byte rotationIndex = 0)
 		{
 			PosX = posX;
 			PosY = posY;
 			PosZ = posZ;
 			Color = color;
+			RotationIndex = rotationIndex;
 		}
 	}
 
@@ -64,7 +66,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	{
 		public int ChunkIndex;
 		public int LodLevel;
-		public NativeArray<VoxelData> Data;
+		public NativeList<VoxelData> Data;
 		public Vector3 FrameWorldPosition;
 	}
 }

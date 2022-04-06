@@ -34,7 +34,6 @@ namespace VoxToVFXFramework.Scripts.Jobs
 				{
 					int x1 = x + Step;
 					int worldPositionKey = VoxImporter.GetGridPos(x, y, z, VolumeSize);
-					int b0Key = VoxImporter.GetGridPos(x, y, z, VolumeSize);
 					int b1Key = VoxImporter.GetGridPos(x1, y, z, VolumeSize);
 					int b2Key = VoxImporter.GetGridPos(x, y1, z, VolumeSize);
 					int b3Key = VoxImporter.GetGridPos(x1, y1, z, VolumeSize);
@@ -42,7 +41,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					int b5Key = VoxImporter.GetGridPos(x1, y, z1, VolumeSize);
 					int b6Key = VoxImporter.GetGridPos(x, y1, z1, VolumeSize);
 					int b7Key = VoxImporter.GetGridPos(x1, y1, z1, VolumeSize);
-					if (Data.TryGetValue(b0Key, out VoxelData b0) && b0.Color != 0)
+
+					if (Data.TryGetValue(worldPositionKey, out VoxelData b0) && b0.Color != 0)
 					{
 						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b0.Color));
 					}

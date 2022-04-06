@@ -157,6 +157,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			if (mChunksLoaded.IsCreated)
 			{
+				//TODO Check this dispose
 				foreach (KeyValue<int, UnsafeList<VoxelData>> item in mChunksLoaded)
 				{
 					item.Value.Dispose();

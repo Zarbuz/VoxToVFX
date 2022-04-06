@@ -104,7 +104,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 		}
 
 		public static int GetGridPos(int x, int y, int z, int3 volumeSize)
-			=> (int)((volumeSize.x * volumeSize.y * z) + volumeSize.x * y + x);
+			=> volumeSize.x * volumeSize.y * z + volumeSize.x * y + x;
 
 		public static int3 Get3DPos(int idx, int3 volumeSize)
 		{
