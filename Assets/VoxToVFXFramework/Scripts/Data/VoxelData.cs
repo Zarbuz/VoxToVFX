@@ -11,9 +11,8 @@ namespace VoxToVFXFramework.Scripts.Data
 	[Serializable]
 	public struct VoxelVFX
 	{
-		public Vector3 position;
-		public int paletteIndex;
-		public int lodLevel;
+		public uint position;
+		public uint additionalData; //paletteIndex, chunkIndex, rotationIndex
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -26,9 +25,20 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float emission;
 	}
 
-	public struct Chunk
+	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+	[Serializable]
+	public struct VoxelRotationVFX
 	{
-		public Vector3 Position;
+		public Vector3 rotation;
+		public Vector3 pivot;
+	}
+
+	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+	[Serializable]
+	public struct ChunkVFX
+	{
+		public Vector3 CenterWorldPosition;
+		public Vector3 WorldPosition;
 		public int ChunkIndex;
 		public int LodLevel;
 		public int IsActive;
@@ -38,7 +48,8 @@ namespace VoxToVFXFramework.Scripts.Data
 	public struct ChunkDataFile
 	{
 		public string Filename;
-		public Vector3 Position;
+		public Vector3 WorldCenterPosition;
+		public Vector3 WorldPosition;
 		public int ChunkIndex;
 		public int LodLevel;
 		public int Length;
@@ -49,15 +60,15 @@ namespace VoxToVFXFramework.Scripts.Data
 		public byte PosX;
 		public byte PosY;
 		public byte PosZ;
-		public byte Color;
+		public byte ColorIndex;
 		public byte RotationIndex;
 
-		public VoxelData(byte posX, byte posY, byte posZ, byte color, byte rotationIndex = 0)
+		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex, byte rotationIndex = 0)
 		{
 			PosX = posX;
 			PosY = posY;
 			PosZ = posZ;
-			Color = color;
+			ColorIndex = colorIndex;
 			RotationIndex = rotationIndex;
 		}
 	}
@@ -67,6 +78,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public int ChunkIndex;
 		public int LodLevel;
 		public NativeList<VoxelData> Data;
-		public Vector3 FrameWorldPosition;
+		public Vector3 ChunkCenterWorldPosition;
+		public Vector3 ChunkWorldPosition;
 	}
 }

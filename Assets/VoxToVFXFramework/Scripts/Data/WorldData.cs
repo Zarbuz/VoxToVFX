@@ -48,11 +48,11 @@ namespace VoxToVFXFramework.Scripts.Data
 			for (int index = 0; index < keys.Length; index++)
 			{
 				int chunkIndex = keys[index];
-				int3 worldChunkPosition = GetChunkWorldPosition(chunkIndex);
-				Vector3 centerChunkWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
+				int3 chunkWorldPosition = GetChunkWorldPosition(chunkIndex);
+				Vector3 chunkCenterWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
 				UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
 
-				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, worldChunkPosition, 1, 2);
+				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
 				NativeList<VoxelData> finalResultLod0 = ComputeRotation(WorldDataPositions[chunkIndex], 1);
 				resultLod0.Dispose();
 				WorldDataPositions[chunkIndex] = resultLod0; //TODO Check WorldDataPositions[chunkIndex].Dispose()
@@ -61,14 +61,15 @@ namespace VoxToVFXFramework.Scripts.Data
 				{
 					Data = finalResultLod0,
 					ChunkIndex = chunkIndex,
-					FrameWorldPosition = centerChunkWorldPosition,
+					ChunkCenterWorldPosition = chunkCenterWorldPosition,
+					ChunkWorldPosition = new Vector3(chunkWorldPosition.x, chunkWorldPosition.y, chunkWorldPosition.z),
 					LodLevel = 1
 				};
 				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
-				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, worldChunkPosition, 2, 4);
+				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, chunkWorldPosition, 2, 4);
 				NativeList<VoxelData> finalResultLod1 = ComputeRotation(resultLod1, 2);
 				resultLod1.Dispose();
 				voxelResult.Data = finalResultLod1;

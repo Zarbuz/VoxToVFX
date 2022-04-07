@@ -106,8 +106,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		for (int index = 0; index < RuntimeVoxManager.Instance.Chunks.Length; index++)
 		{
-			Chunk chunk = RuntimeVoxManager.Instance.Chunks[index];
-			ReadChunkDataFile(chunk.ChunkIndex, chunk.LodLevel, files[index]);
+			ChunkVFX chunkVFX = RuntimeVoxManager.Instance.Chunks[index];
+			ReadChunkDataFile(chunkVFX.ChunkIndex, chunkVFX.LodLevel, files[index]);
 			LoadProgressCallback?.Invoke(1, index / (float)RuntimeVoxManager.Instance.Chunks.Length);
 			yield return new WaitForEndOfFrame();
 		}
@@ -123,16 +123,17 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		using BinaryReader reader = new BinaryReader(stream);
 		int chunkLength = reader.ReadInt32();
 
-		Chunk[] chunks = new Chunk[chunkLength];
+		NativeArray<ChunkVFX> chunks = new NativeArray<ChunkVFX>(chunkLength, Allocator.Persistent);
 		for (int i = 0; i < chunkLength; i++)
 		{
-			Chunk chunk = new Chunk();
-			chunk.ChunkIndex = reader.ReadInt32();
-			chunk.LodLevel = reader.ReadInt32();
-			chunk.Length = reader.ReadInt32();
-			chunk.Position = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+			ChunkVFX chunkVFX = new ChunkVFX();
+			chunkVFX.ChunkIndex = reader.ReadInt32();
+			chunkVFX.LodLevel = reader.ReadInt32();
+			chunkVFX.Length = reader.ReadInt32();
+			chunkVFX.CenterWorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+			chunkVFX.WorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			files.Add(reader.ReadString());
-			chunks[i] = chunk;
+			chunks[i] = chunkVFX;
 		}
 		RuntimeVoxManager.Instance.SetChunks(chunks);
 		int materialLength = reader.ReadInt32();
@@ -168,7 +169,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				PosX = reader.ReadByte(),
 				PosY = reader.ReadByte(),
 				PosZ = reader.ReadByte(),
-				Color = reader.ReadByte()
+				ColorIndex = reader.ReadByte()
 			};
 		}
 
@@ -222,7 +223,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			return;
 		}
 
-		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.FrameWorldPosition.x}_{voxelResult.FrameWorldPosition.y}_{voxelResult.FrameWorldPosition.z}.data";
+		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.ChunkCenterWorldPosition.x}_{voxelResult.ChunkCenterWorldPosition.y}_{voxelResult.ChunkCenterWorldPosition.z}.data";
 
 		using (FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
 		{
@@ -233,7 +234,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				binaryWriter.Write(voxelResult.Data[i].PosX);
 				binaryWriter.Write(voxelResult.Data[i].PosY);
 				binaryWriter.Write(voxelResult.Data[i].PosZ);
-				binaryWriter.Write(voxelResult.Data[i].Color);
+				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
 			}
 		}
 
@@ -241,7 +242,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		{
 			ChunkIndex = voxelResult.ChunkIndex,
 			Filename = fileName,
-			Position = voxelResult.FrameWorldPosition,
+			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
+			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
 			Length = voxelResult.Data.Length
 		};
@@ -258,9 +260,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(chunk.ChunkIndex);
 			binaryWriter.Write(chunk.LodLevel);
 			binaryWriter.Write(chunk.Length);
-			binaryWriter.Write((int)chunk.Position.x);
-			binaryWriter.Write((int)chunk.Position.y);
-			binaryWriter.Write((int)chunk.Position.z);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.x);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.y);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.z);
+			binaryWriter.Write((int)chunk.WorldPosition.x);
+			binaryWriter.Write((int)chunk.WorldPosition.y);
+			binaryWriter.Write((int)chunk.WorldPosition.z);
 			binaryWriter.Write(chunk.Filename);
 		}
 

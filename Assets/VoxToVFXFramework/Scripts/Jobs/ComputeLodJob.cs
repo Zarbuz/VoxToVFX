@@ -42,37 +42,37 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					int b6Key = VoxImporter.GetGridPos(x, y1, z1, VolumeSize);
 					int b7Key = VoxImporter.GetGridPos(x1, y1, z1, VolumeSize);
 
-					if (Data.TryGetValue(worldPositionKey, out VoxelData b0) && b0.Color != 0)
+					if (Data.TryGetValue(worldPositionKey, out VoxelData b0) && b0.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b0.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b0.ColorIndex));
 					}
-					else if (Data.TryGetValue(b1Key, out VoxelData b1) && b1.Color != 0)
+					else if (Data.TryGetValue(b1Key, out VoxelData b1) && b1.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b1.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b1.ColorIndex));
 					}
-					else if (Data.TryGetValue(b2Key, out VoxelData b2) && b2.Color != 0)
+					else if (Data.TryGetValue(b2Key, out VoxelData b2) && b2.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b2.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b2.ColorIndex));
 					}
-					else if (Data.TryGetValue(b3Key, out VoxelData b3) && b3.Color != 0)
+					else if (Data.TryGetValue(b3Key, out VoxelData b3) && b3.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b3.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b3.ColorIndex));
 					}
-					else if (Data.TryGetValue(b4Key, out VoxelData b4) && b4.Color != 0)
+					else if (Data.TryGetValue(b4Key, out VoxelData b4) && b4.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b4.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b4.ColorIndex));
 					}
-					else if (Data.TryGetValue(b5Key, out VoxelData b5) && b5.Color != 0)
+					else if (Data.TryGetValue(b5Key, out VoxelData b5) && b5.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b5.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b5.ColorIndex));
 					}
-					else if (Data.TryGetValue(b6Key, out VoxelData b6) && b6.Color != 0)
+					else if (Data.TryGetValue(b6Key, out VoxelData b6) && b6.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b6.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b6.ColorIndex));
 					}
-					else if (Data.TryGetValue(b7Key, out VoxelData b7) && b7.Color != 0)
+					else if (Data.TryGetValue(b7Key, out VoxelData b7) && b7.ColorIndex != 0)
 					{
-						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b7.Color));
+						Result.TryAdd(worldPositionKey, new VoxelData((byte)x, (byte)y, (byte)z, b7.ColorIndex));
 					}
 				}
 			}
