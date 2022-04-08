@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Data;
+using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Managers;
 
 namespace VoxToVFXFramework.Scripts.Jobs
@@ -31,15 +35,15 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			float distance = Vector3.Distance(CameraPosition, chunkVFX.CenterWorldPosition);
 			if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && chunkVFX.LodLevel == 1)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
 			}
 			else if ((distance >= LodDistance.y && distance < LodDistance.z && ForcedLevelLod == -1 || ForcedLevelLod == 1) && chunkVFX.LodLevel == 2)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
 			}
 			else if ((distance >= LodDistance.z && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 2) && chunkVFX.LodLevel == 4)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
 			}
 			//else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
 			//{
@@ -48,18 +52,62 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		}
 
 		//TODO : Make this in a Job
-		private NativeList<VoxelVFX> ConvertToVoxelVFX(int chunkIndex, UnsafeList<VoxelData> list)
+		private NativeList<VoxelVFX> ConvertToVoxelVFX(int chunkIndex, int length, UnsafeList<VoxelData> list)
 		{
-			NativeList<VoxelVFX> result = new NativeList<VoxelVFX>(list.Length, Allocator.Temp);
+			NativeList<VoxelVFX> result = new NativeList<VoxelVFX>(length, Allocator.Temp);
 			foreach (VoxelData voxelData in list)
 			{
-				result.AddNoResize(new VoxelVFX()
+				VoxelVFX voxelVFX = new VoxelVFX()
 				{
 					position = (uint)((voxelData.PosX << 24) | (voxelData.PosY << 16) | (voxelData.PosZ << 8) | 0),
-					additionalData = (uint)((voxelData.ColorIndex << 24) | (chunkIndex << 16) | (voxelData.RotationIndex << 8) | 0)
-				});
+					chunkIndex = (uint)chunkIndex
+				};
+
+				VoxelFace voxelDataFace = voxelData.Face & VoxelFace.Top;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 0 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
+
+				voxelDataFace = voxelData.Face & VoxelFace.Right;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 1 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
+
+				voxelDataFace = voxelData.Face & VoxelFace.Bottom;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 2 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
+
+				voxelDataFace = voxelData.Face & VoxelFace.Left;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 3 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
+
+				voxelDataFace = voxelData.Face & VoxelFace.Front;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 4 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
+
+				voxelDataFace = voxelData.Face & VoxelFace.Back;
+				if (voxelDataFace != VoxelFace.None)
+				{
+					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 5 << 16) | 0;
+					result.AddNoResize(voxelVFX);
+				}
 			}
 			return result;
 		}
+
+
 	}
 }

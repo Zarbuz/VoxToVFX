@@ -13,6 +13,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	{
 		public uint position;
 		public uint additionalData; //paletteIndex, chunkIndex, rotationIndex
+		public uint chunkIndex;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -23,14 +24,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float smoothness;
 		public float metallic;
 		public float emission;
-	}
-
-	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
-	[Serializable]
-	public struct VoxelRotationVFX
-	{
-		public Vector3 rotation;
-		public Vector3 pivot;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -55,21 +48,33 @@ namespace VoxToVFXFramework.Scripts.Data
 		public int Length;
 	}
 
+	[Flags]
+	public enum VoxelFace : short
+	{
+		None = 0,
+		Top = 1,
+		Right = 2,
+		Bottom = 4,
+		Left = 8,
+		Front = 16,
+		Back = 32
+	}
+
 	public struct VoxelData
 	{
 		public byte PosX;
 		public byte PosY;
 		public byte PosZ;
 		public byte ColorIndex;
-		public byte RotationIndex;
+		public VoxelFace Face;
 
-		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex, byte rotationIndex = 0)
+		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex)
 		{
 			PosX = posX;
 			PosY = posY;
 			PosZ = posZ;
 			ColorIndex = colorIndex;
-			RotationIndex = rotationIndex;
+			Face = VoxelFace.None;
 		}
 	}
 

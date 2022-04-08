@@ -19,11 +19,29 @@ namespace VoxToVFXFramework.Scripts.Jobs
 
 		public NativeList<VoxelData>.ParallelWriter Result;
 
+		/*
+		 * +--------+
+		  /        /|
+		 /    1   / |
+		+--------+  |
+		|        | 2|
+		|        |  +
+		|        | /
+		|        |/
+		+--------+
+		 *
+		 * Top: 1
+		 * Right: 2
+		 * Bottom: 3
+		 * Left: 4
+		 * Front: 5
+		 * Back: 6
+		 */
 		public void Execute(int index)
 		{
 			int key = Keys[index];
 			VoxelData v = Data[key];
-			byte rotationIndex = 0;
+			VoxelFace voxelFace = VoxelFace.None;
 			bool left = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX - Step, v.PosY, v.PosZ, VolumeSize));
 			bool right = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX + Step, v.PosY, v.PosZ, VolumeSize));
 			bool top = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY + Step, v.PosZ, VolumeSize));
@@ -31,20 +49,38 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			bool front = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ + Step, VolumeSize));
 			bool back = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ - Step, VolumeSize));
 
-			if (left && right && front && back)
+			if (!left)
 			{
-				rotationIndex = 1;
-			}
-			else if (left && right && top && bottom)
-			{
-				rotationIndex = 2;
-			}
-			else if (front && back && top && bottom)
-			{
-				rotationIndex = 3;
+				voxelFace = VoxelFace.Left;
 			}
 
-			v.RotationIndex = rotationIndex;
+			if (!right)
+			{
+				voxelFace |= VoxelFace.Right;
+			}
+
+			if (!top)
+			{
+				voxelFace |= VoxelFace.Top;
+			}
+
+			if (!bottom)
+			{
+				voxelFace |= VoxelFace.Bottom;
+			}
+
+			if (!front)
+			{
+				voxelFace |= VoxelFace.Front;
+			}
+
+			if (!back)
+			{
+				voxelFace |= VoxelFace.Back;
+			}
+
+			v.Face = voxelFace;
+
 			Result.AddNoResize(v);
 		}
 

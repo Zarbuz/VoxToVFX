@@ -48,6 +48,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string CHUNK_VFX_BUFFER_KEY = "ChunkBuffer";
+		private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
 		private const string DEBUG_LOD_KEY = "DebugLod";
 		private const string INITIAL_BURST_COUNT_KEY = "InitialBurstCount";
 		#endregion
@@ -64,6 +65,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
 		private GraphicsBuffer mChunkBuffer;
+		private GraphicsBuffer mRotationBuffer;
 		private Plane[] mPlanes;
 
 		private bool mIsLoaded;
@@ -80,6 +82,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mCamera = UnityEngine.Camera.main;
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
+
+			VoxelFace test = VoxelFace.Top;
+			test |= VoxelFace.Right;
+
+			VoxelFace test2 = test & VoxelFace.Front;
+			Debug.Log(test2);
 		}
 
 		private void OnDestroy()
@@ -145,12 +153,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void Release()
 		{
+			mIsLoaded = false;
 			mGraphicsBuffer?.Release();
 			mPaletteBuffer?.Release();
 			mChunkBuffer?.Release();
+			mRotationBuffer?.Release();
 			mPaletteBuffer = null;
 			mGraphicsBuffer = null;
 			mChunkBuffer = null;
+			mRotationBuffer = null;
 			if (mVisualEffectItem != null)
 			{
 				Destroy(mVisualEffectItem.gameObject);
@@ -160,6 +171,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				Chunks.Dispose();
 			}
+
 
 			if (mChunksLoaded.IsCreated)
 			{
@@ -218,6 +230,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItem.transform.SetParent(mVisualItemsParent);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
+			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.enabled = true;
 
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
@@ -232,6 +245,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			mChunkBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, chunks.Length, Marshal.SizeOf(typeof(ChunkVFX)));
 			mChunkBuffer.SetData(chunks);
+
+			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 6, Marshal.SizeOf(typeof(Vector3)));
+			Vector3[] rotations = new Vector3[6];
+			rotations[0] = new Vector3(90, 0, 0); //Good
+			rotations[1] = new Vector3(0, -90, 0); //Good
+			rotations[2] = new Vector3(270, 0, 0); //Good
+			rotations[3] = new Vector3(0, 90, 0); //Good
+			rotations[4] = new Vector3(0, 180, 0); //Good
+			rotations[5] = new Vector3(0, 0, 0);	
+			mRotationBuffer.SetData(rotations);
 		}
 
 		#endregion
@@ -274,7 +297,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				Data = mChunksLoaded,
 				Chunks = activeChunks,
 				Buffer = buffer.AsParallelWriter(),
-				ChunkIndex = chunkIndex
+				ChunkIndex = chunkIndex,
 			}.Schedule(totalActive, 64);
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
@@ -292,11 +315,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mVisualEffectItem.OpaqueVisualEffect.Reinit();
 
-			//foreach (VoxelVFX voxel in voxels)
-			//{
-			//	Debug.Log("pos: " + voxel.DecodePosition());
-			//	Debug.Log("additional: " + voxel.DecodeAdditionalData());
-			//}
+			for (int index = 0; index < voxels.Length && index < 200; index++)
+			{
+				VoxelVFX voxel = voxels[index];
+				Debug.Log("pos: " + voxel.DecodePosition());
+				Debug.Log("additional: " + voxel.DecodeAdditionalData());
+			}
+
 			mGraphicsBuffer?.Release();
 			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Length, Marshal.SizeOf(typeof(VoxelVFX)));
 			mGraphicsBuffer.SetData(voxels.AsArray());

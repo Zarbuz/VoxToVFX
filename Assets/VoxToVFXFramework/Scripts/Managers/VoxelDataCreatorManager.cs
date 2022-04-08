@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Unity.Collections;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Data;
+using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -169,7 +171,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				PosX = reader.ReadByte(),
 				PosY = reader.ReadByte(),
 				PosZ = reader.ReadByte(),
-				ColorIndex = reader.ReadByte()
+				ColorIndex = reader.ReadByte(),
+				Face = (VoxelFace)Enum.Parse(typeof(VoxelFace), reader.ReadInt16().ToString())
 			};
 		}
 
@@ -235,8 +238,17 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				binaryWriter.Write(voxelResult.Data[i].PosY);
 				binaryWriter.Write(voxelResult.Data[i].PosZ);
 				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
+				binaryWriter.Write((short)voxelResult.Data[i].Face);
 			}
 		}
+
+		NativeArray<VoxelData>.Enumerator enumerator = voxelResult.Data.GetEnumerator();
+		int sum = 0;
+		while (enumerator.MoveNext())
+		{
+			sum += (int)enumerator.Current.Face.CountVoxelFaceFlags();
+		}
+		enumerator.Dispose();
 
 		ChunkDataFile chunk = new ChunkDataFile
 		{
@@ -245,7 +257,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
 			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
-			Length = voxelResult.Data.Length
+			Length = sum
 		};
 		mChunksWrited.Add(chunk);
 	}
