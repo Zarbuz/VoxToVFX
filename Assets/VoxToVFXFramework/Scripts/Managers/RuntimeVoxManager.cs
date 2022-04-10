@@ -88,6 +88,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mCamera = UnityEngine.Camera.main;
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
+			VoxelFace face1 = Enum.Parse<VoxelFace>(5.ToString());
+			VoxelFace face2 = (VoxelFace)5;
+
+			Debug.Log(face1);
+			Debug.Log(face2);
+
 		}
 
 		private void OnDestroy()

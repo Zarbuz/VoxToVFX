@@ -7,10 +7,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Extensions;
+using VoxToVFXFramework.Scripts.FileReader;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -29,10 +32,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private string mInputFileName;
 	private WorldData mWorldData;
 	private readonly List<ChunkDataFile> mChunksWrited = new List<ChunkDataFile>();
-
+	private List<Task> mTaskList = new List<Task>();
 	private const string IMPORT_TMP_FOLDER_NAME = "import_tmp";
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
 	private const string INFO_FILE_NAME = "info.json";
+	private int mReadCompleted;
 	#endregion
 
 	#region PublicMethods
@@ -106,18 +110,35 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		List<string> files = ReadStructureFile(structureFiles[0]);
 
+		mTaskList.Clear();
+		mReadCompleted = 0;
 		for (int index = 0; index < RuntimeVoxManager.Instance.Chunks.Length; index++)
 		{
 			ChunkVFX chunkVFX = RuntimeVoxManager.Instance.Chunks[index];
-			ReadChunkDataFile(chunkVFX.ChunkIndex, chunkVFX.LodLevel, files[index]);
-			LoadProgressCallback?.Invoke(1, index / (float)RuntimeVoxManager.Instance.Chunks.Length);
-			yield return new WaitForEndOfFrame();
+			if (mTaskList.Count >= 10)
+			{
+				yield return new WaitUntil(CanContinueReadFiles);
+			}
+			Task lastTask = ReadChunkDataFile(chunkVFX.ChunkIndex, chunkVFX.LodLevel, files[index]);
+			mTaskList.Add(lastTask);
 		}
 
-		
+		yield return new WaitWhile(() => mReadCompleted != RuntimeVoxManager.Instance.Chunks.Length);
 		RuntimeVoxManager.Instance.OnChunkLoadedFinished();
 	}
-	
+
+	private IEnumerator RefreshLoadProgressCo()
+	{
+		LoadProgressCallback?.Invoke(1, mReadCompleted / (float)RuntimeVoxManager.Instance.Chunks.Length);
+		yield return new WaitForEndOfFrame();
+	}
+
+	private bool CanContinueReadFiles()
+	{
+		mTaskList.RemoveAll(t => t.IsCompleted);
+		return mTaskList.Count == 0;
+	}
+
 	private List<string> ReadStructureFile(string filePath)
 	{
 		List<string> files = new List<string>();
@@ -156,28 +177,44 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	}
 
 
-	private void ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
+	private async Task ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
 	{
 		string filePath = Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME, filename);
-		using FileStream stream = File.Open(filePath, FileMode.Open);
-		using BinaryReader reader = new BinaryReader(stream);
+		byte[] data = await File.ReadAllBytesAsync(filePath);
+		//using AsyncFileReader reader = new AsyncFileReader();
+		//(IntPtr ptr, long size) = await reader.LoadAsync(filePath);
 
-		int length = reader.ReadInt32();
-		NativeArray<VoxelData> data = new NativeArray<VoxelData>(length, Allocator.Temp);
-		for (int i = 0; i < length; i++)
+		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			data[i] = new VoxelData()
-			{
-				PosX = reader.ReadByte(),
-				PosY = reader.ReadByte(),
-				PosZ = reader.ReadByte(),
-				ColorIndex = reader.ReadByte(),
-				Face = (VoxelFace)Enum.Parse(typeof(VoxelFace), reader.ReadInt16().ToString())
-			};
-		}
+			NativeArray<VoxelData> chunk = VoxelDataConverter.Decode(data);
 
-		RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, data);
-		data.Dispose();
+			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
+			chunk.Dispose();
+			mReadCompleted++;
+			StartCoroutine(RefreshLoadProgressCo());
+		});
+
+		//RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
+		//chunk.Dispose();
+
+		//using FileStream stream = File.Open(filePath, FileMode.Open);
+		//using BinaryReader reader = new BinaryReader(stream);
+
+		//int length = reader.ReadInt32();
+		//NativeArray<VoxelData> data = new NativeArray<VoxelData>(length, Allocator.Temp);
+		//for (int i = 0; i < length; i++)
+		//{
+		//	data[i] = new VoxelData()
+		//	{
+		//		PosX = reader.ReadByte(),
+		//		PosY = reader.ReadByte(),
+		//		PosZ = reader.ReadByte(),
+		//		ColorIndex = reader.ReadByte(),
+		//		Face = (VoxelFace)Enum.Parse(typeof(VoxelFace), reader.ReadfInt16().ToString())
+		//	};
+		//}
+
+
 	}
 
 	private void OnLoadFrameProgress(float progress)

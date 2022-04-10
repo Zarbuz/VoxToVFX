@@ -76,6 +76,15 @@ namespace VoxToVFXFramework.Scripts.Data
 			ColorIndex = colorIndex;
 			Face = VoxelFace.None;
 		}
+
+		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex, VoxelFace face)
+		{
+			PosX = posX;
+			PosY = posY;
+			PosZ = posZ;
+			ColorIndex = colorIndex;
+			Face = face;
+		}
 	}
 
 	public struct VoxelResult
