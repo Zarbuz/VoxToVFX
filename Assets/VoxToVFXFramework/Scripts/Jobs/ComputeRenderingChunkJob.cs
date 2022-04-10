@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.Burst;
+﻿using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Data;
-using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Managers;
 
 namespace VoxToVFXFramework.Scripts.Jobs

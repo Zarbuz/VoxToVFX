@@ -40,6 +40,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int ForcedLevelLod;
 
 		public bool ShowOnlyActiveChunkGizmos;
+
+		[Header("Rotation")]
+		public float MinDifferenceAngleCameraForRefresh = 10;
+		public float MinTimerCheckRotationCamera = 0.4f;
 		#endregion
 
 		#region ConstStatic
@@ -74,6 +78,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private int mPreviousPlayerChunkIndex;
 		private UnityEngine.Camera mCamera;
+		private Quaternion mPreviousRotation;
+		private float mPreviousCheckTimer;
 		#endregion
 
 		#region UnityMethods
@@ -82,12 +88,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mCamera = UnityEngine.Camera.main;
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
-
-			VoxelFace test = VoxelFace.Top;
-			test |= VoxelFace.Right;
-
-			VoxelFace test2 = test & VoxelFace.Front;
-			Debug.Log(test2);
 		}
 
 		private void OnDestroy()
@@ -101,11 +101,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				return;
 			}
+
 			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
 			int chunkIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
-			if (mPreviousPlayerChunkIndex != chunkIndex)
+			float angle = Quaternion.Angle(mCamera.transform.rotation, mPreviousRotation);
+			mPreviousCheckTimer += Time.unscaledDeltaTime;
+			if (mPreviousPlayerChunkIndex != chunkIndex || angle > MinDifferenceAngleCameraForRefresh && mPreviousCheckTimer >= MinTimerCheckRotationCamera)
 			{
+				mPreviousCheckTimer = 0;
 				mPreviousPlayerChunkIndex = chunkIndex;
+				mPreviousRotation = mCamera.transform.rotation;
 				RefreshLodsDistance();
 			}
 		}
@@ -315,12 +320,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mVisualEffectItem.OpaqueVisualEffect.Reinit();
 
-			for (int index = 0; index < voxels.Length && index < 200; index++)
-			{
-				VoxelVFX voxel = voxels[index];
-				Debug.Log("pos: " + voxel.DecodePosition());
-				Debug.Log("additional: " + voxel.DecodeAdditionalData());
-			}
+			//for (int index = 0; index < voxels.Length && index < 200; index++)
+			//{
+			//	VoxelVFX voxel = voxels[index];
+			//	Debug.Log("pos: " + voxel.DecodePosition());
+			//	Debug.Log("additional: " + voxel.DecodeAdditionalData());
+			//}
 
 			mGraphicsBuffer?.Release();
 			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Length, Marshal.SizeOf(typeof(VoxelVFX)));
