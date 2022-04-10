@@ -6,9 +6,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
+using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -27,10 +30,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private string mInputFileName;
 	private WorldData mWorldData;
 	private readonly List<ChunkDataFile> mChunksWrited = new List<ChunkDataFile>();
-
+	private List<Task> mTaskList = new List<Task>();
 	private const string IMPORT_TMP_FOLDER_NAME = "import_tmp";
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
 	private const string INFO_FILE_NAME = "info.json";
+	private int mReadCompleted;
 	#endregion
 
 	#region PublicMethods
@@ -104,18 +108,35 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		List<string> files = ReadStructureFile(structureFiles[0]);
 
+		mTaskList.Clear();
+		mReadCompleted = 0;
 		for (int index = 0; index < RuntimeVoxManager.Instance.Chunks.Length; index++)
 		{
-			Chunk chunk = RuntimeVoxManager.Instance.Chunks[index];
-			ReadChunkDataFile(chunk.ChunkIndex, chunk.LodLevel, files[index]);
-			LoadProgressCallback?.Invoke(1, index / (float)RuntimeVoxManager.Instance.Chunks.Length);
-			yield return new WaitForEndOfFrame();
+			ChunkVFX chunkVFX = RuntimeVoxManager.Instance.Chunks[index];
+			if (mTaskList.Count >= 10)
+			{
+				yield return new WaitUntil(CanContinueReadFiles);
+			}
+			Task lastTask = ReadChunkDataFile(chunkVFX.ChunkIndex, chunkVFX.LodLevel, files[index]);
+			mTaskList.Add(lastTask);
 		}
 
-		
+		yield return new WaitWhile(() => mReadCompleted != RuntimeVoxManager.Instance.Chunks.Length);
 		RuntimeVoxManager.Instance.OnChunkLoadedFinished();
 	}
-	
+
+	private IEnumerator RefreshLoadProgressCo()
+	{
+		LoadProgressCallback?.Invoke(1, mReadCompleted / (float)RuntimeVoxManager.Instance.Chunks.Length);
+		yield return new WaitForEndOfFrame();
+	}
+
+	private bool CanContinueReadFiles()
+	{
+		mTaskList.RemoveAll(t => t.IsCompleted);
+		return mTaskList.Count == 0;
+	}
+
 	private List<string> ReadStructureFile(string filePath)
 	{
 		List<string> files = new List<string>();
@@ -123,16 +144,17 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		using BinaryReader reader = new BinaryReader(stream);
 		int chunkLength = reader.ReadInt32();
 
-		Chunk[] chunks = new Chunk[chunkLength];
+		NativeArray<ChunkVFX> chunks = new NativeArray<ChunkVFX>(chunkLength, Allocator.Persistent);
 		for (int i = 0; i < chunkLength; i++)
 		{
-			Chunk chunk = new Chunk();
-			chunk.ChunkIndex = reader.ReadInt32();
-			chunk.LodLevel = reader.ReadInt32();
-			chunk.Length = reader.ReadInt32();
-			chunk.Position = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+			ChunkVFX chunkVFX = new ChunkVFX();
+			chunkVFX.ChunkIndex = reader.ReadInt32();
+			chunkVFX.LodLevel = reader.ReadInt32();
+			chunkVFX.Length = reader.ReadInt32();
+			chunkVFX.CenterWorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+			chunkVFX.WorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			files.Add(reader.ReadString());
-			chunks[i] = chunk;
+			chunks[i] = chunkVFX;
 		}
 		RuntimeVoxManager.Instance.SetChunks(chunks);
 		int materialLength = reader.ReadInt32();
@@ -153,26 +175,44 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	}
 
 
-	private void ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
+	private async Task ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
 	{
 		string filePath = Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME, filename);
-		using FileStream stream = File.Open(filePath, FileMode.Open);
-		using BinaryReader reader = new BinaryReader(stream);
+		byte[] data = await File.ReadAllBytesAsync(filePath);
+		//using AsyncFileReader reader = new AsyncFileReader();
+		//(IntPtr ptr, long size) = await reader.LoadAsync(filePath);
 
-		int length = reader.ReadInt32();
-		NativeArray<VoxelVFX> data = new NativeArray<VoxelVFX>(length, Allocator.Temp);
-		for (int i = 0; i < length; i++)
+		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			data[i] = new VoxelVFX()
-			{
-				position = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
-				paletteIndex = reader.ReadInt32(),
-				lodLevel = lodLevel
-			};
-		}
+			NativeArray<VoxelData> chunk = VoxelDataConverter.Decode(data);
 
-		RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, data);
-		data.Dispose();
+			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
+			chunk.Dispose();
+			mReadCompleted++;
+			StartCoroutine(RefreshLoadProgressCo());
+		});
+
+		//RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
+		//chunk.Dispose();
+
+		//using FileStream stream = File.Open(filePath, FileMode.Open);
+		//using BinaryReader reader = new BinaryReader(stream);
+
+		//int length = reader.ReadInt32();
+		//NativeArray<VoxelData> data = new NativeArray<VoxelData>(length, Allocator.Temp);
+		//for (int i = 0; i < length; i++)
+		//{
+		//	data[i] = new VoxelData()
+		//	{
+		//		PosX = reader.ReadByte(),
+		//		PosY = reader.ReadByte(),
+		//		PosZ = reader.ReadByte(),
+		//		ColorIndex = reader.ReadByte(),
+		//		Face = (VoxelFace)Enum.Parse(typeof(VoxelFace), reader.ReadfInt16().ToString())
+		//	};
+		//}
+
+
 	}
 
 	private void OnLoadFrameProgress(float progress)
@@ -221,7 +261,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			return;
 		}
 
-		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.FrameWorldPosition.x}_{voxelResult.FrameWorldPosition.y}_{voxelResult.FrameWorldPosition.z}.data";
+		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.ChunkCenterWorldPosition.x}_{voxelResult.ChunkCenterWorldPosition.y}_{voxelResult.ChunkCenterWorldPosition.z}.data";
 
 		using (FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
 		{
@@ -229,20 +269,30 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(voxelResult.Data.Length);
 			for (int i = 0; i < voxelResult.Data.Length; i++)
 			{
-				binaryWriter.Write((int)voxelResult.Data[i].x);
-				binaryWriter.Write((int)voxelResult.Data[i].y);
-				binaryWriter.Write((int)voxelResult.Data[i].z);
-				binaryWriter.Write((int)voxelResult.Data[i].w);
+				binaryWriter.Write(voxelResult.Data[i].PosX);
+				binaryWriter.Write(voxelResult.Data[i].PosY);
+				binaryWriter.Write(voxelResult.Data[i].PosZ);
+				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
+				binaryWriter.Write((short)voxelResult.Data[i].Face);
 			}
 		}
+
+		NativeArray<VoxelData>.Enumerator enumerator = voxelResult.Data.GetEnumerator();
+		int sum = 0;
+		while (enumerator.MoveNext())
+		{
+			sum += (int)enumerator.Current.Face.CountVoxelFaceFlags();
+		}
+		enumerator.Dispose();
 
 		ChunkDataFile chunk = new ChunkDataFile
 		{
 			ChunkIndex = voxelResult.ChunkIndex,
 			Filename = fileName,
-			Position = voxelResult.FrameWorldPosition,
+			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
+			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
-			Length = voxelResult.Data.Length
+			Length = sum
 		};
 		mChunksWrited.Add(chunk);
 	}
@@ -257,9 +307,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(chunk.ChunkIndex);
 			binaryWriter.Write(chunk.LodLevel);
 			binaryWriter.Write(chunk.Length);
-			binaryWriter.Write((int)chunk.Position.x);
-			binaryWriter.Write((int)chunk.Position.y);
-			binaryWriter.Write((int)chunk.Position.z);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.x);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.y);
+			binaryWriter.Write((int)chunk.WorldCenterPosition.z);
+			binaryWriter.Write((int)chunk.WorldPosition.x);
+			binaryWriter.Write((int)chunk.WorldPosition.y);
+			binaryWriter.Write((int)chunk.WorldPosition.z);
 			binaryWriter.Write(chunk.Filename);
 		}
 

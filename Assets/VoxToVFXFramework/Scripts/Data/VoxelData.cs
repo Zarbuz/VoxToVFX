@@ -11,9 +11,9 @@ namespace VoxToVFXFramework.Scripts.Data
 	[Serializable]
 	public struct VoxelVFX
 	{
-		public Vector3 position;
-		public int paletteIndex;
-		public int lodLevel;
+		public uint position;
+		public uint additionalData; //paletteIndex, chunkIndex, rotationIndex
+		public uint chunkIndex;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
@@ -26,15 +26,12 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float emission;
 	}
 
-	public struct ChunkData
+	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+	[Serializable]
+	public struct ChunkVFX
 	{
-		public NativeArray<VoxelVFX> Data;
-		public int LodLevel;
-	}
-
-	public struct Chunk
-	{
-		public Vector3 Position;
+		public Vector3 CenterWorldPosition;
+		public Vector3 WorldPosition;
 		public int ChunkIndex;
 		public int LodLevel;
 		public int IsActive;
@@ -44,32 +41,58 @@ namespace VoxToVFXFramework.Scripts.Data
 	public struct ChunkDataFile
 	{
 		public string Filename;
-		public Vector3 Position;
+		public Vector3 WorldCenterPosition;
+		public Vector3 WorldPosition;
 		public int ChunkIndex;
 		public int LodLevel;
 		public int Length;
+	}
+
+	[Flags]
+	public enum VoxelFace : short
+	{
+		None = 0,
+		Top = 1,
+		Right = 2,
+		Bottom = 4,
+		Left = 8,
+		Front = 16,
+		Back = 32
+	}
+
+	public struct VoxelData
+	{
+		public byte PosX;
+		public byte PosY;
+		public byte PosZ;
+		public byte ColorIndex;
+		public VoxelFace Face;
+
+		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex)
+		{
+			PosX = posX;
+			PosY = posY;
+			PosZ = posZ;
+			ColorIndex = colorIndex;
+			Face = VoxelFace.None;
+		}
+
+		public VoxelData(byte posX, byte posY, byte posZ, byte colorIndex, VoxelFace face)
+		{
+			PosX = posX;
+			PosY = posY;
+			PosZ = posZ;
+			ColorIndex = colorIndex;
+			Face = face;
+		}
 	}
 
 	public struct VoxelResult
 	{
 		public int ChunkIndex;
 		public int LodLevel;
-		public NativeArray<Vector4> Data;
-		public Vector3 FrameWorldPosition;
-	}
-
-	public class ChunkParent
-	{
-		public List<ChunkData> ChunkData;
-
-		public ChunkParent()
-		{
-			ChunkData = new List<ChunkData>();
-		}
-
-		public ChunkData GetChunkForLodLevel(int lodLevel)
-		{
-			return ChunkData.FirstOrDefault(chunk => chunk.LodLevel == lodLevel);
-		}
+		public NativeList<VoxelData> Data;
+		public Vector3 ChunkCenterWorldPosition;
+		public Vector3 ChunkWorldPosition;
 	}
 }
