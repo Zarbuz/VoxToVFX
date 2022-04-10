@@ -11,6 +11,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Extensions;
@@ -71,6 +72,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private GraphicsBuffer mChunkBuffer;
 		private GraphicsBuffer mRotationBuffer;
 		private Plane[] mPlanes;
+		private Light mDirectionalLight;
+		private HDAdditionalLightData mAdditionalLightData;
 
 		private bool mIsLoaded;
 		private Transform mVisualItemsParent;
@@ -88,12 +91,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mCamera = UnityEngine.Camera.main;
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
-			VoxelFace face1 = Enum.Parse<VoxelFace>(5.ToString());
-			VoxelFace face2 = (VoxelFace)5;
-
-			Debug.Log(face1);
-			Debug.Log(face2);
-
+			mDirectionalLight = FindObjectOfType<Light>();
+			mAdditionalLightData = mDirectionalLight.GetComponent<HDAdditionalLightData>();
 		}
 
 		private void OnDestroy()
@@ -340,6 +339,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItem.OpaqueVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, voxels.Length);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.Play();
+
+			mAdditionalLightData.RequestShadowMapRendering();
 		}
 
 		private int GetPlayerCurrentChunkIndex(Vector3 position)
