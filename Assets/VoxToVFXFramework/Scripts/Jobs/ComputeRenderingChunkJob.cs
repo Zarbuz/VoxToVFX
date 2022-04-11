@@ -30,15 +30,15 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			float distance = Vector3.Distance(CameraPosition, chunkVFX.CenterWorldPosition);
 			if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && chunkVFX.LodLevel == 1)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[chunkIndex]));
 			}
 			else if ((distance >= LodDistance.y && distance < LodDistance.z && ForcedLevelLod == -1 || ForcedLevelLod == 1) && chunkVFX.LodLevel == 2)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[chunkIndex]));
 			}
 			else if ((distance >= LodDistance.z && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 2) && chunkVFX.LodLevel == 4)
 			{
-				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunkVFX.ChunkIndex, chunkVFX.LodLevel)]));
+				Buffer.AddRangeNoResize(ConvertToVoxelVFX(chunkIndex, chunkVFX.Length, Data[chunkIndex]));
 			}
 			//else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
 			//{

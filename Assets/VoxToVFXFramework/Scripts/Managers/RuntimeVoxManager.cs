@@ -213,25 +213,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer.SetData(materials);
 		}
 
-		public void SetVoxelChunk(int chunkIndex, int lodLevel, NativeArray<VoxelData> array)
+		public void SetVoxelChunk(int chunkIndex, UnsafeList<VoxelData> list)
 		{
 			if (!mChunksLoaded.IsCreated)
 			{
 				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelData>>(Chunks.Length, Allocator.Persistent);
 			}
 
-			int uniqueIndex = GetUniqueChunkIndexWithLodLevel(chunkIndex, lodLevel);
-			UnsafeList<VoxelData> unsafeList = new UnsafeList<VoxelData>(array.Length, Allocator.Persistent);
-			unsafe
-			{
-				unsafeList.AddRangeNoResize(array.GetUnsafePtr(), array.Length);
-				mChunksLoaded[uniqueIndex] = unsafeList;
-			}
-		}
-
-		public static int GetUniqueChunkIndexWithLodLevel(int chunkIndex, int lodLevel)
-		{
-			return chunkIndex + lodLevel * 10000;
+			mChunksLoaded[chunkIndex] = list;
 		}
 
 		public void OnChunkLoadedFinished()

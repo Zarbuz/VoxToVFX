@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
@@ -112,7 +113,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			{
 				yield return new WaitUntil(CanContinueReadFiles);
 			}
-			Task lastTask = ReadChunkDataFile(chunkVFX.ChunkIndex, chunkVFX.LodLevel, files[index]);
+			Task lastTask = ReadChunkDataFile(index, files[index]);
 			mTaskList.Add(lastTask);
 		}
 
@@ -170,7 +171,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	}
 
 
-	private async Task ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
+	private async Task ReadChunkDataFile(int chunkIndex, string filename)
 	{
 		string filePath = Path.Combine(mCurrentInputFolder, filename);
 		byte[] data = await File.ReadAllBytesAsync(filePath);
@@ -179,35 +180,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			NativeArray<VoxelData> chunk = VoxelDataConverter.Decode(data);
+			UnsafeList<VoxelData> chunk = VoxelDataConverter.Decode(data);
 
-			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
-			chunk.Dispose();
+			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, chunk);
 			mReadCompleted++;
 			StartCoroutine(RefreshLoadProgressCo());
 		});
-
-		//RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, lodLevel, chunk);
-		//chunk.Dispose();
-
-		//using FileStream stream = File.Open(filePath, FileMode.Open);
-		//using BinaryReader reader = new BinaryReader(stream);
-
-		//int length = reader.ReadInt32();
-		//NativeArray<VoxelData> data = new NativeArray<VoxelData>(length, Allocator.Temp);
-		//for (int i = 0; i < length; i++)
-		//{
-		//	data[i] = new VoxelData()
-		//	{
-		//		PosX = reader.ReadByte(),
-		//		PosY = reader.ReadByte(),
-		//		PosZ = reader.ReadByte(),
-		//		ColorIndex = reader.ReadByte(),
-		//		Face = (VoxelFace)Enum.Parse(typeof(VoxelFace), reader.ReadfInt16().ToString())
-		//	};
-		//}
-
-
 	}
 
 	private void OnLoadFrameProgress(float progress)

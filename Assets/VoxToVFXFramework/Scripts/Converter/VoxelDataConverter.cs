@@ -11,33 +11,21 @@ namespace VoxToVFXFramework.Scripts.Converter
 {
 	public static class VoxelDataConverter
 	{
-		public static NativeArray<VoxelData> Decode(byte[] data)
+		public static UnsafeList<VoxelData> Decode(byte[] data)
 		{
 			int length = BitConverter.ToInt32(data, 0);
 			NativeArray<byte> convertedBytes = new NativeArray<byte>(data, Allocator.TempJob);
-			NativeArray<VoxelData> array = new NativeArray<VoxelData>(length, Allocator.Persistent);
+			UnsafeList<VoxelData> list = new UnsafeList<VoxelData>(length, Allocator.Persistent);
 
 			JobHandle job = new VoxelDataConverterJob()
 			{
 				Data = convertedBytes,
-				Result = array
+				Result = list.AsParallelWriter()
 			}.Schedule(length, 64);
 			job.Complete();
 
 			convertedBytes.Dispose();
-			//int offset = 4;
-			//for (int i = 0; i < length; i++)
-			//{
-			//	byte posX = data[offset++];
-			//	byte posY = data[offset++];
-			//	byte posZ = data[offset++];
-			//	byte colorIndex = data[offset++];
-			//	VoxelFace face = (VoxelFace)Enum.Parse<VoxelFace>(BitConverter.ToInt16(data, offset).ToString());
-			//	offset += 2;
-			//	//array[i] = new VoxelData(posX, posY, posZ, colorIndex, face);
-			//}
-
-			return array;
+			return list;
 		}
 
 		public static int ToInt32(NativeArray<byte> data, int startIndex)
