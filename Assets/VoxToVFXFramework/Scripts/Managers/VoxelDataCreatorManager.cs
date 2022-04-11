@@ -28,12 +28,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private string mOutputPath;
 	private string mInputFileName;
+
+	private string mCurrentInputFolder;
 	private WorldData mWorldData;
 	private readonly List<ChunkDataFile> mChunksWrited = new List<ChunkDataFile>();
-	private List<Task> mTaskList = new List<Task>();
-	private const string IMPORT_TMP_FOLDER_NAME = "import_tmp";
+	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
-	private const string INFO_FILE_NAME = "info.json";
 	private int mReadCompleted;
 	#endregion
 
@@ -51,37 +51,32 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	public void ReadZipFile(string inputPath)
 	{
 		RuntimeVoxManager.Instance.Release();
-		string tmpPath = Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME);
-		string infoPath = Path.Combine(Application.persistentDataPath, INFO_FILE_NAME);
 		string checksum = GetMd5Checksum(inputPath);
-
-		if (File.Exists(infoPath))
+		string inputFolder = Path.Combine(Application.persistentDataPath, checksum);
+		mCurrentInputFolder = inputFolder;
+		if (!Directory.Exists(inputFolder))
 		{
-			string json = File.ReadAllText(infoPath);
-			InfoFileDTO infoFile = JsonUtility.FromJson<InfoFileDTO>(json);
-			if (infoFile.LastMd5FileOpen == checksum)
-			{
-				StartCoroutine(StartReadImportFilesCo(tmpPath));
-				return;
-			}
+			Directory.CreateDirectory(inputFolder);
+			ZipFile.ExtractToDirectory(inputPath, Path.Combine(Application.persistentDataPath, inputFolder));
 		}
 
-		InfoFileDTO infoFileUpdate = new InfoFileDTO();
-		infoFileUpdate.LastMd5FileOpen = checksum;
-		string jsn = JsonUtility.ToJson(infoFileUpdate);
-		File.WriteAllText(infoPath, jsn);
+		StartCoroutine(StartReadImportFilesCo(inputFolder));
+	}
 
-		if (!Directory.Exists(tmpPath))
-		{
-			Directory.CreateDirectory(tmpPath);
-		}
-		else
-		{
-			CleanFolder(tmpPath);
-		}
-		ZipFile.ExtractToDirectory(inputPath, Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME));
-		StartCoroutine(StartReadImportFilesCo(tmpPath));
+	public void OpenCacheFolder()
+	{
+		Process.Start(Application.persistentDataPath);
+	}
 
+	public void ClearCacheFolder()
+	{
+		//TODO: Add confirm popup
+		//TODO: Add success message popup
+		DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
+		foreach (DirectoryInfo dir in di.EnumerateDirectories())
+		{
+			dir.Delete(true);
+		}
 	}
 
 	#endregion
@@ -177,7 +172,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private async Task ReadChunkDataFile(int chunkIndex, int lodLevel, string filename)
 	{
-		string filePath = Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME, filename);
+		string filePath = Path.Combine(mCurrentInputFolder, filename);
 		byte[] data = await File.ReadAllBytesAsync(filePath);
 		//using AsyncFileReader reader = new AsyncFileReader();
 		//(IntPtr ptr, long size) = await reader.LoadAsync(filePath);
@@ -249,6 +244,15 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		foreach (FileInfo file in di.GetFiles())
 		{
 			file.Delete();
+		}
+	}
+
+	private void MoveFilesFromFolder(string inputFolder, string outputFolder)
+	{
+		DirectoryInfo di = new DirectoryInfo(inputFolder);
+		foreach (FileInfo file in di.GetFiles())
+		{
+			file.MoveTo(Path.Combine(outputFolder, file.Name));
 		}
 	}
 
@@ -334,22 +338,25 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		WriteStructureFile();
 		VoxImporter.Materials = null;
 		mWorldData.Dispose();
-		string path = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
+		string inputFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))
 		{
 			File.Delete(mOutputPath);
 		}
-		ZipFile.CreateFromDirectory(path, mOutputPath, CompressionLevel.Optimal, false, Encoding.UTF8);
-		Process.Start(mOutputPath);
-		CleanFolder(path);
+		ZipFile.CreateFromDirectory(inputFolder, mOutputPath, CompressionLevel.Optimal, false, Encoding.UTF8);
+		string md5ResultFile = GetMd5Checksum(mOutputPath);
+
+		string outputFolder = Path.Combine(Application.persistentDataPath, md5ResultFile);
+		if (Directory.Exists(outputFolder))
+		{
+			Directory.Delete(outputFolder);
+		}
+		Directory.CreateDirectory(outputFolder);
+		MoveFilesFromFolder(inputFolder, outputFolder);
 		LoadFinishedCallback?.Invoke();
 	}
 
 	#endregion
 
-	[Serializable]
-	public class InfoFileDTO
-	{
-		public string LastMd5FileOpen;
-	}
+	
 }

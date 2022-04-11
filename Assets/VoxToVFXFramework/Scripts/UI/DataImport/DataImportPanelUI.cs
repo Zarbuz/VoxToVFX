@@ -10,6 +10,8 @@ public class DataImportPanelUI : MonoBehaviour
 	[SerializeField] private Button TogglePanelButton;
 	[SerializeField] private Button MagicaVoxelImportButton;
 	[SerializeField] private Button VoxelDataImportButton;
+	[SerializeField] private Button OpenCacheButton;
+	[SerializeField] private Button ClearCacheButton;
 	[SerializeField] private GameObject ContentPanel;
 
 	#endregion
@@ -21,6 +23,8 @@ public class DataImportPanelUI : MonoBehaviour
 		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		MagicaVoxelImportButton.onClick.AddListener(OnMagicaVoxelImportClicked);
 		VoxelDataImportButton.onClick.AddListener(OnVoxelDataImportClicked);
+		OpenCacheButton.onClick.AddListener(OnOpenCacheClicked);
+		ClearCacheButton.onClick.AddListener(OnClearCacheClicked);
 	}
 
 	private void OnDisable()
@@ -28,6 +32,8 @@ public class DataImportPanelUI : MonoBehaviour
 		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		MagicaVoxelImportButton.onClick.RemoveListener(OnMagicaVoxelImportClicked);
 		VoxelDataImportButton.onClick.RemoveListener(OnVoxelDataImportClicked);
+		OpenCacheButton.onClick.RemoveListener(OnOpenCacheClicked);
+		ClearCacheButton.onClick.RemoveListener(OnClearCacheClicked);
 	}
 
 	#endregion
@@ -59,6 +65,16 @@ public class DataImportPanelUI : MonoBehaviour
 		{
 			VoxelDataCreatorManager.Instance.ReadZipFile(paths[0]);
 		}
+	}
+
+	private void OnOpenCacheClicked()
+	{
+		VoxelDataCreatorManager.Instance.OpenCacheFolder();
+	}
+
+	private void OnClearCacheClicked()
+	{
+		VoxelDataCreatorManager.Instance.ClearCacheFolder();
 	}
 
 	#endregion
