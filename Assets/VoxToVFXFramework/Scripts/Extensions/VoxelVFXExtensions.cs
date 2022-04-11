@@ -20,8 +20,9 @@ namespace VoxToVFXFramework.Scripts.Extensions
 		{
 			uint colorIndex = voxel.additionalData >> 24;
 			uint rotationIndex = (voxel.additionalData & 0xff0000) >> 16;
+			uint chunkIndex = voxel.additionalData & 0x0000FFFF;
 
-			return $"colorIndex: {colorIndex} chunkIndex:{voxel.chunkIndex} rotationIndex:{rotationIndex}";
+			return $"colorIndex: {colorIndex} rotationIndex:{rotationIndex} chunkIndex: {chunkIndex}";
 		}
 
 		public static uint CountVoxelFaceFlags(this VoxelFace voxelFace)

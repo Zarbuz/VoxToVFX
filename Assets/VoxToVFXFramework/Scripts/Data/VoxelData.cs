@@ -12,8 +12,8 @@ namespace VoxToVFXFramework.Scripts.Data
 	public struct VoxelVFX
 	{
 		public uint position;
-		public uint additionalData; //paletteIndex, chunkIndex, rotationIndex
-		public uint chunkIndex;
+		public uint additionalData; //paletteIndex, rotationIndex, chunkIndex
+		//public uint chunkIndex;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
