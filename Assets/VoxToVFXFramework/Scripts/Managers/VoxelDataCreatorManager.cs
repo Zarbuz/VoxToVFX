@@ -180,7 +180,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			UnsafeList<VoxelData> chunk = VoxelDataConverter.Decode(data);
+			UnsafeList<VoxelVFX> chunk = VoxelDataConverter.Decode(chunkIndex, data);
 
 			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, chunk);
 			mReadCompleted++;

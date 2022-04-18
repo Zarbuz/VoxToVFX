@@ -12,17 +12,17 @@ namespace VoxToVFXFramework.Scripts.Extensions
 			uint x = voxel.position >> 24;
 			uint y = (voxel.position & 0xff0000) >> 16;
 			uint z = (voxel.position & 0xff00) >> 8;
+			uint colorIndex = (voxel.position & 0xff);
 
-			return $"x:{x} y:{y} z:{z}";
+			return $"x:{x} y:{y} z:{z} colorIndex: {colorIndex}";
 		}
 
 		public static string DecodeAdditionalData(this VoxelVFX voxel)
 		{
-			uint colorIndex = voxel.additionalData >> 24;
-			uint rotationIndex = (voxel.additionalData & 0xff0000) >> 16;
+			uint rotationIndex = voxel.additionalData >> 16;
 			uint chunkIndex = voxel.additionalData & 0x0000FFFF;
 
-			return $"colorIndex: {colorIndex} rotationIndex:{rotationIndex} chunkIndex: {chunkIndex}";
+			return $"rotationIndex:{rotationIndex} chunkIndex: {chunkIndex}";
 		}
 
 		public static uint CountVoxelFaceFlags(this VoxelFace voxelFace)

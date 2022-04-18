@@ -11,16 +11,17 @@ namespace VoxToVFXFramework.Scripts.Converter
 {
 	public static class VoxelDataConverter
 	{
-		public static UnsafeList<VoxelData> Decode(byte[] data)
+		public static UnsafeList<VoxelVFX> Decode(int chunkIndex, byte[] data)
 		{
 			int length = BitConverter.ToInt32(data, 0);
 			NativeArray<byte> convertedBytes = new NativeArray<byte>(data, Allocator.TempJob);
-			UnsafeList<VoxelData> list = new UnsafeList<VoxelData>(length, Allocator.Persistent);
+			UnsafeList<VoxelVFX> list = new UnsafeList<VoxelVFX>(length, Allocator.Persistent);
 
 			JobHandle job = new VoxelDataConverterJob()
 			{
 				Data = convertedBytes,
-				Result = list.AsParallelWriter()
+				Result = list.AsParallelWriter(),
+				ChunkIndex = chunkIndex
 			}.Schedule(length, 64);
 			job.Complete();
 

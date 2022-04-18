@@ -53,7 +53,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string CHUNK_VFX_BUFFER_KEY = "ChunkBuffer";
-		private const string ROTATION_VFX_BUFFER_KEY = "RotationBuffer";
 		private const string DEBUG_LOD_KEY = "DebugLod";
 		private const string INITIAL_BURST_COUNT_KEY = "InitialBurstCount";
 		#endregion
@@ -65,7 +64,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[HideInInspector]
 		public NativeArray<ChunkVFX> Chunks;
 
-		private UnsafeHashMap<int, UnsafeList<VoxelData>> mChunksLoaded;
+		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
 		private VisualEffectItem mVisualEffectItem;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
@@ -80,7 +79,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private WorldData mWorldData;
 
 		private int mPreviousPlayerChunkIndex;
-		private int mPreviousForcedLevel;
 		private UnityEngine.Camera mCamera;
 		private Quaternion mPreviousRotation;
 		private float mPreviousCheckTimer;
@@ -197,7 +195,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (mChunksLoaded.IsCreated)
 			{
 				//TODO Check this dispose
-				foreach (KeyValue<int, UnsafeList<VoxelData>> item in mChunksLoaded)
+				foreach (KeyValue<int, UnsafeList<VoxelVFX>> item in mChunksLoaded)
 				{
 					item.Value.Dispose();
 				}
@@ -224,11 +222,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer.SetData(materials);
 		}
 
-		public void SetVoxelChunk(int chunkIndex, UnsafeList<VoxelData> list)
+		public void SetVoxelChunk(int chunkIndex, UnsafeList<VoxelVFX> list)
 		{
 			if (!mChunksLoaded.IsCreated)
 			{
-				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelData>>(Chunks.Length, Allocator.Persistent);
+				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
 			}
 
 			mChunksLoaded[chunkIndex] = list;
@@ -283,11 +281,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!Chunks.IsCreated)
 				return;
 
-			if (ForcedLevelLod != -1 && mPreviousForcedLevel == ForcedLevelLod)
-			{
-				return;
-			}
-
 			NativeList<int> chunkIndex = new NativeList<int>(Allocator.TempJob);
 			NativeList<ChunkVFX> activeChunks = new NativeList<ChunkVFX>(Allocator.TempJob);
 			for (int index = 0; index < Chunks.Length; index++)
@@ -317,7 +310,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
 			chunkIndex.Dispose();
-			mPreviousForcedLevel = ForcedLevelLod;
 			if (buffer.Length > 0)
 			{
 				RefreshRender(buffer);
