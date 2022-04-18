@@ -54,51 +54,54 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			{
 				VoxelVFX voxelVFX = new VoxelVFX()
 				{
-					position = (uint)((voxelData.PosX << 24) | (voxelData.PosY << 16) | (voxelData.PosZ << 8) | 0),
+					position = (uint)((voxelData.PosX << 24) | (voxelData.PosY << 16) | (voxelData.PosZ << 8) | voxelData.ColorIndex),
+					additionalData = (uint)((ushort)voxelData.Face << 16 | (ushort)chunkIndex)
 					//chunkIndex = (uint)chunkIndex
 				};
 
-				VoxelFace voxelDataFace = voxelData.Face & VoxelFace.Top;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 0 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				result.AddNoResize(voxelVFX);
 
-				voxelDataFace = voxelData.Face & VoxelFace.Right;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 1 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				//VoxelFace voxelDataFace = voxelData.Face & VoxelFace.Top;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 0 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
 
-				voxelDataFace = voxelData.Face & VoxelFace.Bottom;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 2 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				//voxelDataFace = voxelData.Face & VoxelFace.Right;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 1 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
 
-				voxelDataFace = voxelData.Face & VoxelFace.Left;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 3 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				//voxelDataFace = voxelData.Face & VoxelFace.Bottom;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 2 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
 
-				voxelDataFace = voxelData.Face & VoxelFace.Front;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 4 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				//voxelDataFace = voxelData.Face & VoxelFace.Left;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 3 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
 
-				voxelDataFace = voxelData.Face & VoxelFace.Back;
-				if (voxelDataFace != VoxelFace.None)
-				{
-					voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 5 << 16) | (ushort)chunkIndex;
-					result.AddNoResize(voxelVFX);
-				}
+				//voxelDataFace = voxelData.Face & VoxelFace.Front;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 4 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
+
+				//voxelDataFace = voxelData.Face & VoxelFace.Back;
+				//if (voxelDataFace != VoxelFace.None)
+				//{
+				//	voxelVFX.additionalData = (uint)((voxelData.ColorIndex << 24) | 5 << 16) | (ushort)chunkIndex;
+				//	result.AddNoResize(voxelVFX);
+				//}
 			}
 			return result;
 		}

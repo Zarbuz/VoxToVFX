@@ -70,7 +70,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
 		private GraphicsBuffer mChunkBuffer;
-		private GraphicsBuffer mRotationBuffer;
+		//private GraphicsBuffer mRotationBuffer;
 		private Plane[] mPlanes;
 		private Light mDirectionalLight;
 		private HDAdditionalLightData mAdditionalLightData;
@@ -80,6 +80,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private WorldData mWorldData;
 
 		private int mPreviousPlayerChunkIndex;
+		private int mPreviousForcedLevel;
 		private UnityEngine.Camera mCamera;
 		private Quaternion mPreviousRotation;
 		private float mPreviousCheckTimer;
@@ -93,6 +94,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 			mDirectionalLight = FindObjectOfType<Light>();
 			mAdditionalLightData = mDirectionalLight.GetComponent<HDAdditionalLightData>();
+			//ushort test1 = 15471;
+			//ushort test2 = 61421;
+
+			//uint test3 = (uint)(test1 << 16 | test2);
+
+			//uint decodeTest1 = (test3) >> 16;
+			//uint decodeTest2 = (test3 & 0x0000FFFF);
+
+			//Debug.Log(decodeTest1);
+			//Debug.Log(decodeTest2);
 		}
 
 		private void OnDestroy()
@@ -167,11 +178,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mGraphicsBuffer?.Release();
 			mPaletteBuffer?.Release();
 			mChunkBuffer?.Release();
-			mRotationBuffer?.Release();
+			//mRotationBuffer?.Release();
 			mPaletteBuffer = null;
 			mGraphicsBuffer = null;
 			mChunkBuffer = null;
-			mRotationBuffer = null;
+			//mRotationBuffer = null;
 			if (mVisualEffectItem != null)
 			{
 				Destroy(mVisualEffectItem.gameObject);
@@ -229,7 +240,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItem.transform.SetParent(mVisualItemsParent);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
-			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
+			//mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			mVisualEffectItem.OpaqueVisualEffect.enabled = true;
 
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
@@ -245,15 +256,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mChunkBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, chunks.Length, Marshal.SizeOf(typeof(ChunkVFX)));
 			mChunkBuffer.SetData(chunks);
 
-			mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 6, Marshal.SizeOf(typeof(Vector3)));
-			Vector3[] rotations = new Vector3[6];
-			rotations[0] = new Vector3(90, 0, 0); //Good
-			rotations[1] = new Vector3(0, -90, 0); //Good
-			rotations[2] = new Vector3(270, 0, 0); //Good
-			rotations[3] = new Vector3(0, 90, 0); //Good
-			rotations[4] = new Vector3(0, 180, 0); //Good
-			rotations[5] = new Vector3(0, 0, 0);	
-			mRotationBuffer.SetData(rotations);
+			//mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 6, Marshal.SizeOf(typeof(Vector3)));
+			//Vector3[] rotations = new Vector3[6];
+			//rotations[0] = new Vector3(90, 0, 0); //Good
+			//rotations[1] = new Vector3(0, -90, 0); //Good
+			//rotations[2] = new Vector3(270, 0, 0); //Good
+			//rotations[3] = new Vector3(0, 90, 0); //Good
+			//rotations[4] = new Vector3(0, 180, 0); //Good
+			//rotations[5] = new Vector3(0, 0, 0);	
+			//mRotationBuffer.SetData(rotations);
 		}
 
 		#endregion
@@ -271,6 +282,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			if (!Chunks.IsCreated)
 				return;
+
+			if (ForcedLevelLod != -1 && mPreviousForcedLevel == ForcedLevelLod)
+			{
+				return;
+			}
 
 			NativeList<int> chunkIndex = new NativeList<int>(Allocator.TempJob);
 			NativeList<ChunkVFX> activeChunks = new NativeList<ChunkVFX>(Allocator.TempJob);
@@ -301,7 +317,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
 			chunkIndex.Dispose();
-
+			mPreviousForcedLevel = ForcedLevelLod;
 			if (buffer.Length > 0)
 			{
 				RefreshRender(buffer);

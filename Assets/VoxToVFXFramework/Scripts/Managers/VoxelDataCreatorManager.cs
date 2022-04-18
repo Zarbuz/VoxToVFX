@@ -259,13 +259,13 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			}
 		}
 
-		NativeArray<VoxelData>.Enumerator enumerator = voxelResult.Data.GetEnumerator();
-		int sum = 0;
-		while (enumerator.MoveNext())
-		{
-			sum += (int)enumerator.Current.Face.CountVoxelFaceFlags();
-		}
-		enumerator.Dispose();
+		//NativeArray<VoxelData>.Enumerator enumerator = voxelResult.Data.GetEnumerator();
+		//int sum = 0;
+		//while (enumerator.MoveNext())
+		//{
+		//	sum += (int)enumerator.Current.Face.CountVoxelFaceFlags();
+		//}
+		//enumerator.Dispose();
 
 		ChunkDataFile chunk = new ChunkDataFile
 		{
@@ -274,7 +274,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
 			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
-			Length = sum
+			//Length = sum
+			Length = voxelResult.Data.Length
 		};
 		mChunksWrited.Add(chunk);
 	}

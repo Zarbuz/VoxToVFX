@@ -11,8 +11,8 @@ namespace VoxToVFXFramework.Scripts.Data
 	[Serializable]
 	public struct VoxelVFX
 	{
-		public uint position;
-		public uint additionalData; //paletteIndex, rotationIndex, chunkIndex
+		public uint position; // x (8) y (8) z (8) colorIndex (8)
+		public uint additionalData; // rotationIndex (16 bits), chunkIndex (16 bits)
 		//public uint chunkIndex;
 	}
 
