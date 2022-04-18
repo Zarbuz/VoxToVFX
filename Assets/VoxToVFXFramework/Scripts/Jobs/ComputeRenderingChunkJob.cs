@@ -27,6 +27,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			//if (chunk.IsActive == 0)
 			//	return;
 
+
 			float distance = Vector3.Distance(CameraPosition, chunkVFX.CenterWorldPosition);
 			if ((distance >= LodDistance.x && distance < LodDistance.y && ForcedLevelLod == -1 || ForcedLevelLod == 0) && chunkVFX.LodLevel == 1)
 			{
@@ -40,6 +41,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			{
 				Buffer.AddRangeNoResize(Data[chunkIndex]);
 			}
+
 			//else if ((distance >= LodDistance.w && distance < int.MaxValue && ForcedLevelLod == -1 || ForcedLevelLod == 3) && chunk.LodLevel == 8)
 			//{
 			//	Buffer.AddRangeNoResize(Data[RuntimeVoxManager.GetUniqueChunkIndexWithLodLevel(chunk.ChunkIndex, chunk.LodLevel)]);
