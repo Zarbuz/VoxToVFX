@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Unity 2019.4.3f1
+- Unity 2021.2
 - VFX Graph
 - HDRP
 - Enable Eperimental Operators/Blocks (Edit > Preferences > Visual Effects)
@@ -15,26 +15,19 @@ It support also world regions of MagicaVoxel so you can import world bigger than
 
 ## How to use it ? 
 
-You just need to put your .vox file into your project. The import process will start automatically. 
-It will create a pair of texture for each materials you have. 
+You need to convert first your vox file at the runtime. This conversion step is very quick and it convert your files into different chunks with 3 levels of details. 
+Once your model is converted, a .zip file is created: it contains all the chunks data. 
 
 ![](img/img2.png)
 
-Then you have to assign the TextureMap in the inspector : 
+Then you can import the data. 
 
 ![](img/img3.png)
 
-Don't forget the adjust the capacity of your Initialize Particles
+## TODO
 
-![](img/img4.png)
-
-## Renders
-
-(Unity)
-
-![](img/img0.png)
-
-(MagicaVoxel)
-
-![](img/img1.png)
+- Add collisions with the camera
+- Add support for transparency material
+- Add support for cloud material
+- Add support for realtime raytracing (will need Unity 2022.2 in the future)
 
