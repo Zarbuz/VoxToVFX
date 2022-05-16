@@ -11,7 +11,9 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	public struct VoxelDataConverterJob : IJobParallelFor
 	{
 		[ReadOnly] public NativeArray<byte> Data;
-		public UnsafeList<VoxelData>.ParallelWriter Result;
+		[ReadOnly] public int ChunkIndex;
+
+		public UnsafeList<VoxelVFX>.ParallelWriter Result;
 		public void Execute(int index)
 		{
 			int offset = index * 6 + 4;
@@ -20,7 +22,14 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			byte posZ = Data[offset++];
 			byte colorIndex = Data[offset++];
 			VoxelFace face = (VoxelFace)VoxelDataConverter.ToInt16(Data, offset);
-			Result.AddNoResize(new VoxelData(posX, posY, posZ, colorIndex, face));
+
+			VoxelVFX voxelVFX = new VoxelVFX()
+			{
+				position = (uint)((posX << 24) | (posY << 16) | (posZ << 8) | colorIndex),
+				additionalData = (uint)((ushort)face << 16 | (ushort)ChunkIndex)
+			};
+
+			Result.AddNoResize(voxelVFX);
 		}
 	}
 }
