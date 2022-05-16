@@ -18,11 +18,11 @@ It support also world regions of MagicaVoxel so you can import world bigger than
 You need to convert first your vox file at the runtime. This conversion step is very quick and it convert your files into different chunks with 3 levels of details. 
 Once your model is converted, a .zip file is created: it contains all the chunks data. 
 
-![](img/img2.png)
+![](img/img21.png)
 
 Then you can import the data. 
 
-![](img/img3.png)
+![](img/img31.png)
 
 ## TODO
 
