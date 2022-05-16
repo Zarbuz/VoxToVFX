@@ -1,24 +1,16 @@
-﻿using Sirenix.OdinInspector;
+﻿using FileToVoxCore.Utils;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using FileToVoxCore.Schematics;
-using FileToVoxCore.Utils;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Data;
-using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
-using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.VFXItem;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -30,14 +22,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private VisualEffectItem VisualEffectItemPrefab;
 
 		[Header("Lods")]
-		[OnValueChanged(nameof(RefreshDebugLod))]
 		public bool DebugLod;
 
-		[OnValueChanged(nameof(RefreshLodsDistance))]
 		public Vector3 LodDistance;
 
 		[Range(-1, 3)]
-		[OnValueChanged(nameof(RefreshLodsDistance))]
 		public int ForcedLevelLod;
 
 		public bool ShowOnlyActiveChunkGizmos;
@@ -79,6 +68,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Transform mVisualItemsParent;
 		private WorldData mWorldData;
 
+		private bool mDebugLog;
+		private Vector3 mLodDistance;
+		private int mForcedLevelLod;
+
 		private int mPreviousPlayerChunkIndex;
 		private int mPreviousForcedLoadedChunks;
 		private bool mPreviousForceLoadAllChunks;
@@ -107,6 +100,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!mIsLoaded)
 			{
 				return;
+			}
+
+			if (mDebugLog != DebugLod)
+			{
+				mDebugLog = DebugLod;
+				RefreshDebugLod();
+			}
+
+			if (mLodDistance != LodDistance)
+			{
+				mLodDistance = LodDistance;
+				RefreshLodsDistance();
+			}
+
+			if (mForcedLevelLod != ForcedLevelLod)
+			{
+				mForcedLevelLod = ForcedLevelLod;
+				RefreshLodsDistance();
 			}
 
 			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
