@@ -163,6 +163,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			mat.emission = reader.ReadSingle();
 			mat.metallic = reader.ReadSingle();
 			mat.smoothness = reader.ReadSingle();
+			mat.alpha = reader.ReadSingle();
 			materials[i] = mat;
 		}
 
@@ -309,6 +310,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(mat.emission);
 			binaryWriter.Write(mat.metallic);
 			binaryWriter.Write(mat.smoothness);
+			binaryWriter.Write(mat.alpha);
 		}
 	}
 

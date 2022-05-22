@@ -161,6 +161,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 				materials[i].emission = materialChunk.Emission == 0 ? 1 : materialChunk.Emission * 10;
 				materials[i].smoothness = materialChunk.Rough;
 				materials[i].metallic = materialChunk.Metallic;
+				materials[i].alpha = materialChunk.Alpha;
 			}
 
 			return materials;

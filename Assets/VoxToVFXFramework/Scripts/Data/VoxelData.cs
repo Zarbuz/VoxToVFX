@@ -24,6 +24,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public float smoothness;
 		public float metallic;
 		public float emission;
+		public float alpha;
 	}
 
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
