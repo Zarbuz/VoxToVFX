@@ -317,7 +317,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private void OnChunkLoadedFinished()
 	{
 		WriteStructureFile();
-		VoxImporter.Materials = null;
+		VoxImporter.DisposeMaterials();
 		mWorldData.Dispose();
 		string inputFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))

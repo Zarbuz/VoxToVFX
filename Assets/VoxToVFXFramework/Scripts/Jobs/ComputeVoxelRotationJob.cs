@@ -13,6 +13,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	{
 		[ReadOnly] public NativeArray<int> Keys;
 		[ReadOnly] public UnsafeHashMap<int, VoxelData> Data;
+		[ReadOnly] public NativeArray<VoxelMaterialVFX> Materials;
 		[ReadOnly] public int Step;
 
 		[ReadOnly] public int3 VolumeSize;
@@ -42,39 +43,41 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			int key = Keys[index];
 			VoxelData v = Data[key];
 			VoxelFace voxelFace = VoxelFace.None;
-			bool left = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX - Step, v.PosY, v.PosZ, VolumeSize));
-			bool right = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX + Step, v.PosY, v.PosZ, VolumeSize));
-			bool top = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY + Step, v.PosZ, VolumeSize));
-			bool bottom = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY - Step, v.PosZ, VolumeSize));
-			bool front = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ + Step, VolumeSize));
-			bool back = Data.ContainsKey(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ - Step, VolumeSize));
+			bool left = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX - Step, v.PosY, v.PosZ, VolumeSize), out VoxelData vLeft);
+			bool right = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX + Step, v.PosY, v.PosZ, VolumeSize), out VoxelData vRight);
+			bool top = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX, v.PosY + Step, v.PosZ, VolumeSize), out VoxelData vTop);
+			bool bottom = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX, v.PosY - Step, v.PosZ, VolumeSize), out VoxelData vBottom);
+			bool front = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ + Step, VolumeSize), out VoxelData vFront);
+			bool back = Data.TryGetValue(VoxImporter.GetGridPos(v.PosX, v.PosY, v.PosZ - Step, VolumeSize), out VoxelData vBack);
 
-			if (!left)
+			bool isCurrentTransparent = IsTransparent(v.ColorIndex);
+
+			if (!left || isCurrentTransparent && !IsTransparent(vLeft.ColorIndex) || !isCurrentTransparent && IsTransparent(vLeft.ColorIndex))
 			{
 				voxelFace = VoxelFace.Left;
 			}
 
-			if (!right)
+			if (!right || isCurrentTransparent && !IsTransparent(vRight.ColorIndex) || !isCurrentTransparent && IsTransparent(vRight.ColorIndex))
 			{
 				voxelFace |= VoxelFace.Right;
 			}
 
-			if (!top)
+			if (!top || isCurrentTransparent && !IsTransparent(vTop.ColorIndex) || !isCurrentTransparent && IsTransparent(vTop.ColorIndex))
 			{
 				voxelFace |= VoxelFace.Top;
 			}
 
-			if (!bottom)
+			if (!bottom || isCurrentTransparent && !IsTransparent(vBottom.ColorIndex) || !isCurrentTransparent && IsTransparent(vBottom.ColorIndex))
 			{
 				voxelFace |= VoxelFace.Bottom;
 			}
 
-			if (!front)
+			if (!front || isCurrentTransparent && !IsTransparent(vFront.ColorIndex) || !isCurrentTransparent && IsTransparent(vFront.ColorIndex))
 			{
 				voxelFace |= VoxelFace.Front;
 			}
 
-			if (!back)
+			if (!back || isCurrentTransparent && !IsTransparent(vBack.ColorIndex) || !isCurrentTransparent && IsTransparent(vBack.ColorIndex))
 			{
 				voxelFace |= VoxelFace.Back;
 			}
@@ -82,6 +85,11 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			v.Face = voxelFace;
 
 			Result.AddNoResize(v);
+		}
+
+		private bool IsTransparent(byte colorIndex)
+		{
+			return Materials[colorIndex].alpha < 1;
 		}
 
 	}

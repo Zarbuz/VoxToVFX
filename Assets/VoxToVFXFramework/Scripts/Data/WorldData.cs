@@ -45,6 +45,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		public IEnumerator ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback, Action onChunkLoadedFinished)
 		{
 			NativeArray<int> keys = WorldDataPositions.GetKeyArray(Allocator.Persistent);
+			
 			for (int index = 0; index < keys.Length; index++)
 			{
 				int chunkIndex = keys[index];
@@ -55,7 +56,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
 				NativeList<VoxelData> finalResultLod0 = ComputeRotation(WorldDataPositions[chunkIndex], 1);
 				resultLod0.Dispose();
-				WorldDataPositions[chunkIndex] = resultLod0; //TODO Check WorldDataPositions[chunkIndex].Dispose()
+				WorldDataPositions[chunkIndex] = resultLod0;
 
 				VoxelResult voxelResult = new VoxelResult
 				{
@@ -78,7 +79,6 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
-				//NativeHashMap<int, Vector4> resultLod3 = ComputeLod(resultLod2, worldChunkPosition, 4, 8);
 				NativeList<VoxelData> finalResultLod2 = ComputeRotation(resultLod2, 4);
 				resultLod2.Dispose();
 				voxelResult.Data = finalResultLod2;
@@ -87,13 +87,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
-				//NativeArray<Vector4> finalResultLod3 = ComputeFinalArrayResult(resultLod3);
-				//voxelResult.Data = finalResultLod3;
-				//voxelResult.LodLevel = 8;
-				//onChunkLoadedCallback?.Invoke(index / (float)keys.Item2, voxelResult);
-				//finalResultLod3.Dispose();
-
-				//yield return new WaitForEndOfFrame();
+				
 			}
 
 			keys.Dispose();
@@ -138,7 +132,8 @@ namespace VoxToVFXFramework.Scripts.Data
 				Result = result.AsParallelWriter(),
 				Step = step,
 				VolumeSize = ChunkVolume,
-				Keys = keys
+				Keys = keys,
+				Materials = VoxImporter.Materials
 			}.Schedule(data.Count(), 64);
 			computeRotationJob.Complete();
 
