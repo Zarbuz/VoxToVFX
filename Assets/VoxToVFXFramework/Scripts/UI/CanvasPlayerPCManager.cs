@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Globalization;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
@@ -72,7 +73,7 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void OnLoadProgressUpdate(int step, float progress)
 		{
-			LoadingProgressText.text = "Step: " + step + " - Progress: " + progress.ToString("P");
+			LoadingProgressText.text = "Step: " + step + " - Progress: " + progress.ToString("P", CultureInfo.InvariantCulture);
 		}
 
 		private void OnLoadFinished()
