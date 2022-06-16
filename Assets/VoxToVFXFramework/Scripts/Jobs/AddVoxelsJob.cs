@@ -24,18 +24,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			int yFinal = (int)(voxel.y % WorldData.CHUNK_SIZE);
 			int zFinal = (int)(voxel.z % WorldData.CHUNK_SIZE);
 			int voxelGridPos = VoxImporter.GetGridPos(xFinal, yFinal, zFinal, WorldData.ChunkVolume);
-			UnsafeHashMap<int, VoxelData> chunkHashMap;
-			if (WorldDataPositions.ContainsKey(chunkIndex))
-			{
-				chunkHashMap = WorldDataPositions[chunkIndex];
-			}
-			else
-			{
-				chunkHashMap = new UnsafeHashMap<int, VoxelData>(256, Allocator.Persistent);
-			}
-
+			UnsafeHashMap<int, VoxelData> chunkHashMap = WorldDataPositions.ContainsKey(chunkIndex) ? WorldDataPositions[chunkIndex] : new UnsafeHashMap<int, VoxelData>(256, Allocator.Persistent);
 			chunkHashMap[voxelGridPos] = new VoxelData((byte)xFinal, (byte)yFinal, (byte)zFinal, (byte)voxel.w);
-
 			WorldDataPositions[chunkIndex] = chunkHashMap;
 		}
 	}

@@ -258,15 +258,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
 				binaryWriter.Write((short)voxelResult.Data[i].Face);
 			}
-		}
 
-		//NativeArray<VoxelData>.Enumerator enumerator = voxelResult.Data.GetEnumerator();
-		//int sum = 0;
-		//while (enumerator.MoveNext())
-		//{
-		//	sum += (int)enumerator.Current.Face.CountVoxelFaceFlags();
-		//}
-		//enumerator.Dispose();
+		}
 
 		ChunkDataFile chunk = new ChunkDataFile
 		{
@@ -317,7 +310,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private void OnChunkLoadedFinished()
 	{
 		WriteStructureFile();
-		VoxImporter.Materials = null;
+		VoxImporter.DisposeMaterials();
 		mWorldData.Dispose();
 		string inputFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))
@@ -339,5 +332,5 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	#endregion
 
-	
+
 }
