@@ -24,14 +24,14 @@ public class LightManager : ModuleSingleton<LightManager>
 		return mLight.transform.localEulerAngles;
 	}
 
-	public void SetLightXRotation(int angle)
+	public void SetLightXRotation(float angle)
 	{
 		Vector3 eulerAngles = mLight.transform.localEulerAngles;
 		eulerAngles.x = angle;
 		mLight.transform.localEulerAngles = eulerAngles;
 	}
 
-	public void SetLightYRotation(int angle)
+	public void SetLightYRotation(float angle)
 	{
 		Vector3 eulerAngles = mLight.transform.localEulerAngles;
 		eulerAngles.y = angle;

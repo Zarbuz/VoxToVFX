@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Managers;
 
 public class LightingPanelUI : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class LightingPanelUI : MonoBehaviour
 	[SerializeField] private Button TogglePanelButton;
 	[SerializeField] private Slider RotationXSlider;
 	[SerializeField] private Slider RotationYSlider;
+	[SerializeField] private Slider ExposureWeightSlider;
 	[SerializeField] private GameObject ContentPanel;
 
 	#endregion
@@ -19,6 +21,7 @@ public class LightingPanelUI : MonoBehaviour
 		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		RotationXSlider.onValueChanged.AddListener(OnRotationXValueChanged);
 		RotationYSlider.onValueChanged.AddListener(OnRotationYValueChanged);
+		ExposureWeightSlider.onValueChanged.AddListener(OnExposureWeightValueChanged);
 
 		Vector3 eulerAngles = LightManager.Instance.GetCurrentRotation();
 		RotationXSlider.SetValueWithoutNotify(eulerAngles.x);
@@ -30,6 +33,7 @@ public class LightingPanelUI : MonoBehaviour
 		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		RotationXSlider.onValueChanged.RemoveListener(OnRotationXValueChanged);
 		RotationYSlider.onValueChanged.RemoveListener(OnRotationYValueChanged);
+		ExposureWeightSlider.onValueChanged.RemoveListener(OnExposureWeightValueChanged);
 	}
 
 	#endregion
@@ -43,13 +47,17 @@ public class LightingPanelUI : MonoBehaviour
 
 	private void OnRotationYValueChanged(float value)
 	{
-		LightManager.Instance.SetLightXRotation((int)value);
+		LightManager.Instance.SetLightXRotation(value);
 	}
 
 	private void OnRotationXValueChanged(float value)
 	{
-		LightManager.Instance.SetLightYRotation((int)value);
+		LightManager.Instance.SetLightYRotation(value);
 	}
 
+	private void OnExposureWeightValueChanged(float value)
+	{
+		RuntimeVoxManager.Instance.SetExposureWeight(value);
+	}
 	#endregion
 }

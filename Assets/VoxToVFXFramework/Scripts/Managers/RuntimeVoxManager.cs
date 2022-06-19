@@ -36,6 +36,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[Header("Rotation")]
 		public float MinDifferenceAngleCameraForRefresh = 10;
 		public float MinTimerCheckRotationCamera = 0.4f;
+
+		[Header("Exposure")] 
+		public float ExposureWeight;
 		#endregion
 
 		#region ConstStatic
@@ -45,6 +48,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string MATERIAL_VFX_BUFFER_KEY = "MaterialBuffer";
 		private const string CHUNK_VFX_BUFFER_KEY = "ChunkBuffer";
 		private const string DEBUG_LOD_KEY = "DebugLod";
+		private const string EXPOSURE_WEIGHT_KEY = "ExposureWeight";
 		private const string INITIAL_BURST_COUNT_KEY = "InitialBurstCount";
 		#endregion
 
@@ -233,6 +237,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mPaletteBuffer.SetData(materials);
 		}
 
+		public void SetExposureWeight(float exposureWeight)
+		{
+			ExposureWeight = exposureWeight;
+			RefreshExposureWeight();
+		}
+
 		public void SetVoxelChunk(int chunkIndex, UnsafeList<VoxelVFX> list)
 		{
 			if (!mChunksLoaded.IsCreated)
@@ -284,6 +294,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mVisualEffectItem.OpaqueVisualEffect.Reinit();
 			mVisualEffectItem.OpaqueVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
+			mVisualEffectItem.OpaqueVisualEffect.Play();
+		}
+
+		private void RefreshExposureWeight()
+		{
+			mVisualEffectItem.OpaqueVisualEffect.Reinit();
+			mVisualEffectItem.OpaqueVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
 			mVisualEffectItem.OpaqueVisualEffect.Play();
 		}
 
