@@ -159,8 +159,9 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		for (int i = 0; i < materialLength; i++)
 		{
 			VoxelMaterialVFX mat = new VoxelMaterialVFX();
-			mat.color = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-			mat.emission = reader.ReadSingle();
+			mat.color = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			mat.emission = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			mat.emissionPower = reader.ReadSingle();
 			mat.metallic = reader.ReadSingle();
 			mat.smoothness = reader.ReadSingle();
 			mat.alpha = reader.ReadSingle();
@@ -297,10 +298,13 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		for (int i = 0; i < VoxImporter.Materials.Length; i++)
 		{
 			VoxelMaterialVFX mat = VoxImporter.Materials[i];
-			binaryWriter.Write(mat.color.x);
-			binaryWriter.Write(mat.color.y);
-			binaryWriter.Write(mat.color.z);
-			binaryWriter.Write(mat.emission);
+			binaryWriter.Write(mat.color.r);
+			binaryWriter.Write(mat.color.g);
+			binaryWriter.Write(mat.color.b);
+			binaryWriter.Write(mat.emission.r);
+			binaryWriter.Write(mat.emission.g);
+			binaryWriter.Write(mat.emission.b);
+			binaryWriter.Write(mat.emissionPower);
 			binaryWriter.Write(mat.metallic);
 			binaryWriter.Write(mat.smoothness);
 			binaryWriter.Write(mat.alpha);

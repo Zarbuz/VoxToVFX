@@ -1,6 +1,7 @@
 ﻿using FileToVoxCore.Utils;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -66,7 +67,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private bool mIsLoaded;
 		private Transform mVisualItemsParent;
-		private WorldData mWorldData;
 
 		private bool mDebugLog;
 		private Vector3 mLodDistance;

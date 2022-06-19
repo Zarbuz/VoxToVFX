@@ -20,10 +20,11 @@ namespace VoxToVFXFramework.Scripts.Data
 	[Serializable]
 	public struct VoxelMaterialVFX
 	{
-		public Vector3 color;
+		public Color color;
 		public float smoothness;
 		public float metallic;
-		public float emission;
+		public Color emission;
+		public float emissionPower;
 		public float alpha;
 	}
 
