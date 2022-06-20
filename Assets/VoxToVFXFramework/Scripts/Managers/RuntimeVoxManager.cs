@@ -1,7 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -59,7 +58,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[HideInInspector]
 		public NativeArray<ChunkVFX> Chunks;
 
-		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
+		private UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
 		private VisualEffectItem mVisualEffectItem;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
@@ -247,9 +246,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			if (!mChunksLoaded.IsCreated)
 			{
-				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
+				mChunksLoaded = new UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
 			}
-
 			mChunksLoaded[chunkIndex] = list;
 		}
 
@@ -274,16 +272,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			mChunkBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, chunks.Length, Marshal.SizeOf(typeof(ChunkVFX)));
 			mChunkBuffer.SetData(chunks);
-
-			//mRotationBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 6, Marshal.SizeOf(typeof(Vector3)));
-			//Vector3[] rotations = new Vector3[6];
-			//rotations[0] = new Vector3(90, 0, 0); //Good
-			//rotations[1] = new Vector3(0, -90, 0); //Good
-			//rotations[2] = new Vector3(270, 0, 0); //Good
-			//rotations[3] = new Vector3(0, 90, 0); //Good
-			//rotations[4] = new Vector3(0, 180, 0); //Good
-			//rotations[5] = new Vector3(0, 0, 0);	
-			//mRotationBuffer.SetData(rotations);
 		}
 
 		#endregion

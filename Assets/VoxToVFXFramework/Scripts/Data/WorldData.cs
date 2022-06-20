@@ -13,7 +13,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	public class WorldData : IDisposable
 	{
 		#region Fields
-		public UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> WorldDataPositions;
+		public UnsafeParallelHashMap<int, UnsafeParallelHashMap<int, VoxelData>> WorldDataPositions;
 		#endregion
 
 		#region ConstStatic
@@ -27,7 +27,7 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		public WorldData()
 		{
-			WorldDataPositions = new UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>>(256, Allocator.Persistent);
+			WorldDataPositions = new UnsafeParallelHashMap<int, UnsafeParallelHashMap<int, VoxelData>>(256, Allocator.Persistent);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -49,9 +49,9 @@ namespace VoxToVFXFramework.Scripts.Data
 				int chunkIndex = keys[index];
 				int3 chunkWorldPosition = GetChunkWorldPosition(chunkIndex);
 				Vector3 chunkCenterWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
-				UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
+				UnsafeParallelHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
 				
-				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
+				UnsafeParallelHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
 				NativeList<VoxelData> finalResultLod0 = ComputeRotation(resultLod0, WorldDataPositions, 1, chunkWorldPosition);
 
 				VoxelResult voxelResult = new VoxelResult
@@ -66,7 +66,7 @@ namespace VoxToVFXFramework.Scripts.Data
 				voxelResult.Data.Dispose();
 				yield return new WaitForEndOfFrame();
 
-				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, chunkWorldPosition, 2, 4);
+				UnsafeParallelHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, chunkWorldPosition, 2, 4);
 				NativeList<VoxelData> finalResultLod1 = ComputeRotation(resultLod1, WorldDataPositions, 2, chunkWorldPosition);
 				resultLod1.Dispose();
 				voxelResult.Data = finalResultLod1;
@@ -99,9 +99,9 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		#region PrivateMethods
 
-		private static UnsafeHashMap<int, VoxelData> ComputeLod(UnsafeHashMap<int, VoxelData> data, int3 worldChunkPosition, int step, int moduloCheck)
+		private static UnsafeParallelHashMap<int, VoxelData> ComputeLod(UnsafeParallelHashMap<int, VoxelData> data, int3 worldChunkPosition, int step, int moduloCheck)
 		{
-			UnsafeHashMap<int, VoxelData> resultLod1 = new UnsafeHashMap<int, VoxelData>(data.Count(), Allocator.TempJob);
+			UnsafeParallelHashMap<int, VoxelData> resultLod1 = new UnsafeParallelHashMap<int, VoxelData>(data.Count(), Allocator.TempJob);
 			ComputeLodJob computeLodJob = new ComputeLodJob()
 			{
 				VolumeSize = ChunkVolume,
@@ -117,7 +117,7 @@ namespace VoxToVFXFramework.Scripts.Data
 			return resultLod1;
 		}
 
-		private static NativeList<VoxelData> ComputeRotation(UnsafeHashMap<int, VoxelData> data, UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> worldDataPositions, int step, int3 worldChunkPosition)
+		private static NativeList<VoxelData> ComputeRotation(UnsafeParallelHashMap<int, VoxelData> data, UnsafeParallelHashMap<int, UnsafeParallelHashMap<int, VoxelData>> worldDataPositions, int step, int3 worldChunkPosition)
 		{
 			NativeArray<int> keys = data.GetKeyArray(Allocator.TempJob);
 			NativeList<VoxelData> result = new NativeList<VoxelData>(data.Count(), Allocator.TempJob);

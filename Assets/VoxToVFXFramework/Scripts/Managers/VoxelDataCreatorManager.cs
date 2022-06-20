@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
@@ -113,7 +115,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			{
 				yield return new WaitUntil(CanContinueReadFiles);
 			}
-			Task lastTask = ReadChunkDataFile(index, files[index]);
+			Task lastTask = ReadChunkDataFile(index, chunkVFX, files[index]);
 			mTaskList.Add(lastTask);
 		}
 
@@ -143,6 +145,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		NativeArray<ChunkVFX> chunks = new NativeArray<ChunkVFX>(chunkLength, Allocator.Persistent);
 		for (int i = 0; i < chunkLength; i++)
 		{
+
 			ChunkVFX chunkVFX = new ChunkVFX();
 			chunkVFX.ChunkIndex = reader.ReadInt32();
 			chunkVFX.LodLevel = reader.ReadInt32();
@@ -150,8 +153,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			chunkVFX.CenterWorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			chunkVFX.WorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			files.Add(reader.ReadString());
+
 			chunks[i] = chunkVFX;
 		}
+
 		RuntimeVoxManager.Instance.SetChunks(chunks);
 		int materialLength = reader.ReadInt32();
 
@@ -173,7 +178,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	}
 
 
-	private async Task ReadChunkDataFile(int chunkIndex, string filename)
+	private async Task ReadChunkDataFile(int chunkIndex, ChunkVFX chunk, string filename)
 	{
 		string filePath = Path.Combine(mCurrentInputFolder, filename);
 		byte[] data = await File.ReadAllBytesAsync(filePath);
@@ -182,9 +187,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			UnsafeList<VoxelVFX> chunk = VoxelDataConverter.Decode(chunkIndex, data);
-
-			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, chunk);
+			UnsafeList<VoxelVFX> voxels = VoxelDataConverter.Decode(chunkIndex, chunk, data);
+			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, voxels);
 			mReadCompleted++;
 			StartCoroutine(RefreshLoadProgressCo());
 		});

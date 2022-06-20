@@ -13,9 +13,9 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	public struct ComputeVoxelRotationJob : IJobParallelFor
 	{
 		[ReadOnly] public NativeArray<int> Keys;
-		[ReadOnly] public UnsafeHashMap<int, VoxelData> Data;
+		[ReadOnly] public UnsafeParallelHashMap<int, VoxelData> Data;
 		[ReadOnly] public NativeArray<VoxelMaterialVFX> Materials;
-		[ReadOnly] public UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> WorldDataPositions;
+		[ReadOnly] public UnsafeParallelHashMap<int, UnsafeParallelHashMap<int, VoxelData>> WorldDataPositions;
 		[ReadOnly] public int Step;
 
 		[ReadOnly] public int3 VolumeSize;
