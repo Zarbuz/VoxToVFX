@@ -4,17 +4,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
-using Unity.Transforms;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
-using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -187,7 +185,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			UnsafeList<VoxelVFX> voxels = VoxelDataConverter.Decode(chunkIndex, chunk, data);
+			UnsafeList<VoxelVFX> voxels = VoxelDataConverter.Decode(chunkIndex,chunk,  data);
 			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, voxels);
 			mReadCompleted++;
 			StartCoroutine(RefreshLoadProgressCo());
@@ -250,11 +248,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 
 		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.ChunkCenterWorldPosition.x}_{voxelResult.ChunkCenterWorldPosition.y}_{voxelResult.ChunkCenterWorldPosition.z}.data";
-
 		using (FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
 		{
 			using BinaryWriter binaryWriter = new BinaryWriter(stream);
 			binaryWriter.Write(voxelResult.Data.Length);
+
 			for (int i = 0; i < voxelResult.Data.Length; i++)
 			{
 				binaryWriter.Write(voxelResult.Data[i].PosX);
@@ -273,8 +271,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
 			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
-			//Length = sum
-			Length = voxelResult.Data.Length
+			Length = voxelResult.Data.Length,
 		};
 		mChunksWrited.Add(chunk);
 	}

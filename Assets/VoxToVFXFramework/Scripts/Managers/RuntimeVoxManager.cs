@@ -4,14 +4,20 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.System;
 using VoxToVFXFramework.Scripts.VFXItem;
+using Plane = UnityEngine.Plane;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -277,6 +283,32 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#endregion
 
 		#region PrivateMethods
+
+		private void CreateEntity(int posX, int posY, int posZ, BlobAssetReference<Unity.Physics.Collider> colliderBlobAssetReference, quaternion rotation, EntityArchetype entityArchetype)
+		{
+			EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+			Entity e = entityManager.CreateEntity(entityArchetype);
+			entityManager.SetComponentData(e, new Translation()
+			{
+				Value = new float3(posX, posY, posZ)
+			});
+
+			entityManager.SetComponentData(e, new Rotation()
+			{
+				Value = rotation
+			});
+
+			entityManager.SetComponentData(e, new RotationPivot()
+			{
+				Value = new float3(0, 0, 0.5f)
+			});
+
+			entityManager.SetComponentData(e, new PhysicsCollider()
+			{
+				Value = colliderBlobAssetReference
+			});
+		}
 
 		private void RefreshDebugLod()
 		{

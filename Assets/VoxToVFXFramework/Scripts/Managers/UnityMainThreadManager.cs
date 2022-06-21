@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using VoxToVFXFramework.Scripts.Singleton;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -50,9 +51,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		/// </summary>
 		/// <param name="action">function that will be executed from the main thread.</param>
 		/// <returns>A Task that can be awaited until the action completes</returns>
-		public System.Threading.Tasks.Task EnqueueAsync(Action action)
+		public Task EnqueueAsync(Action action)
 		{
-			var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+			TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
 			void WrappedAction()
 			{
