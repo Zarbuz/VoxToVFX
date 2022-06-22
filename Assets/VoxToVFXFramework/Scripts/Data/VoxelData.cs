@@ -63,6 +63,10 @@ namespace VoxToVFXFramework.Scripts.Data
 		Back = 32
 	}
 
+	public struct VoxelPrefabTag : IComponentData
+	{
+	}
+
 	public struct VoxelData
 	{
 		public byte PosX;

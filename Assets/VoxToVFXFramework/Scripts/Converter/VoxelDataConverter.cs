@@ -19,8 +19,7 @@ namespace VoxToVFXFramework.Scripts.Converter
 			int length = BitConverter.ToInt32(data, 0);
 			NativeArray<byte> convertedBytes = new NativeArray<byte>(data, Allocator.TempJob);
 			UnsafeList<VoxelVFX> list = new UnsafeList<VoxelVFX>(length, Allocator.Persistent);
-			PhysicsShapeQuerySystem physicsShapeQuerySystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsShapeQuerySystem>();
-			EndSimulationEntityCommandBufferSystem ecbSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+			
 			JobHandle job = new ImportVoxelDataJob()
 			{
 				Data = convertedBytes,
@@ -28,28 +27,6 @@ namespace VoxToVFXFramework.Scripts.Converter
 				ChunkIndex = chunkIndex,
 			}.Schedule(length, 64);
 			job.Complete();
-
-			if (chunk.LodLevel == 2)
-			{
-				EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-				EntityArchetype entityArchetype = entityManager.CreateArchetype(
-					typeof(Translation),
-					typeof(PhysicsCollider),
-					typeof(LocalToWorld),
-					typeof(PhysicsWorldIndex));
-
-				Entity prefab = entityManager.CreateEntity(entityArchetype);
-
-				JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
-				{
-					ECB = ecbSystem.CreateCommandBuffer().AsParallelWriter(),
-					Chunk = chunk,
-					Collider = physicsShapeQuerySystem.BlobAssetReference,
-					Data = list,
-					PrefabEntity = prefab
-				}.Schedule(list.Length, 64);
-				createPhysicsEntityJob.Complete();
-			}
 
 			convertedBytes.Dispose();
 			return list;

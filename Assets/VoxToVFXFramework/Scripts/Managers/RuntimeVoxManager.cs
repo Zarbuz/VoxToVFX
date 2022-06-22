@@ -1,5 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
+using System.Collections;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
@@ -42,7 +43,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public float MinDifferenceAngleCameraForRefresh = 10;
 		public float MinTimerCheckRotationCamera = 0.4f;
 
-		[Header("Exposure")] 
+		[Header("Exposure")]
 		public float ExposureWeight;
 		#endregion
 
@@ -74,6 +75,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Light mDirectionalLight;
 		private HDAdditionalLightData mAdditionalLightData;
 
+		private Entity mEntityPrefab;
+		private PhysicsShapeQuerySystem mPhysicsShapeQuerySystem;
+		private EndSimulationEntityCommandBufferSystem mEndSimulationEntityCommandBufferSystem;
+		private EntityManager mEntityManager;
+		private EntityArchetype mEntityArchetype;
+
 		private bool mIsLoaded;
 		private Transform mVisualItemsParent;
 
@@ -84,8 +91,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private int mPreviousPlayerChunkIndex;
 		private int mPreviousForcedLoadedChunks;
 		private bool mPreviousForceLoadAllChunks;
+		private int mCurrentChunkWorldIndex;
+		private int mCurrentChunkIndex;
 		private UnityEngine.Camera mCamera;
 		private Quaternion mPreviousRotation;
+		private Vector3 mPreviousPosition;
 		private float mPreviousCheckTimer;
 		#endregion
 
@@ -120,26 +130,36 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (mLodDistance != LodDistance)
 			{
 				mLodDistance = LodDistance;
-				RefreshLodsDistance();
+				RefreshChunksToRender();
 			}
 
 			if (mForcedLevelLod != ForcedLevelLod)
 			{
 				mForcedLevelLod = ForcedLevelLod;
-				RefreshLodsDistance();
+				RefreshChunksToRender();
 			}
 
 			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
-			int chunkIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
+			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
 			float angle = Quaternion.Angle(mCamera.transform.rotation, mPreviousRotation);
 			mPreviousCheckTimer += Time.unscaledDeltaTime;
-			if (mPreviousPlayerChunkIndex != chunkIndex || angle > MinDifferenceAngleCameraForRefresh && mPreviousCheckTimer >= MinTimerCheckRotationCamera)
+			bool isAnotherChunk = mPreviousPlayerChunkIndex != mCurrentChunkWorldIndex;
+			if (isAnotherChunk || angle > MinDifferenceAngleCameraForRefresh && mPreviousCheckTimer >= MinTimerCheckRotationCamera)
 			{
 				mPreviousCheckTimer = 0;
-				mPreviousPlayerChunkIndex = chunkIndex;
+				if (isAnotherChunk)
+				{
+					mPreviousPlayerChunkIndex = mCurrentChunkWorldIndex;
+				}
 				mPreviousRotation = mCamera.transform.rotation;
 				mPreviousForcedLoadedChunks = ForcedLevelLod;
-				RefreshLodsDistance();
+				RefreshChunksToRender();
+			}
+
+			if (Vector3.Distance(mCamera.transform.position , mPreviousPosition) > 1.5f)
+			{
+				mPreviousPosition = mCamera.transform.position;
+				RefreshChunksColliders();
 			}
 		}
 
@@ -217,11 +237,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
+		public void InitEntities()
+		{
+			mEntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			mEntityArchetype = mEntityManager.CreateArchetype(
+				typeof(Translation),
+				typeof(PhysicsCollider),
+				typeof(LocalToWorld),
+				typeof(PhysicsWorldIndex),
+				typeof(VoxelPrefabTag));
+
+			mPhysicsShapeQuerySystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsShapeQuerySystem>();
+			mEndSimulationEntityCommandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+		}
 
 		public void SetForceLODValue(int value)
 		{
 			ForcedLevelLod = value;
-			RefreshLodsDistance();
+			RefreshChunksToRender();
 		}
 
 		public void SetDebugLodValue(bool value)
@@ -233,7 +266,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void SetDisableCullingChunks(bool value)
 		{
 			ForceLoadAllChunks = value;
-			RefreshLodsDistance();
+			RefreshChunksToRender();
 		}
 
 		public void SetMaterials(VoxelMaterialVFX[] materials)
@@ -259,6 +292,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void OnChunkLoadedFinished()
 		{
+			InitEntities();
 			mVisualEffectItem = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
 			mVisualEffectItem.transform.SetParent(mVisualItemsParent);
 			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
@@ -324,7 +358,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffectItem.OpaqueVisualEffect.Play();
 		}
 
-		private void RefreshLodsDistance()
+		private void RefreshChunksToRender()
 		{
 			if (!Chunks.IsCreated)
 				return;
@@ -353,6 +387,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 					activeChunks.Add(chunkVFX);
 					chunkIndex.Add(index);
 				}
+
+				if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == 1)
+				{
+					mCurrentChunkIndex = index;
+				}
 			}
 			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
 			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
@@ -367,6 +406,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				Buffer = buffer.AsParallelWriter(),
 				ChunkIndex = chunkIndex,
 			}.Schedule(totalActive, 64);
+
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
 			chunkIndex.Dispose();
@@ -378,6 +418,29 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			buffer.Dispose();
+		}
+
+		private void RefreshChunksColliders()
+		{
+			ChunkVFX currentChunk = Chunks.First(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == 1);
+			EntityCommandBuffer ecb = mEndSimulationEntityCommandBufferSystem.CreateCommandBuffer();
+			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
+
+			mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
+			mEntityPrefab = mEntityManager.CreateEntity(mEntityArchetype);
+
+			JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
+			{
+				Chunk = currentChunk,
+				ECB = ecb.AsParallelWriter(),
+				PrefabEntity = mEntityPrefab,
+				Data = data,
+				Collider = mPhysicsShapeQuerySystem.BlobAssetReference,
+				PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
+				DistanceCheckVoxels = 5 //Move to params ? 
+			}.Schedule(data.Length, 64);
+
+			createPhysicsEntityJob.Complete();
 		}
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
