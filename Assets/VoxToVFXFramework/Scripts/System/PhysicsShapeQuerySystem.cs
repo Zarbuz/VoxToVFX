@@ -1,15 +1,27 @@
 ﻿using Unity.Entities;
 using Unity.Physics;
 using VoxToVFXFramework.Scripts.Components;
+using VoxToVFXFramework.Scripts.Managers;
 
 namespace VoxToVFXFramework.Scripts.System
 {
 	public partial class PhysicsShapeQuerySystem : SystemBase
 	{
-		public BlobAssetReference<Collider> ColliderLod1;
-		public BlobAssetReference<Collider> ColliderLod2;
-		public BlobAssetReference<Collider> ColliderLod4;
 		public EntityQuery EntityQuery;
+		private BlobAssetReference<Collider> mColliderLod1;
+		private BlobAssetReference<Collider> mColliderLod2;
+		private BlobAssetReference<Collider> mColliderLod4;
+
+		public BlobAssetReference<Collider> GetBlobAssetReference()
+		{
+			return RuntimeVoxManager.Instance.LodLevelForColliders switch
+			{
+				1 => mColliderLod1,
+				2 => mColliderLod2,
+				4 => mColliderLod4,
+				_ => mColliderLod1
+			};
+		}
 
 		protected override void OnStartRunning()
 		{
@@ -19,13 +31,13 @@ namespace VoxToVFXFramework.Scripts.System
 					switch (physicsRefTag.PhysicsRefIndex)
 					{
 						case 1:
-							ColliderLod1 = physicsCollider.Value;
+							mColliderLod1 = physicsCollider.Value;
 							break;
 						case 2:
-							ColliderLod2 = physicsCollider.Value;
+							mColliderLod2 = physicsCollider.Value;
 							break;
 						case 4:
-							ColliderLod4 = physicsCollider.Value;
+							mColliderLod4 = physicsCollider.Value;
 							break;
 					}
 				}).WithoutBurst()

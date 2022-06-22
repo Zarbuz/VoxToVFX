@@ -57,7 +57,7 @@ public class LightingPanelUI : MonoBehaviour
 
 	private void OnExposureWeightValueChanged(float value)
 	{
-		RuntimeVoxManager.Instance.SetExposureWeight(value);
+		RuntimeVoxManager.Instance.ExposureWeight = value;
 	}
 	#endregion
 }
