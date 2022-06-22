@@ -12,12 +12,13 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.VFX;
+using VoxToVFXFramework.Scripts.Components;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.System;
-using VoxToVFXFramework.Scripts.VFXItem;
 using Plane = UnityEngine.Plane;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -26,7 +27,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 	{
 		#region SerializeFields
 
-		[SerializeField] private VisualEffectItem VisualEffectItemPrefab;
+		[SerializeField] private VisualEffect VisualEffectItemPrefab;
 
 		[Header("Lods")]
 		public bool DebugLod;
@@ -66,7 +67,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public NativeArray<ChunkVFX> Chunks;
 
 		private UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
-		private VisualEffectItem mVisualEffectItem;
+		private VisualEffect mVisualEffect;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
 		private GraphicsBuffer mChunkBuffer;
@@ -215,9 +216,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mGraphicsBuffer = null;
 			mChunkBuffer = null;
 			//mRotationBuffer = null;
-			if (mVisualEffectItem != null)
+			if (mVisualEffect != null)
 			{
-				Destroy(mVisualEffectItem.gameObject);
+				Destroy(mVisualEffect.gameObject);
 			}
 
 			if (Chunks.IsCreated)
@@ -293,12 +294,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void OnChunkLoadedFinished()
 		{
 			InitEntities();
-			mVisualEffectItem = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
-			mVisualEffectItem.transform.SetParent(mVisualItemsParent);
-			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
+			mVisualEffect = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
+			mVisualEffect.transform.SetParent(mVisualItemsParent);
+			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
 			//mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
-			mVisualEffectItem.OpaqueVisualEffect.enabled = true;
+			mVisualEffect.enabled = true;
 
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
 			mCamera.transform.position = new Vector3(1000, 1000, 1000);
@@ -318,44 +319,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region PrivateMethods
 
-		private void CreateEntity(int posX, int posY, int posZ, BlobAssetReference<Unity.Physics.Collider> colliderBlobAssetReference, quaternion rotation, EntityArchetype entityArchetype)
-		{
-			EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-			Entity e = entityManager.CreateEntity(entityArchetype);
-			entityManager.SetComponentData(e, new Translation()
-			{
-				Value = new float3(posX, posY, posZ)
-			});
-
-			entityManager.SetComponentData(e, new Rotation()
-			{
-				Value = rotation
-			});
-
-			entityManager.SetComponentData(e, new RotationPivot()
-			{
-				Value = new float3(0, 0, 0.5f)
-			});
-
-			entityManager.SetComponentData(e, new PhysicsCollider()
-			{
-				Value = colliderBlobAssetReference
-			});
-		}
-
 		private void RefreshDebugLod()
 		{
-			mVisualEffectItem.OpaqueVisualEffect.Reinit();
-			mVisualEffectItem.OpaqueVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
-			mVisualEffectItem.OpaqueVisualEffect.Play();
+			mVisualEffect.Reinit();
+			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
+			mVisualEffect.Play();
 		}
 
 		private void RefreshExposureWeight()
 		{
-			mVisualEffectItem.OpaqueVisualEffect.Reinit();
-			mVisualEffectItem.OpaqueVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
-			mVisualEffectItem.OpaqueVisualEffect.Play();
+			mVisualEffect.Reinit();
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.Play();
 		}
 
 		private void RefreshChunksToRender()
@@ -422,7 +397,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void RefreshChunksColliders()
 		{
-			ChunkVFX currentChunk = Chunks.First(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == 1);
+			ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == 1).Cast<ChunkVFX?>().FirstOrDefault();
+			if (currentChunk == null)
+			{
+				mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
+				return;
+			}
 			EntityCommandBuffer ecb = mEndSimulationEntityCommandBufferSystem.CreateCommandBuffer();
 			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
 
@@ -431,11 +411,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
 			{
-				Chunk = currentChunk,
+				Chunk = currentChunk.Value,
 				ECB = ecb.AsParallelWriter(),
 				PrefabEntity = mEntityPrefab,
 				Data = data,
-				Collider = mPhysicsShapeQuerySystem.BlobAssetReference,
+				Collider = mPhysicsShapeQuerySystem.ColliderLod1,
 				PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
 				DistanceCheckVoxels = 5 //Move to params ? 
 			}.Schedule(data.Length, 64);
@@ -445,7 +425,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
 		{
-			mVisualEffectItem.OpaqueVisualEffect.Reinit();
+			mVisualEffect.Reinit();
 
 			//for (int index = 0; index < voxels.Length && index < 200; index++)
 			//{
@@ -458,9 +438,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Length, Marshal.SizeOf(typeof(VoxelVFX)));
 			mGraphicsBuffer.SetData(voxels.AsArray());
 
-			mVisualEffectItem.OpaqueVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, voxels.Length);
-			mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
-			mVisualEffectItem.OpaqueVisualEffect.Play();
+			mVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, voxels.Length);
+			mVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
+			mVisualEffect.Play();
 
 			mAdditionalLightData.RequestShadowMapRendering();
 		}
