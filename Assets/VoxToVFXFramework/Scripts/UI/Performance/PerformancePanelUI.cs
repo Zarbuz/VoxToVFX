@@ -54,10 +54,24 @@ public class PerformancePanelUI : MonoBehaviour
 	private void RefreshValues()
 	{
 		ForceLevelLODText.text = "Force Level LOD: " + RuntimeVoxManager.Instance.ForcedLevelLod;
+		MaxDistanceText.text = "Max Distance: " + RuntimeVoxManager.Instance.MaxDistanceColliders;
+		MaxDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.MaxDistanceColliders);
 		ForceLevelLODSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ForcedLevelLod);
 		ShowLODToggle.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.DebugLod);
+		switch (RuntimeVoxManager.Instance.LodLevelForColliders)
+		{
+			case 1:
+				PhysicsQualityDropdown.SetValueWithoutNotify(0);
+				break;
+			case 2:
+				PhysicsQualityDropdown.SetValueWithoutNotify(1);
+				break;
+			case 4:
+				PhysicsQualityDropdown.SetValueWithoutNotify(2);
+				break;
+		}
 	}
-		
+
 	private void OnForceLevelLODValueChanged(float value)
 	{
 		RuntimeVoxManager.Instance.ForcedLevelLod = ((int)value);

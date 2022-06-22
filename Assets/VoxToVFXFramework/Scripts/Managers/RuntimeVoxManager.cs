@@ -89,7 +89,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		private int mForcedLevelLod;
+		private int mForcedLevelLod = -1;
 
 		public int ForcedLevelLod
 		{
