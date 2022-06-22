@@ -38,7 +38,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int ForcedLevelLod;
 
 		public bool ShowOnlyActiveChunkGizmos;
-		public bool ForceLoadAllChunks;
 
 		[Header("Rotation")]
 		public float MinDifferenceAngleCameraForRefresh = 10;
@@ -90,8 +89,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private int mForcedLevelLod;
 
 		private int mPreviousPlayerChunkIndex;
-		private int mPreviousForcedLoadedChunks;
-		private bool mPreviousForceLoadAllChunks;
 		private int mCurrentChunkWorldIndex;
 		private int mCurrentChunkIndex;
 		private UnityEngine.Camera mCamera;
@@ -153,11 +150,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 					mPreviousPlayerChunkIndex = mCurrentChunkWorldIndex;
 				}
 				mPreviousRotation = mCamera.transform.rotation;
-				mPreviousForcedLoadedChunks = ForcedLevelLod;
 				RefreshChunksToRender();
 			}
 
-			if (Vector3.Distance(mCamera.transform.position , mPreviousPosition) > 1.5f)
+			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f)
 			{
 				mPreviousPosition = mCamera.transform.position;
 				RefreshChunksColliders();
@@ -264,12 +260,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			RefreshDebugLod();
 		}
 
-		public void SetDisableCullingChunks(bool value)
-		{
-			ForceLoadAllChunks = value;
-			RefreshChunksToRender();
-		}
-
 		public void SetMaterials(VoxelMaterialVFX[] materials)
 		{
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
@@ -338,24 +328,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!Chunks.IsCreated)
 				return;
 
-			if (ForceLoadAllChunks && mPreviousForceLoadAllChunks && mPreviousForcedLoadedChunks == ForcedLevelLod)
-			{
-				return;
-			}
-
 			NativeList<int> chunkIndex = new NativeList<int>(Allocator.TempJob);
 			NativeList<ChunkVFX> activeChunks = new NativeList<ChunkVFX>(Allocator.TempJob);
 			for (int index = 0; index < Chunks.Length; index++)
 			{
 				ChunkVFX chunkVFX = Chunks[index];
-				if (ForceLoadAllChunks)
-				{
-					chunkVFX.IsActive = 1;
-				}
-				else
-				{
-					chunkVFX.IsActive = GeometryUtility.TestPlanesAABB(mPlanes, new Bounds(Chunks[index].CenterWorldPosition, Vector3.one * WorldData.CHUNK_SIZE)) ? 1 : 0;
-				}
+
+				chunkVFX.IsActive = GeometryUtility.TestPlanesAABB(mPlanes, new Bounds(Chunks[index].CenterWorldPosition, Vector3.one * WorldData.CHUNK_SIZE)) ? 1 : 0;
 				Chunks[index] = chunkVFX;
 				if (chunkVFX.IsActive == 1)
 				{
@@ -385,7 +364,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
 			chunkIndex.Dispose();
-			mPreviousForceLoadAllChunks = ForceLoadAllChunks;
 
 			if (buffer.Length > 0)
 			{
