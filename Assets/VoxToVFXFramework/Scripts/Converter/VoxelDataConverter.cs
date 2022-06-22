@@ -29,16 +29,17 @@ namespace VoxToVFXFramework.Scripts.Converter
 			}.Schedule(length, 64);
 			job.Complete();
 
-			if (chunk.LodLevel == 1)
+			if (chunk.LodLevel == 2)
 			{
 				EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-				EntityArchetype entityArchetype = entityManager.CreateArchetype(typeof(Translation),
-					typeof(Rotation),
+				EntityArchetype entityArchetype = entityManager.CreateArchetype(
+					typeof(Translation),
 					typeof(PhysicsCollider),
-					typeof(LocalToWorld));
+					typeof(LocalToWorld),
+					typeof(PhysicsWorldIndex));
 
 				Entity prefab = entityManager.CreateEntity(entityArchetype);
-				
+
 				JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
 				{
 					ECB = ecbSystem.CreateCommandBuffer().AsParallelWriter(),
