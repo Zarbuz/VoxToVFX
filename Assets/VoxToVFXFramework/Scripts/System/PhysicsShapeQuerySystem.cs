@@ -12,9 +12,9 @@ namespace VoxToVFXFramework.Scripts.System
 		private BlobAssetReference<Collider> mColliderLod2;
 		private BlobAssetReference<Collider> mColliderLod4;
 
-		public BlobAssetReference<Collider> GetBlobAssetReference()
+		public BlobAssetReference<Collider> GetBlobAssetReference(int lodLevel)
 		{
-			return RuntimeVoxManager.Instance.LodLevelForColliders switch
+			return lodLevel switch
 			{
 				1 => mColliderLod1,
 				2 => mColliderLod2,

@@ -100,6 +100,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				{
 					mForcedLevelLod = value;
 					RefreshChunksToRender();
+					RefreshChunksColliders();
 				}
 			}
 		}
@@ -120,19 +121,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		}
 
 		private int mLodLevelForColliders = 1;
-
-		public int LodLevelForColliders
-		{
-			get => mLodLevelForColliders;
-			set
-			{
-				if (value != mLodLevelForColliders)
-				{
-					mLodLevelForColliders = value;
-					RefreshChunksColliders();
-				}
-			}
-		}
 
 
 		private float mExposureWeight;
@@ -424,15 +412,23 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
+			int lodLevel = ForcedLevelLod switch
+			{
+				0 => 1,
+				1 => 2,
+				2 => 4,
+				_ => 1
+			};
+
 			for (int index = 0; index < Chunks.Length; index++)
 			{
 				ChunkVFX chunkVFX = Chunks[index];
-				if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == LodLevelForColliders)
+				if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == lodLevel)
 				{
 					mCurrentChunkIndex = index;
 				}
 			}
-			ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == LodLevelForColliders).Cast<ChunkVFX?>().FirstOrDefault();
+			ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == lodLevel).Cast<ChunkVFX?>().FirstOrDefault();
 			if (currentChunk == null)
 			{
 				mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
@@ -450,7 +446,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				ECB = ecb.AsParallelWriter(),
 				PrefabEntity = mEntityPrefab,
 				Data = data,
-				Collider = mPhysicsShapeQuerySystem.GetBlobAssetReference(),
+				Collider = mPhysicsShapeQuerySystem.GetBlobAssetReference(currentChunk.Value.LodLevel),
 				PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
 				DistanceCheckVoxels = MaxDistanceColliders 
 			}.Schedule(data.Length, 64);

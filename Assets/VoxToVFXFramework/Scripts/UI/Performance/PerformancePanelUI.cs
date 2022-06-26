@@ -16,7 +16,6 @@ public class PerformancePanelUI : MonoBehaviour
 	[SerializeField] private GameObject ContentPanel;
 
 	[Header("Physics")]
-	[SerializeField] private TMP_Dropdown PhysicsQualityDropdown;
 	[SerializeField] private TextMeshProUGUI MaxDistanceText;
 	[SerializeField] private Slider MaxDistanceSlider;
 	#endregion
@@ -28,7 +27,6 @@ public class PerformancePanelUI : MonoBehaviour
 		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.AddListener(OnForceLevelLODValueChanged);
 		ShowLODToggle.onValueChanged.AddListener(OnShowLODValueChanged);
-		PhysicsQualityDropdown.onValueChanged.AddListener(OnPhysicsQualityValueChanged);
 		MaxDistanceSlider.onValueChanged.AddListener(OnMaxDistanceValueChanged);
 		RefreshValues();
 	}
@@ -38,7 +36,6 @@ public class PerformancePanelUI : MonoBehaviour
 		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.RemoveListener(OnForceLevelLODValueChanged);
 		ShowLODToggle.onValueChanged.RemoveListener(OnShowLODValueChanged);
-		PhysicsQualityDropdown.onValueChanged.RemoveListener(OnPhysicsQualityValueChanged);
 		MaxDistanceSlider.onValueChanged.RemoveListener(OnMaxDistanceValueChanged);
 	}
 
@@ -58,18 +55,6 @@ public class PerformancePanelUI : MonoBehaviour
 		MaxDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.MaxDistanceColliders);
 		ForceLevelLODSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ForcedLevelLod);
 		ShowLODToggle.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.DebugLod);
-		switch (RuntimeVoxManager.Instance.LodLevelForColliders)
-		{
-			case 1:
-				PhysicsQualityDropdown.SetValueWithoutNotify(0);
-				break;
-			case 2:
-				PhysicsQualityDropdown.SetValueWithoutNotify(1);
-				break;
-			case 4:
-				PhysicsQualityDropdown.SetValueWithoutNotify(2);
-				break;
-		}
 	}
 
 	private void OnForceLevelLODValueChanged(float value)
@@ -81,17 +66,6 @@ public class PerformancePanelUI : MonoBehaviour
 	private void OnShowLODValueChanged(bool value)
 	{
 		RuntimeVoxManager.Instance.DebugLod = value;
-	}
-
-	private void OnPhysicsQualityValueChanged(int index)
-	{
-		RuntimeVoxManager.Instance.LodLevelForColliders = index switch
-		{
-			0 => 1,
-			1 => 2,
-			2 => 4,
-			_ => RuntimeVoxManager.Instance.LodLevelForColliders
-		};
 	}
 
 	private void OnMaxDistanceValueChanged(float value)
