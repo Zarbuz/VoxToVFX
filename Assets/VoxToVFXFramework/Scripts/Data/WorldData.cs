@@ -14,6 +14,7 @@ namespace VoxToVFXFramework.Scripts.Data
 	{
 		#region Fields
 		public UnsafeParallelHashMap<int, UnsafeParallelHashMap<int, VoxelData>> WorldDataPositions;
+	
 		#endregion
 
 		#region ConstStatic

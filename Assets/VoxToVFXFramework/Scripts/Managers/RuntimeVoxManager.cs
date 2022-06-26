@@ -50,6 +50,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region Fields
 
 		public event Action LoadFinishedCallback;
+		public Vector2 MinMaxX { get; set; }
+		public Vector2 MinMaxY { get; set; }
+		public Vector2 MinMaxZ { get; set; }
 
 		[HideInInspector] public NativeArray<ChunkVFX> Chunks;
 
@@ -119,9 +122,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 				}
 			}
 		}
-
-		private int mLodLevelForColliders = 1;
-
 
 		private float mExposureWeight;
 
@@ -319,9 +319,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
 			//mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			mVisualEffect.enabled = true;
-
+			SetCameraToWorldCenter();
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
-			mCamera.transform.position = new Vector3(1000, 1000, 1000);
 			mIsLoaded = true;
 			LoadFinishedCallback?.Invoke();
 		}
@@ -337,6 +336,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#endregion
 
 		#region PrivateMethods
+
+		private void SetCameraToWorldCenter()
+		{
+			mCamera.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, (MinMaxY.y + MinMaxY.x) / 2 + 1, (MinMaxZ.y + MinMaxZ.x) / 2);
+		}
 
 		private void RefreshDebugLod()
 		{

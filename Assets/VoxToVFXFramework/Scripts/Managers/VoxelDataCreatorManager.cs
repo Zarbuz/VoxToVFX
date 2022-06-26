@@ -36,6 +36,13 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
 	private int mReadCompleted;
+
+	private int mMinX = int.MaxValue;
+	private int mMaxX = int.MinValue;
+	private int mMinY = int.MaxValue;
+	private int mMaxY = int.MinValue;
+	private int mMinZ = int.MaxValue;
+	private int mMaxZ = int.MinValue;
 	#endregion
 
 	#region PublicMethods
@@ -138,6 +145,19 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		List<string> files = new List<string>();
 		using FileStream stream = File.Open(filePath, FileMode.Open);
 		using BinaryReader reader = new BinaryReader(stream);
+
+		int minX = reader.ReadInt32();
+		int maxX = reader.ReadInt32();
+
+		int minY = reader.ReadInt32();
+		int maxY = reader.ReadInt32();
+
+		int minZ = reader.ReadInt32();
+		int maxZ = reader.ReadInt32();
+
+		RuntimeVoxManager.Instance.MinMaxX = new Vector2(minX, maxX);
+		RuntimeVoxManager.Instance.MinMaxY = new Vector2(minY, maxY);
+		RuntimeVoxManager.Instance.MinMaxZ = new Vector2(minZ, maxZ);
 		int chunkLength = reader.ReadInt32();
 
 		NativeArray<ChunkVFX> chunks = new NativeArray<ChunkVFX>(chunkLength, Allocator.Persistent);
@@ -260,8 +280,18 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				binaryWriter.Write(voxelResult.Data[i].PosZ);
 				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
 				binaryWriter.Write((short)voxelResult.Data[i].Face);
-			}
 
+				int worldPositionX = (int)(voxelResult.ChunkWorldPosition.x + voxelResult.Data[i].PosX);
+				int worldPositionY = (int)(voxelResult.ChunkWorldPosition.y + voxelResult.Data[i].PosY);
+				int worldPositionZ = (int)(voxelResult.ChunkWorldPosition.z + voxelResult.Data[i].PosZ);
+
+				mMinX = Mathf.Min(mMinX, worldPositionX);
+				mMaxX = Mathf.Max(mMaxX, worldPositionX);
+				mMinY = Mathf.Min(mMinY, worldPositionY);
+				mMaxY = Mathf.Max(mMaxY, worldPositionY);
+				mMinZ = Mathf.Min(mMinZ, worldPositionZ);
+				mMaxZ = Mathf.Max(mMaxZ, worldPositionZ);
+			}
 		}
 
 		ChunkDataFile chunk = new ChunkDataFile
@@ -280,6 +310,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		using FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, mInputFileName + ".structure"), FileMode.Create);
 		using BinaryWriter binaryWriter = new BinaryWriter(stream);
+		binaryWriter.Write(mMinX);
+		binaryWriter.Write(mMaxX);
+		binaryWriter.Write(mMinY);
+		binaryWriter.Write(mMaxY);
+		binaryWriter.Write(mMinZ);
+		binaryWriter.Write(mMaxZ);
 		binaryWriter.Write(mChunksWrited.Count);
 		foreach (ChunkDataFile chunk in mChunksWrited)
 		{

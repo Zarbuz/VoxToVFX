@@ -18,6 +18,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		public void Execute(int index)
 		{
 			Vector4 voxel = Voxels[index];
+
 			FastMath.FloorToInt(voxel.x / WorldData.CHUNK_SIZE, voxel.y / WorldData.CHUNK_SIZE, voxel.z / WorldData.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
 			int chunkIndex = VoxImporter.GetGridPos(chunkX, chunkY, chunkZ, WorldData.RelativeWorldVolume);
 			int xFinal = (int)(voxel.x % WorldData.CHUNK_SIZE);
