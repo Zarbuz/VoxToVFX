@@ -200,7 +200,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				RefreshChunksToRender();
 			}
 
-			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f)
+			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
 			{
 				mPreviousPosition = mCamera.transform.position;
 				RefreshChunksColliders();
@@ -416,46 +416,46 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			int lodLevel = ForcedLevelLod switch
-			{
-				0 => 1,
-				1 => 2,
-				2 => 4,
-				_ => 1
-			};
+			//int lodLevel = ForcedLevelLod switch
+			//{
+			//	0 => 1,
+			//	1 => 2,
+			//	2 => 4,
+			//	_ => 1
+			//};
 
-			for (int index = 0; index < Chunks.Length; index++)
-			{
-				ChunkVFX chunkVFX = Chunks[index];
-				if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == lodLevel)
-				{
-					mCurrentChunkIndex = index;
-				}
-			}
-			ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == lodLevel).Cast<ChunkVFX?>().FirstOrDefault();
-			if (currentChunk == null)
-			{
-				mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
-				return;
-			}
-			EntityCommandBuffer ecb = mEndSimulationEntityCommandBufferSystem.CreateCommandBuffer();
-			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
+			//for (int index = 0; index < Chunks.Length; index++)
+			//{
+			//	ChunkVFX chunkVFX = Chunks[index];
+			//	if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == lodLevel)
+			//	{
+			//		mCurrentChunkIndex = index;
+			//	}
+			//}
+			//ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == lodLevel).Cast<ChunkVFX?>().FirstOrDefault();
+			//if (currentChunk == null)
+			//{
+			//	mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
+			//	return;
+			//}
+			//EntityCommandBuffer ecb = mEndSimulationEntityCommandBufferSystem.CreateCommandBuffer();
+			//UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
 
-			mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
-			mEntityPrefab = mEntityManager.CreateEntity(mEntityArchetype);
+			//mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
+			//mEntityPrefab = mEntityManager.CreateEntity(mEntityArchetype);
 
-			JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
-			{
-				Chunk = currentChunk.Value,
-				ECB = ecb.AsParallelWriter(),
-				PrefabEntity = mEntityPrefab,
-				Data = data,
-				Collider = mPhysicsShapeQuerySystem.GetBlobAssetReference(currentChunk.Value.LodLevel),
-				PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
-				DistanceCheckVoxels = MaxDistanceColliders 
-			}.Schedule(data.Length, 64);
+			//JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
+			//{
+			//	Chunk = currentChunk.Value,
+			//	ECB = ecb.AsParallelWriter(),
+			//	PrefabEntity = mEntityPrefab,
+			//	Data = data,
+			//	Collider = mPhysicsShapeQuerySystem.GetBlobAssetReference(currentChunk.Value.LodLevel),
+			//	PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
+			//	DistanceCheckVoxels = MaxDistanceColliders 
+			//}.Schedule(data.Length, 64);
 
-			createPhysicsEntityJob.Complete();
+			//createPhysicsEntityJob.Complete();
 		}
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
