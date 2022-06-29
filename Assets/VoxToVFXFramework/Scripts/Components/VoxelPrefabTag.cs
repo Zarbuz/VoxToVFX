@@ -1,8 +1,8 @@
-﻿using Unity.Entities;
+﻿//using Unity.Entities;
 
-namespace VoxToVFXFramework.Scripts.Components
-{
-	public struct VoxelPrefabTag : IComponentData
-	{
-	}
-}
+//namespace VoxToVFXFramework.Scripts.Components
+//{
+//	public struct VoxelPrefabTag : IComponentData
+//	{
+//	}
+//}

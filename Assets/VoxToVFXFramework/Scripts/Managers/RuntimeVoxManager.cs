@@ -1,24 +1,17 @@
 ﻿using FileToVoxCore.Utils;
 using System;
-using System.Collections;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.VFX;
-using VoxToVFXFramework.Scripts.Components;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
-using VoxToVFXFramework.Scripts.System;
 using Plane = UnityEngine.Plane;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -56,7 +49,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		[HideInInspector] public NativeArray<ChunkVFX> Chunks;
 
-		private UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
+		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
+		//private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
 		private VisualEffect mVisualEffect;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
@@ -68,11 +62,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Light mDirectionalLight;
 		private HDAdditionalLightData mAdditionalLightData;
 
-		private Entity mEntityPrefab;
-		private PhysicsShapeQuerySystem mPhysicsShapeQuerySystem;
-		private EndSimulationEntityCommandBufferSystem mEndSimulationEntityCommandBufferSystem;
-		private EntityManager mEntityManager;
-		private EntityArchetype mEntityArchetype;
+		//private Entity mEntityPrefab;
+		//private PhysicsShapeQuerySystem mPhysicsShapeQuerySystem;
+		//private EndSimulationEntityCommandBufferSystem mEndSimulationEntityCommandBufferSystem;
+		//private EntityManager mEntityManager;
+		//private EntityArchetype mEntityArchetype;
 
 		private bool mIsLoaded;
 		private Transform mVisualItemsParent;
@@ -281,19 +275,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public void InitEntities()
-		{
-			mEntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			mEntityArchetype = mEntityManager.CreateArchetype(
-				typeof(Translation),
-				typeof(PhysicsCollider),
-				typeof(LocalToWorld),
-				typeof(PhysicsWorldIndex),
-				typeof(VoxelPrefabTag));
+		//public void InitEntities()
+		//{
+		//	mEntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+		//	mEntityArchetype = mEntityManager.CreateArchetype(
+		//		typeof(Translation),
+		//		typeof(PhysicsCollider),
+		//		typeof(LocalToWorld),
+		//		typeof(PhysicsWorldIndex),
+		//		typeof(VoxelPrefabTag));
 
-			mPhysicsShapeQuerySystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsShapeQuerySystem>();
-			mEndSimulationEntityCommandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-		}
+		//	mPhysicsShapeQuerySystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsShapeQuerySystem>();
+		//	mEndSimulationEntityCommandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+		//}
 
 		public void SetMaterials(VoxelMaterialVFX[] materials)
 		{
@@ -305,14 +299,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			if (!mChunksLoaded.IsCreated)
 			{
-				mChunksLoaded = new UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
+				mChunksLoaded = new UnsafeHashMap<int, UnsafeList<VoxelVFX>>(Chunks.Length, Allocator.Persistent);
 			}
 			mChunksLoaded[chunkIndex] = list;
 		}
 
 		public void OnChunkLoadedFinished()
 		{
-			InitEntities();
+			//InitEntities();
 			mVisualEffect = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
 			mVisualEffect.transform.SetParent(mVisualItemsParent);
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);

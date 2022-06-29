@@ -17,8 +17,8 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public int ModuloCheck;
 		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public int3 WorldChunkPosition;
-		[ReadOnly] public UnsafeParallelHashMap<int, VoxelData> Data;
-		public UnsafeParallelHashMap<int, VoxelData>.ParallelWriter Result;
+		[ReadOnly] public UnsafeHashMap<int, VoxelData> Data;
+		public UnsafeHashMap<int, VoxelData>.ParallelWriter Result;
 		public void Execute(int z)
 		{
 			if (z % ModuloCheck != 0)
