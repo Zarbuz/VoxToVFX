@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Security;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Entities;
 using Unity.Jobs;
+using Unity.Physics;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Jobs;
 
@@ -11,17 +11,17 @@ namespace VoxToVFXFramework.Scripts.Converter
 {
 	public static class VoxelDataConverter
 	{
-		public static UnsafeList<VoxelVFX> Decode(int chunkIndex, byte[] data)
+		public static UnsafeList<VoxelVFX> Decode(int chunkIndex, ChunkVFX chunk, byte[] data)
 		{
 			int length = BitConverter.ToInt32(data, 0);
 			NativeArray<byte> convertedBytes = new NativeArray<byte>(data, Allocator.TempJob);
 			UnsafeList<VoxelVFX> list = new UnsafeList<VoxelVFX>(length, Allocator.Persistent);
-
-			JobHandle job = new VoxelDataConverterJob()
+			
+			JobHandle job = new ImportVoxelDataJob()
 			{
 				Data = convertedBytes,
 				Result = list.AsParallelWriter(),
-				ChunkIndex = chunkIndex
+				ChunkIndex = chunkIndex,
 			}.Schedule(length, 64);
 			job.Complete();
 
@@ -31,7 +31,7 @@ namespace VoxToVFXFramework.Scripts.Converter
 
 		public static int ToInt32(NativeArray<byte> data, int startIndex)
 		{
-			return data[startIndex] | data[startIndex+1] << 8 | data[startIndex+2] << 16 | data[startIndex+3] << 24;
+			return data[startIndex] | data[startIndex + 1] << 8 | data[startIndex + 2] << 16 | data[startIndex + 3] << 24;
 		}
 
 		public static short ToInt16(NativeArray<byte> data, int startIndex)

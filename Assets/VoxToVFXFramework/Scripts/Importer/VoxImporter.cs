@@ -3,6 +3,7 @@ using FileToVoxCore.Vox.Chunks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
@@ -160,7 +161,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			{
 				Color c = mVoxModel.Palette[i];
 				VoxelMaterialVFX material = new VoxelMaterialVFX();
-				material.color = new Vector3(c.R / (float)255, c.G / (float)255, c.B / (float)255);
+				material.color = new UnityEngine.Color(c.R / (float)255, c.G / (float)255, c.B / (float)255);
 				materials[i] = material;
 			}
 
@@ -168,19 +169,38 @@ namespace VoxToVFXFramework.Scripts.Importer
 			{
 				MaterialChunk materialChunk = mVoxModel.MaterialChunks[i];
 				VoxelMaterialVFX material = materials[i];
-				material.emission = materialChunk.Emission == 0 ? 1 : materialChunk.Emission * 10;
-				material.smoothness = materialChunk.Rough;
-				material.metallic = materialChunk.Metallic;
-				material.alpha = materialChunk.Alpha;
-
-				//TODO: Support real values
-				if (materialChunk.Type == MaterialType._glass || materialChunk.Type == MaterialType._media)
+				material.alpha = 1; //By default the material is opaque
+				switch (materialChunk.Type)
 				{
-					material.metallic = 0.2f;
-					material.smoothness = 1f;
-					material.alpha = 0.3f;
-				}
+					case MaterialType._diffuse:
+						break;
+					case MaterialType._metal:
+						material.metallic = materialChunk.Metal;
+						material.smoothness = materialChunk.Smoothness;
+						break;
+					case MaterialType._glass:
+						material.alpha = 1f - materialChunk.Alpha;
+						material.smoothness = materialChunk.Smoothness;
+						break;
+					case MaterialType._emit:
+						material.emission = UnityEngine.Color.Lerp(UnityEngine.Color.black, UnityEngine.Color.white, materialChunk.Emit);
+						material.emissionPower = Mathf.Lerp(2f, 12f, materialChunk.Flux / 4f);
+						break;
+					case MaterialType._media:
+						material.alpha = 1f - materialChunk.Alpha;
+						materialChunk.Properties.TryGetValue("_d", out string _d);
+						float.TryParse(_d, NumberStyles.Any, CultureInfo.InvariantCulture, out float density);
+						material.alpha *= density * 10f;
+						break;
 
+					case MaterialType._blend:
+						material.alpha = 1f - materialChunk.Alpha;
+						material.metallic = materialChunk.Metal;
+						material.smoothness = materialChunk.Smoothness;
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
 				materials[i] = material;
 			}
 

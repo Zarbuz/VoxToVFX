@@ -11,10 +11,13 @@ public class PerformancePanelUI : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI ForceLevelLODText;
 	[SerializeField] private Slider ForceLevelLODSlider;
 
+	[Header("Rendering")]
 	[SerializeField] private Toggle ShowLODToggle;
-	[SerializeField] private Toggle ForceLoadAllChunkToggle;
 	[SerializeField] private GameObject ContentPanel;
 
+	[Header("Physics")]
+	[SerializeField] private TextMeshProUGUI MaxDistanceText;
+	[SerializeField] private Slider MaxDistanceSlider;
 	#endregion
 
 	#region UnityMethods
@@ -24,7 +27,7 @@ public class PerformancePanelUI : MonoBehaviour
 		TogglePanelButton.onClick.AddListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.AddListener(OnForceLevelLODValueChanged);
 		ShowLODToggle.onValueChanged.AddListener(OnShowLODValueChanged);
-		ForceLoadAllChunkToggle.onValueChanged.AddListener(OnForceLoadAllChunksChunks);
+		MaxDistanceSlider.onValueChanged.AddListener(OnMaxDistanceValueChanged);
 		RefreshValues();
 	}
 
@@ -33,7 +36,7 @@ public class PerformancePanelUI : MonoBehaviour
 		TogglePanelButton.onClick.RemoveListener(OnTogglePanelClicked);
 		ForceLevelLODSlider.onValueChanged.RemoveListener(OnForceLevelLODValueChanged);
 		ShowLODToggle.onValueChanged.RemoveListener(OnShowLODValueChanged);
-		ForceLoadAllChunkToggle.onValueChanged.RemoveListener(OnForceLoadAllChunksChunks);
+		MaxDistanceSlider.onValueChanged.RemoveListener(OnMaxDistanceValueChanged);
 	}
 
 	#endregion
@@ -48,28 +51,27 @@ public class PerformancePanelUI : MonoBehaviour
 	private void RefreshValues()
 	{
 		ForceLevelLODText.text = "Force Level LOD: " + RuntimeVoxManager.Instance.ForcedLevelLod;
+		MaxDistanceText.text = "Max Distance: " + RuntimeVoxManager.Instance.MaxDistanceColliders;
+		MaxDistanceSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.MaxDistanceColliders);
 		ForceLevelLODSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ForcedLevelLod);
 		ShowLODToggle.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.DebugLod);
-		ShowLODToggle.SetIsOnWithoutNotify(RuntimeVoxManager.Instance.ForceLoadAllChunks);
-		ForceLoadAllChunkToggle.transform.parent.gameObject.SetActive(RuntimeVoxManager.Instance.ForcedLevelLod >= 0);
-
 	}
 
 	private void OnForceLevelLODValueChanged(float value)
 	{
-		RuntimeVoxManager.Instance.SetForceLODValue((int)value);
+		RuntimeVoxManager.Instance.ForcedLevelLod = ((int)value);
 		ForceLevelLODText.text = "Force Level LOD: " + value;
-		ForceLoadAllChunkToggle.transform.parent.gameObject.SetActive(value >= 0);
 	}
 
 	private void OnShowLODValueChanged(bool value)
 	{
-		RuntimeVoxManager.Instance.SetDebugLodValue(value);
+		RuntimeVoxManager.Instance.DebugLod = value;
 	}
 
-	private void OnForceLoadAllChunksChunks(bool value)
+	private void OnMaxDistanceValueChanged(float value)
 	{
-		RuntimeVoxManager.Instance.SetDisableCullingChunks(value);
+		RuntimeVoxManager.Instance.MaxDistanceColliders = (int)value;
+		MaxDistanceText.text = "Max Distance: " + (int)value;
 	}
 	#endregion
 }

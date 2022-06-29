@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Converter;
 using VoxToVFXFramework.Scripts.Data;
-using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -36,6 +36,13 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
 	private int mReadCompleted;
+
+	private int mMinX = int.MaxValue;
+	private int mMaxX = int.MinValue;
+	private int mMinY = int.MaxValue;
+	private int mMaxY = int.MinValue;
+	private int mMinZ = int.MaxValue;
+	private int mMaxZ = int.MinValue;
 	#endregion
 
 	#region PublicMethods
@@ -113,7 +120,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			{
 				yield return new WaitUntil(CanContinueReadFiles);
 			}
-			Task lastTask = ReadChunkDataFile(index, files[index]);
+			Task lastTask = ReadChunkDataFile(index, chunkVFX, files[index]);
 			mTaskList.Add(lastTask);
 		}
 
@@ -138,11 +145,25 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		List<string> files = new List<string>();
 		using FileStream stream = File.Open(filePath, FileMode.Open);
 		using BinaryReader reader = new BinaryReader(stream);
+
+		int minX = reader.ReadInt32();
+		int maxX = reader.ReadInt32();
+
+		int minY = reader.ReadInt32();
+		int maxY = reader.ReadInt32();
+
+		int minZ = reader.ReadInt32();
+		int maxZ = reader.ReadInt32();
+
+		RuntimeVoxManager.Instance.MinMaxX = new Vector2(minX, maxX);
+		RuntimeVoxManager.Instance.MinMaxY = new Vector2(minY, maxY);
+		RuntimeVoxManager.Instance.MinMaxZ = new Vector2(minZ, maxZ);
 		int chunkLength = reader.ReadInt32();
 
 		NativeArray<ChunkVFX> chunks = new NativeArray<ChunkVFX>(chunkLength, Allocator.Persistent);
 		for (int i = 0; i < chunkLength; i++)
 		{
+
 			ChunkVFX chunkVFX = new ChunkVFX();
 			chunkVFX.ChunkIndex = reader.ReadInt32();
 			chunkVFX.LodLevel = reader.ReadInt32();
@@ -150,8 +171,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			chunkVFX.CenterWorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			chunkVFX.WorldPosition = new Vector3(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 			files.Add(reader.ReadString());
+
 			chunks[i] = chunkVFX;
 		}
+
 		RuntimeVoxManager.Instance.SetChunks(chunks);
 		int materialLength = reader.ReadInt32();
 
@@ -159,8 +182,9 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		for (int i = 0; i < materialLength; i++)
 		{
 			VoxelMaterialVFX mat = new VoxelMaterialVFX();
-			mat.color = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-			mat.emission = reader.ReadSingle();
+			mat.color = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			mat.emission = new Color(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+			mat.emissionPower = reader.ReadSingle();
 			mat.metallic = reader.ReadSingle();
 			mat.smoothness = reader.ReadSingle();
 			mat.alpha = reader.ReadSingle();
@@ -172,7 +196,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	}
 
 
-	private async Task ReadChunkDataFile(int chunkIndex, string filename)
+	private async Task ReadChunkDataFile(int chunkIndex, ChunkVFX chunk, string filename)
 	{
 		string filePath = Path.Combine(mCurrentInputFolder, filename);
 		byte[] data = await File.ReadAllBytesAsync(filePath);
@@ -181,9 +205,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 		{
-			UnsafeList<VoxelVFX> chunk = VoxelDataConverter.Decode(chunkIndex, data);
-
-			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, chunk);
+			UnsafeList<VoxelVFX> voxels = VoxelDataConverter.Decode(chunkIndex,chunk,  data);
+			RuntimeVoxManager.Instance.SetVoxelChunk(chunkIndex, voxels);
 			mReadCompleted++;
 			StartCoroutine(RefreshLoadProgressCo());
 		});
@@ -245,11 +268,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 
 		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.ChunkCenterWorldPosition.x}_{voxelResult.ChunkCenterWorldPosition.y}_{voxelResult.ChunkCenterWorldPosition.z}.data";
-
 		using (FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
 		{
 			using BinaryWriter binaryWriter = new BinaryWriter(stream);
 			binaryWriter.Write(voxelResult.Data.Length);
+
 			for (int i = 0; i < voxelResult.Data.Length; i++)
 			{
 				binaryWriter.Write(voxelResult.Data[i].PosX);
@@ -257,8 +280,18 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 				binaryWriter.Write(voxelResult.Data[i].PosZ);
 				binaryWriter.Write(voxelResult.Data[i].ColorIndex);
 				binaryWriter.Write((short)voxelResult.Data[i].Face);
-			}
 
+				int worldPositionX = (int)(voxelResult.ChunkWorldPosition.x + voxelResult.Data[i].PosX);
+				int worldPositionY = (int)(voxelResult.ChunkWorldPosition.y + voxelResult.Data[i].PosY);
+				int worldPositionZ = (int)(voxelResult.ChunkWorldPosition.z + voxelResult.Data[i].PosZ);
+
+				mMinX = Mathf.Min(mMinX, worldPositionX);
+				mMaxX = Mathf.Max(mMaxX, worldPositionX);
+				mMinY = Mathf.Min(mMinY, worldPositionY);
+				mMaxY = Mathf.Max(mMaxY, worldPositionY);
+				mMinZ = Mathf.Min(mMinZ, worldPositionZ);
+				mMaxZ = Mathf.Max(mMaxZ, worldPositionZ);
+			}
 		}
 
 		ChunkDataFile chunk = new ChunkDataFile
@@ -268,8 +301,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			WorldCenterPosition = voxelResult.ChunkCenterWorldPosition,
 			WorldPosition = voxelResult.ChunkWorldPosition,
 			LodLevel = voxelResult.LodLevel,
-			//Length = sum
-			Length = voxelResult.Data.Length
+			Length = voxelResult.Data.Length,
 		};
 		mChunksWrited.Add(chunk);
 	}
@@ -278,6 +310,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		using FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, mInputFileName + ".structure"), FileMode.Create);
 		using BinaryWriter binaryWriter = new BinaryWriter(stream);
+		binaryWriter.Write(mMinX);
+		binaryWriter.Write(mMaxX);
+		binaryWriter.Write(mMinY);
+		binaryWriter.Write(mMaxY);
+		binaryWriter.Write(mMinZ);
+		binaryWriter.Write(mMaxZ);
 		binaryWriter.Write(mChunksWrited.Count);
 		foreach (ChunkDataFile chunk in mChunksWrited)
 		{
@@ -297,10 +335,13 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		for (int i = 0; i < VoxImporter.Materials.Length; i++)
 		{
 			VoxelMaterialVFX mat = VoxImporter.Materials[i];
-			binaryWriter.Write(mat.color.x);
-			binaryWriter.Write(mat.color.y);
-			binaryWriter.Write(mat.color.z);
-			binaryWriter.Write(mat.emission);
+			binaryWriter.Write(mat.color.r);
+			binaryWriter.Write(mat.color.g);
+			binaryWriter.Write(mat.color.b);
+			binaryWriter.Write(mat.emission.r);
+			binaryWriter.Write(mat.emission.g);
+			binaryWriter.Write(mat.emission.b);
+			binaryWriter.Write(mat.emissionPower);
 			binaryWriter.Write(mat.metallic);
 			binaryWriter.Write(mat.smoothness);
 			binaryWriter.Write(mat.alpha);

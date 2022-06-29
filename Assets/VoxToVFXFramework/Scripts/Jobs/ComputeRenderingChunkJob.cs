@@ -15,7 +15,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public NativeArray<ChunkVFX> Chunks;
 		[ReadOnly] public Vector3 LodDistance;
 		[ReadOnly] public int ForcedLevelLod;
-		[ReadOnly] public UnsafeHashMap<int, UnsafeList<VoxelVFX>> Data;
+		[ReadOnly] public UnsafeParallelHashMap<int, UnsafeList<VoxelVFX>> Data;
 		[ReadOnly] public Vector3 CameraPosition;
 		public NativeList<VoxelVFX>.ParallelWriter Buffer;
 
