@@ -45,6 +45,16 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private int mMaxZ = int.MinValue;
 	#endregion
 
+	#region UnityMethods
+
+	private void OnApplicationQuit()
+	{
+		VoxImporter.Dispose();
+		VoxImporter.DisposeMaterials();
+	}
+
+	#endregion
+
 	#region PublicMethods
 
 	public void CreateZipFile(string inputPath, string outputPath)

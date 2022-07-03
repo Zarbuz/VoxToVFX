@@ -8,6 +8,7 @@ using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.VFX;
+using VoxToVFXFramework.Scripts.Core;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
@@ -71,81 +72,28 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private bool mIsLoaded;
 		private Transform mVisualItemsParent;
 
-		private bool mDebugLog;
+		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
 
-		public bool DebugLod
-		{
-			get => mDebugLog;
-			set
-			{
-				if (mDebugLog != value)
-				{
-					mDebugLog = value;
-					RefreshDebugLod();
-				}
-			}
-		}
+		public Wrapped<int> ForcedLevelLod = new Wrapped<int>(-1);
 
-		private int mForcedLevelLod = -1;
+		public Wrapped<Vector3> LodDistance = new Wrapped<Vector3>(new Vector3(0, 300, 600));
 
-		public int ForcedLevelLod
-		{
-			get => mForcedLevelLod;
-			set
-			{
-				if (mForcedLevelLod != value)
-				{
-					mForcedLevelLod = value;
-					RefreshChunksToRender();
-					RefreshChunksColliders();
-				}
-			}
-		}
+		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
 
-		private Vector3 mLodDistance = new Vector3(0, 300, 600);
+		//private int mMaxDistanceColliders = 5;
 
-		public Vector3 LodDistance
-		{
-			get => mLodDistance;
-			set
-			{
-				if (mLodDistance != value)
-				{
-					mLodDistance = value;
-					RefreshChunksToRender();
-				}
-			}
-		}
-
-		private float mExposureWeight;
-
-		public float ExposureWeight
-		{
-			get => mExposureWeight;
-			set
-			{
-				if (value != mExposureWeight)
-				{
-					mExposureWeight = value;
-					RefreshExposureWeight();
-				}
-			}
-		}
-
-		private int mMaxDistanceColliders = 5;
-
-		public int MaxDistanceColliders
-		{
-			get => mMaxDistanceColliders;
-			set
-			{
-				if (mMaxDistanceColliders != value)
-				{
-					mMaxDistanceColliders = value;
-					RefreshChunksColliders();
-				}
-			}
-		}
+		//public int MaxDistanceColliders
+		//{
+		//	get => mMaxDistanceColliders;
+		//	set
+		//	{
+		//		if (mMaxDistanceColliders != value)
+		//		{
+		//			mMaxDistanceColliders = value;
+		//			RefreshChunksColliders();
+		//		}
+		//	}
+		//}
 
 		private int mPreviousPlayerChunkIndex;
 		private int mCurrentChunkWorldIndex;
@@ -164,10 +112,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 			mDirectionalLight = FindObjectOfType<Light>();
 			mAdditionalLightData = mDirectionalLight.GetComponent<HDAdditionalLightData>();
+
+
+			ExposureWeight.OnValueChanged += RefreshExposureWeight;
+			DebugLod.OnValueChanged += RefreshDebugLod;
+			LodDistance.OnValueChanged += RefreshChunksToRender;
+			ForcedLevelLod.OnValueChanged += RefreshChunksToRender;
 		}
 
 		private void OnDestroy()
 		{
+
+			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
+			DebugLod.OnValueChanged -= RefreshDebugLod;
+			LodDistance.OnValueChanged -= RefreshChunksToRender;
+			ForcedLevelLod.OnValueChanged -= RefreshChunksToRender;
+
 			Release();
 		}
 
@@ -229,10 +189,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 
 			Gizmos.color = Color.green;
-			Gizmos.DrawWireSphere(position, LodDistance.y);
+			Gizmos.DrawWireSphere(position, LodDistance.Value.y);
 
 			Gizmos.color = Color.yellow;
-			Gizmos.DrawWireSphere(position, LodDistance.z);
+			Gizmos.DrawWireSphere(position, LodDistance.Value.z);
 
 			//Gizmos.color = Color.red;
 			//Gizmos.DrawWireSphere(position, LodDistance.w);
@@ -343,7 +303,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mVisualEffect.Reinit();
-			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod);
+			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod.Value);
 			mVisualEffect.Play();
 		}
 
@@ -354,7 +314,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mVisualEffect.Reinit();
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.Play();
 		}
 
@@ -382,8 +342,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
 			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
 			{
-				LodDistance = LodDistance,
-				ForcedLevelLod = ForcedLevelLod,
+				LodDistance = LodDistance.Value,
+				ForcedLevelLod = ForcedLevelLod.Value,
 				CameraPosition = mCamera.transform.position,
 				Data = mChunksLoaded,
 				Chunks = activeChunks,

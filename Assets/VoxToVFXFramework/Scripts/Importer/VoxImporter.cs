@@ -123,7 +123,6 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		private static void InitShapeModelCounts()
 		{
-
 			foreach (ShapeModel shapeModel in mVoxModel.ShapeNodeChunks.SelectMany(shapeNodeChunk => shapeNodeChunk.Models))
 			{
 				if (!mShapeModelCounts.ContainsKey(shapeModel.ModelId))
@@ -137,14 +136,20 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		public static void DisposeMaterials()
 		{
-			Materials.Dispose();
+			if (Materials.IsCreated)
+			{
+				Materials.Dispose();
+			}
 		}
 
-		private static void Dispose()
+		public static void Dispose()
 		{
-			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
+			if (mVoxModel != null)
 			{
-				voxelDataCustom.VoxelNativeArray.Dispose();
+				foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
+				{
+					voxelDataCustom.VoxelNativeArray.Dispose();
+				}
 			}
 
 			mShapeModelCounts.Clear();
@@ -187,16 +192,30 @@ namespace VoxToVFXFramework.Scripts.Importer
 						material.emissionPower = Mathf.Lerp(2f, 12f, materialChunk.Flux / 4f);
 						break;
 					case MaterialType._media:
-						material.alpha = 1f - materialChunk.Alpha;
-						materialChunk.Properties.TryGetValue("_d", out string _d);
-						float.TryParse(_d, NumberStyles.Any, CultureInfo.InvariantCulture, out float density);
-						material.alpha *= density * 10f;
+						{
+							material.alpha = 1f - materialChunk.Alpha;
+							materialChunk.Properties.TryGetValue("_d", out string _d);
+							float.TryParse(_d, NumberStyles.Any, CultureInfo.InvariantCulture, out float density);
+							material.alpha *= density * 10f;
+						}
+
 						break;
 
 					case MaterialType._blend:
-						material.alpha = 1f - materialChunk.Alpha;
-						material.metallic = materialChunk.Metal;
-						material.smoothness = materialChunk.Smoothness;
+						{
+							//material.alpha = 1f - materialChunk.Alpha; //No alpha for Blend for now
+							material.metallic = materialChunk.Metal;
+							material.smoothness = materialChunk.Smoothness;
+							if (materialChunk.Properties.TryGetValue("_media_type", out string mediaType) && mediaType == "_emit")
+							{
+								materialChunk.Properties.TryGetValue("_d", out string _d);
+								float.TryParse(_d, NumberStyles.Any, CultureInfo.InvariantCulture, out float density);
+
+								material.emission = UnityEngine.Color.Lerp(UnityEngine.Color.black, UnityEngine.Color.white, materialChunk.Emit);
+								material.emissionPower = density * 10f;
+							}
+						}
+
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
