@@ -1,7 +1,9 @@
 ﻿using FileToVoxCore.Utils;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using FileToVoxCore.Vox;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -113,6 +115,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mDirectionalLight = FindObjectOfType<Light>();
 			mAdditionalLightData = mDirectionalLight.GetComponent<HDAdditionalLightData>();
 
+			AssemblyFileVersionAttribute runtimeVersion = typeof(VoxModel)
+				.GetTypeInfo()
+				.Assembly
+				.GetCustomAttribute<AssemblyFileVersionAttribute>();
+
+			Debug.Log("FileToVoxCore version: " + runtimeVersion.Version);
 
 			ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;

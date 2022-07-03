@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -29,9 +30,9 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private string mOutputPath;
 	private string mInputFileName;
+	private VoxImporter mImporter;
 
 	private string mCurrentInputFolder;
-	private WorldData mWorldData;
 	private readonly List<ChunkDataFile> mChunksWrited = new List<ChunkDataFile>();
 	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
@@ -49,8 +50,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private void OnApplicationQuit()
 	{
-		VoxImporter.Dispose();
-		VoxImporter.DisposeMaterials();
+		mImporter?.Dispose();
 	}
 
 	#endregion
@@ -63,7 +63,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		mOutputPath = outputPath;
 		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		mChunksWrited.Clear();
-		StartCoroutine(VoxImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
+		mImporter = new VoxImporter();
+		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
 	}
 
 	public void ReadZipFile(string inputPath)
@@ -200,8 +201,15 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			mat.alpha = reader.ReadSingle();
 			materials[i] = mat;
 		}
-
 		RuntimeVoxManager.Instance.SetMaterials(materials);
+
+		//Edge settings
+		int edgeR = reader.ReadInt32();
+		int edgeG = reader.ReadInt32();
+		int edgeB = reader.ReadInt32();
+		float width = reader.ReadSingle();
+
+		PostProcessingManager.Instance.SetEdgePostProcess(width, new Color(edgeR / (float)255, edgeG / (float)255, edgeB / (float)255));
 		return files;
 	}
 
@@ -235,7 +243,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			return;
 		}
 
-		mWorldData = worldData;
 		Debug.Log("[RuntimeVoxController] OnVoxLoadFinished");
 		string tmpPath = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (!Directory.Exists(tmpPath))
@@ -246,6 +253,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		{
 			CleanFolder(tmpPath);
 		}
+
 		StartCoroutine(worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
 	}
 
@@ -341,10 +349,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(chunk.Filename);
 		}
 
-		binaryWriter.Write(VoxImporter.Materials.Length);
-		for (int i = 0; i < VoxImporter.Materials.Length; i++)
+		binaryWriter.Write(mImporter.WorldData.Materials.Length);
+		for (int i = 0; i < mImporter.WorldData.Materials.Length; i++)
 		{
-			VoxelMaterialVFX mat = VoxImporter.Materials[i];
+			VoxelMaterialVFX mat = mImporter.WorldData.Materials[i];
 			binaryWriter.Write(mat.color.r);
 			binaryWriter.Write(mat.color.g);
 			binaryWriter.Write(mat.color.b);
@@ -356,13 +364,22 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(mat.smoothness);
 			binaryWriter.Write(mat.alpha);
 		}
+
+		//Edge settings
+		string color = mImporter.WorldData.EdgeSetting.Attributes["_color"];
+		string width = mImporter.WorldData.EdgeSetting.Attributes["_width"];
+		string[] edgeColor = color.Split(" ");
+		binaryWriter.Write(Convert.ToInt32(edgeColor[0]));
+		binaryWriter.Write(Convert.ToInt32(edgeColor[1]));
+		binaryWriter.Write(Convert.ToInt32(edgeColor[2]));
+		binaryWriter.Write(Convert.ToSingle(width, CultureInfo.InvariantCulture));
 	}
 
 	private void OnChunkLoadedFinished()
 	{
 		WriteStructureFile();
-		VoxImporter.DisposeMaterials();
-		mWorldData.Dispose();
+		mImporter.Dispose();
+		mImporter = null;
 		string inputFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))
 		{
