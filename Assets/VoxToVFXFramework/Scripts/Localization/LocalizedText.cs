@@ -48,6 +48,7 @@ namespace VoxToVFXFramework.Scripts.Localization
 			if (mTextMeshProUGUI)
 			{
 				UpdateLocalisation();
+				return;
 			}
 
 			mTextMesh = GetComponent<TextMesh>();
@@ -108,7 +109,7 @@ namespace VoxToVFXFramework.Scripts.Localization
 		{
 			if (mLocalizationManager == null)
 			{
-				if (!(Application.isPlaying))
+				if (!Application.isPlaying)
 				{
 					Start();
 					//mLocalizationManager = LocalizationManager.Get;

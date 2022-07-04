@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Singleton;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -33,6 +34,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 				sobel.outlineColour.value = color;
 			}
 
+		}
+
+		public void SetDepthOfField(bool active)
+		{
+			if (mVolume.sharedProfile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
+			{
+				depthOfField.active = active;
+			}
 		}
 
 		#endregion

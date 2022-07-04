@@ -54,6 +54,7 @@ namespace VoxToVFXFramework.Scripts.UI
 			if (Input.GetKeyDown(KeyCode.Escape))
 			{
 				PausePanel.SetActive(!PausePanel.activeSelf);
+				PostProcessingManager.Instance.SetDepthOfField(PausePanel.activeSelf);
 			}
 		}	
 

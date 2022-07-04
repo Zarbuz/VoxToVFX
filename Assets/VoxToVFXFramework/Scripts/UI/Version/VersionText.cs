@@ -9,7 +9,7 @@ namespace VoxToVFXFramework.Scripts.UI.Version
 		private void Start()
 		{
 			TextMeshProUGUI textMeshProUGUI = GetComponent<TextMeshProUGUI>();
-			textMeshProUGUI.text = "WIP - v" + Application.version;
+			textMeshProUGUI.text = "v" + Application.version;
 		}
 
 	}

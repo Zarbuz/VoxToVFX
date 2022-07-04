@@ -244,13 +244,13 @@ namespace VoxToVFXFramework.Scripts.Localization
 
 			if (data == null)
 			{
-				Debug.LogError("[Localisation] Not found the file " + mCurrentFilename + " in Resources folder");
+				Debug.LogError("[Localization] Not found the file " + mCurrentFilename + " in Resources folder");
 				mCurrentFilename = GetFolder() + FILENAME + "_" + DEFAULT_LANGUAGE;
 
 				data = Resources.Load(mCurrentFilename) as TextAsset;
 				if (data == null)
 				{
-					Debug.LogError("[Localisation] default language doesn't exist, no localization");
+					Debug.LogError("[Localization] default language doesn't exist, no localization");
 					return;
 				}
 			}
@@ -274,7 +274,7 @@ namespace VoxToVFXFramework.Scripts.Localization
 			IsReady = true;
 			UpdateCurrentText();
 
-			Debug.LogFormat("[Localisation] {0}: Success file loaded {1}", LOG_HEADER, mCurrentFilename);
+			Debug.LogFormat("[Localization] {0}: Success file loaded {1}", LOG_HEADER, mCurrentFilename);
 		}
 
 		private string GetFolder()
@@ -303,7 +303,7 @@ namespace VoxToVFXFramework.Scripts.Localization
 	{
 		public static string Translate(this string str, params (string key, object value)[] variables)
 		{
-			return Localization.LocalizationManager.Get.GetValue(str, variables);
+			return LocalizationManager.Instance.GetValue(str, variables);
 		}
 	}
 }
