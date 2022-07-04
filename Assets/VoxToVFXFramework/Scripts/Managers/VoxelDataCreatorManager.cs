@@ -118,7 +118,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			yield break;
 		}
 
-		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		List<string> files = ReadStructureFile(structureFiles[0]);
 
 		mTaskList.Clear();

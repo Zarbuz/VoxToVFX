@@ -1,4 +1,5 @@
 using UnityEngine;
+using VoxToVFXFramework.Scripts.UI;
 
 namespace VoxToVFXFramework.Scripts.Camera
 {
@@ -42,6 +43,11 @@ namespace VoxToVFXFramework.Scripts.Camera
 
         private void Update()
         {
+			if (CanvasPlayerPCManager.Instance.CanvasPlayerPcState == CanvasPlayerPCState.Pause)
+			{
+				return;
+			}
+
             bool fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             float movementSpeed = fastMode ? this.FastMovementSpeed : this.MovementSpeed;
 

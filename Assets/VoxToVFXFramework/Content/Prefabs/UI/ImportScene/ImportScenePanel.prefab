@@ -301,7 +301,6 @@ GameObject:
   - component: {fileID: 1542078998922996348}
   - component: {fileID: 3640566260525790416}
   - component: {fileID: 1345303023405401883}
-  - component: {fileID: 4923331197941357581}
   m_Layer: 5
   m_Name: SubtitleText
   m_TagString: Untagged
@@ -358,7 +357,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "S\xE9lectionner un fichier Magicavoxel, ce fichier sera converti dans
-    un format interne optimis\xE9. \r"
+    un format interne optimis\xE9"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8135f3e4da79753469170979c030df6b, type: 2}
   m_sharedMaterial: {fileID: 21770018417678880, guid: 8135f3e4da79753469170979c030df6b,
@@ -428,19 +427,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &4923331197941357581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2927064795516191957}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 123348af76dc5494b938d0ee11dd999b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  key: '[IMPORT_SCENE_SUBTITLE]'
 --- !u!1 &5054466563424958753
 GameObject:
   m_ObjectHideFlags: 0
@@ -672,7 +658,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88271c16eb32a9b4a9d19d31de0fb8b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ImportSceneButton: {fileID: 6952987528471158440}
+  Title: {fileID: 3831598509987888480}
+  SubTitle: {fileID: 1345303023405401883}
+  OpenFileClicked: {fileID: 6952987528471158440}
   ProgressBar: {fileID: 4466665080857044911}
   ProgressBarFilled: {fileID: 3082971068655917767}
   ProgressText: {fileID: 7684944465832777539}
@@ -1004,7 +992,7 @@ PrefabInstance:
     - target: {fileID: 3501105881489797868, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}
       propertyPath: m_text
-      value: 
+      value: "S\xE9lectionner un fichier \u2026"
       objectReference: {fileID: 0}
     - target: {fileID: 5378947531639966616, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}

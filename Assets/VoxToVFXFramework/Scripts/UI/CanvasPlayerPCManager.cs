@@ -13,7 +13,6 @@ namespace VoxToVFXFramework.Scripts.UI
 	{
 		Closed,
 		Pause,
-		Loading,
 		ImportScene
 	}
 
@@ -21,7 +20,6 @@ namespace VoxToVFXFramework.Scripts.UI
 	{
 		#region ScriptParameters
 
-		[SerializeField] private TextMeshProUGUI LoadingProgressText;
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
 
@@ -31,13 +29,12 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private CanvasPlayerPCState mCanvasPlayerPcState;
 
-		private CanvasPlayerPCState CanvasPlayerPcState
+		public CanvasPlayerPCState CanvasPlayerPcState
 		{
 			get => mCanvasPlayerPcState;
 			set
 			{
 				mCanvasPlayerPcState = value;
-				LoadingProgressText.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 				PausePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
 				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
 
@@ -53,8 +50,6 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		protected override void OnStart()
 		{
-			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
-			RuntimeVoxManager.Instance.LoadFinishedCallback += OnLoadFinished;
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
@@ -65,15 +60,6 @@ namespace VoxToVFXFramework.Scripts.UI
 				GenericTogglePanel(CanvasPlayerPCState.Pause);
 			}
 		}	
-
-		private void OnDestroy()
-		{
-			if (RuntimeVoxManager.Instance != null)
-			{
-				VoxelDataCreatorManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
-				RuntimeVoxManager.Instance.LoadFinishedCallback -= OnLoadFinished;
-			}
-		}
 
 		#endregion
 
@@ -94,22 +80,14 @@ namespace VoxToVFXFramework.Scripts.UI
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
-		#endregion
-
-
-
-		#region PrivateMethods
-
-		private void OnLoadProgressUpdate(int step, float progress)
+		public void OpenImportScenePanel(ImportScenePanel.EDataImportType dataImportType)
 		{
-			LoadingProgressText.text = "Step: " + step + " - Progress: " + progress.ToString("P", CultureInfo.InvariantCulture);
-		}
-
-		private void OnLoadFinished()
-		{
-			SetCanvasPlayerState(CanvasPlayerPCState.Closed);
+			ImportScenePanel.Initialize(dataImportType);
+			GenericTogglePanel(CanvasPlayerPCState.ImportScene);
 		}
 
 		#endregion
+
+		
 	}
 }

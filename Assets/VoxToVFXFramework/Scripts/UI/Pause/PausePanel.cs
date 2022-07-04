@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.UI;
+using VoxToVFXFramework.Scripts.UI.ImportScene;
 
 public class PausePanel : MonoBehaviour
 {
@@ -53,7 +54,12 @@ public class PausePanel : MonoBehaviour
 
 	private void OnImportSceneClicked()
 	{
-		CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.ImportScene);
+		CanvasPlayerPCManager.Instance.OpenImportScenePanel(ImportScenePanel.EDataImportType.VOX);
+	}
+
+	private void OnOpenSceneClicked()
+	{
+		CanvasPlayerPCManager.Instance.OpenImportScenePanel(ImportScenePanel.EDataImportType.CUSTOM);
 	}
 
 	private void OnChangeWeatherClicked()
@@ -70,15 +76,6 @@ public class PausePanel : MonoBehaviour
 	{
 		throw new NotImplementedException();
 	}
-
-	private void OnOpenSceneClicked()
-	{
-		throw new NotImplementedException();
-	}
-
-
-
-	
 
 	#endregion
 }

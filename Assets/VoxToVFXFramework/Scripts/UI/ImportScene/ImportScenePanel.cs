@@ -1,15 +1,21 @@
-﻿using System;
-using System.Diagnostics;
+﻿using SFB;
 using System.Globalization;
-using SFB;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Localization;
+using VoxToVFXFramework.Scripts.Managers;
 
 namespace VoxToVFXFramework.Scripts.UI.ImportScene
 {
 	public class ImportScenePanel : MonoBehaviour
 	{
+		public enum EDataImportType
+		{
+			VOX,
+			CUSTOM
+		}
+
 		private enum EImportState
 		{
 			NORMAL,
@@ -18,7 +24,10 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 
 		#region ScriptParameters
 
-		[SerializeField] private Button ImportSceneButton;
+		[SerializeField] private TextMeshProUGUI Title;
+		[SerializeField] private TextMeshProUGUI SubTitle;
+
+		[SerializeField] private Button OpenFileClicked;
 		[SerializeField] private Image ProgressBar;
 		[SerializeField] private Image ProgressBarFilled;
 		[SerializeField] private TextMeshProUGUI ProgressText;
@@ -38,10 +47,12 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 			{
 				mImportState = value;
 				ProgressBar.gameObject.SetActive(mImportState == EImportState.IMPORT_IN_PROGRESS);
-				ProgressStepText.gameObject.SetActive(mImportState == EImportState.IMPORT_IN_PROGRESS);
+				ProgressStepText.gameObject.SetActive(mImportState == EImportState.IMPORT_IN_PROGRESS && DataImportTypeState == EDataImportType.VOX);
 				mImportButtonHighlightable.SetInteractable(mImportState == EImportState.NORMAL);
 			}
 		}
+
+		private EDataImportType DataImportTypeState { get; set; }
 
 		#endregion
 
@@ -55,37 +66,69 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 
 		private void OnEnable()
 		{
-			mImportButtonHighlightable = ImportSceneButton.GetComponent<ButtonHighlightable>();
-			ImportSceneButton.onClick.AddListener(OnImportSceneClicked);
-			
+			mImportButtonHighlightable = OpenFileClicked.GetComponent<ButtonHighlightable>();
+			OpenFileClicked.onClick.AddListener(OnOpenFileClicked);
+
+			Title.text = DataImportTypeState == EDataImportType.VOX ? LocalizedTexts.IMPORT_SCENE_TITLE.Translate() : LocalizedTexts.OPEN_SCENE_TITLE.Translate();
+			SubTitle.text = DataImportTypeState == EDataImportType.VOX ? LocalizedTexts.IMPORT_SCENE_SUBTITLE.Translate() : LocalizedTexts.OPEN_SCENE_SUBTITLE.Translate();
+
 			ImportState = EImportState.NORMAL;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
-			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadFinished;
+			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
+
+			RuntimeVoxManager.Instance.LoadFinishedCallback += OnLoadCustomFinished;
+
 		}
 
 		private void OnDisable()
 		{
-			ImportSceneButton.onClick.RemoveListener(OnImportSceneClicked);
+			OpenFileClicked.onClick.RemoveListener(OnOpenFileClicked);
+
 			if (VoxelDataCreatorManager.Instance != null)
 			{
 				VoxelDataCreatorManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
-				VoxelDataCreatorManager.Instance.LoadFinishedCallback -= OnLoadFinished;
+				VoxelDataCreatorManager.Instance.LoadFinishedCallback -= OnLoadVoxFinished;
 			}
+
+			if (RuntimeVoxManager.Instance != null)
+			{
+				RuntimeVoxManager.Instance.LoadFinishedCallback -= OnLoadCustomFinished;
+			}
+		}
+
+		#endregion
+
+		#region PublicMethods
+		
+		public void Initialize(EDataImportType importType)
+		{
+			DataImportTypeState = importType;
 		}
 
 		#endregion
 
 		#region PrivateMethods
 
-		private void OnImportSceneClicked()
+		private void OnOpenFileClicked()
 		{
-			string[] paths = StandaloneFileBrowser.OpenFilePanel("Select MagicaVoxel file", "", "vox", false);
-			if (paths.Length > 0)
+			if (DataImportTypeState == EDataImportType.VOX)
 			{
-				string outputPath = StandaloneFileBrowser.SaveFilePanel("Select destination", "", "", "zip");
-				if (!string.IsNullOrEmpty(outputPath))
+				string[] paths = StandaloneFileBrowser.OpenFilePanel("Select MagicaVoxel file", "", "vox", false);
+				if (paths.Length > 0)
 				{
-					VoxelDataCreatorManager.Instance.CreateZipFile(paths[0], outputPath);
+					string outputPath = StandaloneFileBrowser.SaveFilePanel("Select destination", "", "", "zip");
+					if (!string.IsNullOrEmpty(outputPath))
+					{
+						VoxelDataCreatorManager.Instance.CreateZipFile(paths[0], outputPath);
+					}
+				}
+			}
+			else
+			{
+				string[] paths = StandaloneFileBrowser.OpenFilePanel("Select ZIP file", "", "zip", false);
+				if (paths.Length > 0)
+				{
+					VoxelDataCreatorManager.Instance.ReadZipFile(paths[0]);
 				}
 			}
 		}
@@ -99,9 +142,15 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 			ProgressBarFilled.fillAmount = progress;
 		}
 
-		private void OnLoadFinished()
+		private void OnLoadVoxFinished()
 		{
 			ImportState = EImportState.NORMAL;
+			CanvasPlayerPCManager.Instance.PauseLockedState = false;
+		}
+
+		private void OnLoadCustomFinished()
+		{
+			CanvasPlayerPCManager.Instance.GenericClosePanel();
 			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 		}
 		#endregion
