@@ -11,29 +11,51 @@ public class ButtonHighlightable : MonoBehaviour, IPointerEnterHandler, IPointer
 	[SerializeField] private Button Button;
 
 	#endregion
+
+
 	#region UnityMethods
 
 	public void OnPointerEnter(PointerEventData eventData)
 	{
-		ButtonText.color = Button.colors.highlightedColor;
+		if (Button.interactable)
+		{
+			ButtonText.color = Button.colors.highlightedColor;
+		}
 	}
 
 	public void OnPointerExit(PointerEventData eventData)
 	{
-		ButtonText.color = Button.colors.normalColor;
+		if (Button.interactable)
+		{
+			ButtonText.color = Button.colors.normalColor;
+		}
 	}
 
 	public void OnPointerDown(PointerEventData eventData)
 	{
-		ButtonText.color = Button.colors.pressedColor;
+		if (Button.interactable)
+		{
+			ButtonText.color = Button.colors.pressedColor;
+		}
 	}
 
 	public void OnPointerUp(PointerEventData eventData)
 	{
-		ButtonText.color = Button.colors.normalColor;
+		if (Button.interactable)
+		{
+			ButtonText.color = Button.colors.normalColor;
+		}
 	}
 
 	#endregion
 
+	#region PublicMethods
 
+	public void SetInteractable(bool interactable)
+	{
+		Button.interactable = interactable;
+		ButtonText.color = interactable ? Button.colors.normalColor : Button.colors.disabledColor;
+	}
+
+	#endregion
 }

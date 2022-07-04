@@ -61,7 +61,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		mInputFileName = Path.GetFileNameWithoutExtension(inputPath);
 		mOutputPath = outputPath;
-		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		mChunksWrited.Clear();
 		mImporter = new VoxImporter();
 		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
@@ -395,6 +394,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 		Directory.CreateDirectory(outputFolder);
 		MoveFilesFromFolder(inputFolder, outputFolder);
+		Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
 		LoadFinishedCallback?.Invoke();
 	}
 
