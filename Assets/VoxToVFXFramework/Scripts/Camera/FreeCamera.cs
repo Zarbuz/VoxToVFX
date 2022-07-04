@@ -53,42 +53,42 @@ namespace VoxToVFXFramework.Scripts.Camera
 
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             {
-                transform.position = (-transform.right * movementSpeed * Time.deltaTime) + transform.position;
+                transform.position = -transform.right * (movementSpeed * Time.deltaTime) + transform.position;
             }
 
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
             {
-                transform.position += (transform.right * movementSpeed * Time.deltaTime);
+                transform.position += transform.right * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             {
-                transform.position += (transform.forward * movementSpeed * Time.deltaTime);
+                transform.position += transform.forward * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
             {
-                transform.position += (-transform.forward * movementSpeed * Time.deltaTime);
+                transform.position += -transform.forward * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.Q))
             {
-                transform.position += (transform.up * movementSpeed * Time.deltaTime);
+                transform.position += transform.up * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.E))
             {
-                transform.position += (-transform.up * movementSpeed * Time.deltaTime);
+                transform.position += -transform.up * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
             {
-                transform.position += (Vector3.up * movementSpeed * Time.deltaTime);
+                transform.position += Vector3.up * (movementSpeed * Time.deltaTime);
             }
 
             if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
             {
-                transform.position += (-Vector3.up * movementSpeed * Time.deltaTime);
+                transform.position += -Vector3.up * (movementSpeed * Time.deltaTime);
             }
 
             if (mLooking)
@@ -102,7 +102,7 @@ namespace VoxToVFXFramework.Scripts.Camera
             if (axis != 0)
             {
                 float zoomSensitivity = fastMode ? this.FastZoomSensitivity : this.ZoomSensitivity;
-                transform.position = transform.position + transform.forward * axis * zoomSensitivity;
+                transform.position += transform.forward * (axis * zoomSensitivity);
             }
 
             if (Input.GetKeyDown(KeyCode.Mouse1))
