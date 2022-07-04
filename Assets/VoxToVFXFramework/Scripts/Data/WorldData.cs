@@ -192,6 +192,15 @@ namespace VoxToVFXFramework.Scripts.Data
 				{
 					EdgeSetting = rendererSettingChunk;
 				}
+
+				if (rendererSettingChunk.Type == RenderSettingType._setting)
+				{
+					int activeEdge = Convert.ToInt32(rendererSettingChunk.Attributes["_edge"]);
+					if (activeEdge == 0)
+					{
+						EdgeSetting.Attributes["_width"] = "0";
+					}
+				}
 			}
 		}
 		

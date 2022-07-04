@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,7 +19,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		#region ScriptParameters
 
 		[SerializeField] private TextMeshProUGUI LoadingProgressText;
-		
+		[SerializeField] private GameObject PausePanel;
 
 		#endregion
 
@@ -47,6 +48,14 @@ namespace VoxToVFXFramework.Scripts.UI
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadFinished;
 			CanvasPlayerPcState = CanvasPlayerPCState.None;
 		}
+
+		private void Update()
+		{
+			if (Input.GetKeyDown(KeyCode.Escape))
+			{
+				PausePanel.SetActive(!PausePanel.activeSelf);
+			}
+		}	
 
 		private void OnDestroy()
 		{
