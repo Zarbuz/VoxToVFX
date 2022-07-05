@@ -31,8 +31,6 @@ public class PausePanel : MonoBehaviour
 		ChangeWeatherButton.onClick.AddListener(OnChangeWeatherClicked);
 	}
 
-	
-
 	private void OnDisable()
 	{
 		ContinueButton.onClick.RemoveListener(OnContinueClicked);
@@ -62,6 +60,11 @@ public class PausePanel : MonoBehaviour
 		CanvasPlayerPCManager.Instance.OpenImportScenePanel(ImportScenePanel.EDataImportType.CUSTOM);
 	}
 
+	private void OnOpenSettingsClicked()
+	{
+		CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Settings);
+	}
+
 	private void OnChangeWeatherClicked()
 	{
 		throw new NotImplementedException();
@@ -72,10 +75,7 @@ public class PausePanel : MonoBehaviour
 		throw new NotImplementedException();
 	}
 
-	private void OnOpenSettingsClicked()
-	{
-		throw new NotImplementedException();
-	}
+	
 
 	#endregion
 }

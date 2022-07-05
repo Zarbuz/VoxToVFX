@@ -1,11 +1,8 @@
-﻿using System;
-using System.Globalization;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
+using VoxToVFXFramework.Scripts.UI.Settings;
 
 namespace VoxToVFXFramework.Scripts.UI
 {
@@ -13,7 +10,8 @@ namespace VoxToVFXFramework.Scripts.UI
 	{
 		Closed,
 		Pause,
-		ImportScene
+		ImportScene,
+		Settings
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -22,7 +20,7 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
-
+		[SerializeField] private SettingsPanel SettingsPanel;
 		#endregion
 
 		#region Fields
@@ -37,6 +35,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				mCanvasPlayerPcState = value;
 				PausePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
 				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
+				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
 
 				PostProcessingManager.Instance.SetDepthOfField(mCanvasPlayerPcState != CanvasPlayerPCState.Closed);
 			}
