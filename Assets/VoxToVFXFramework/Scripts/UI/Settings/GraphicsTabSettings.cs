@@ -25,6 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.AddListener(OnRenderScaleValueChanged);
 			DLSSToggle.onValueChanged.AddListener(OnDLSSValueChanged);
+			QualityDropdown.onValueChanged.AddListener(OnQualityValueChanged);
 			Initialize();
 		}
 
@@ -32,6 +33,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.RemoveListener(OnRenderScaleValueChanged);
 			DLSSToggle.onValueChanged.RemoveListener(OnDLSSValueChanged);
+			QualityDropdown.onValueChanged.RemoveListener(OnQualityValueChanged);
 		}
 
 		#endregion
@@ -55,6 +57,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			}
 
 			DLSSToggle.SetIsOnWithoutNotify(QualityManager.Instance.IsDLSSActive);
+			QualityDropdown.SetValueWithoutNotify(QualityManager.Instance.QualityLevel);
 		}
 
 		private void OnRenderScaleValueChanged(int index)
@@ -76,6 +79,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnDLSSValueChanged(bool active)
 		{
 			QualityManager.Instance.SetDeepLearningSuperSampling(active);
+		}
+
+		private void OnQualityValueChanged(int index)
+		{
+			QualityManager.Instance.SetQualityLevel(index);
 		}
 
 		#endregion

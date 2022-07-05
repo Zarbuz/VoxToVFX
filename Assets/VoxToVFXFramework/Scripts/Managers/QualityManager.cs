@@ -11,13 +11,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private const string RESOLUTION_SCALER = "ResolutionScaler";
 		private const string DLSS_ACTIVE = "DeepLearningSuperSampling";
-
+		private const string QUALITY_LEVEL = "QualityLevel";
 		#endregion
 
 		#region Fields
 
 		public float CurrentResolutionScaler { get; protected set; }
 		public bool IsDLSSActive { get; protected set; }
+		public int QualityLevel { get; protected set; }
 		#endregion
 
 		#region PublicMethods
@@ -29,6 +30,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			IsDLSSActive = PlayerPrefs.GetInt(DLSS_ACTIVE, 0) == 1;
 			SetDeepLearningSuperSampling(IsDLSSActive);
+
+			QualityLevel = PlayerPrefs.GetInt(QUALITY_LEVEL, 1);
+			SetQualityLevel(QualityLevel);
 		}
 
 		public void SetDynamicResolution(float resolution)
@@ -45,6 +49,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			UnityEngine.Camera.main.gameObject.GetComponent<HDAdditionalCameraData>().allowDeepLearningSuperSampling = active;
 		}
 
+		public void SetQualityLevel(int index)
+		{
+			QualityLevel = index;
+			PlayerPrefs.SetInt(QUALITY_LEVEL, index);
+			PostProcessingManager.Instance.SetQualityLevel(index);
+		}
+
 		#endregion
 
 		#region PrivateMethods
@@ -56,5 +67,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 
 		#endregion
+
 	}
 }
