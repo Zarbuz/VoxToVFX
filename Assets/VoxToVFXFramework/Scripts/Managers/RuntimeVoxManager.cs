@@ -76,8 +76,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
 
-		public Wrapped<int> ForcedLevelLod = new Wrapped<int>(-1);
-
 		public Wrapped<Vector3> LodDistance = new Wrapped<Vector3>(new Vector3(0, 300, 600));
 
 		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
@@ -125,7 +123,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;
 			LodDistance.OnValueChanged += RefreshChunksToRender;
-			ForcedLevelLod.OnValueChanged += RefreshChunksToRender;
 		}
 
 		private void OnDestroy()
@@ -134,7 +131,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
 			DebugLod.OnValueChanged -= RefreshDebugLod;
 			LodDistance.OnValueChanged -= RefreshChunksToRender;
-			ForcedLevelLod.OnValueChanged -= RefreshChunksToRender;
 
 			Release();
 		}
@@ -351,7 +347,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
 			{
 				LodDistance = LodDistance.Value,
-				ForcedLevelLod = ForcedLevelLod.Value,
 				CameraPosition = mCamera.transform.position,
 				Data = mChunksLoaded,
 				Chunks = activeChunks,
