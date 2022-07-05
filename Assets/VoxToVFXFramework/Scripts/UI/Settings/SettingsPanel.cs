@@ -60,6 +60,8 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			GraphicsButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.GRAPHICS));
 			InputButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.INPUT));
 			DataButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.DATA));
+
+			OnSettingsTabChanged(ESettingsState.DISPLAY);
 		}
 
 		private void OnDisable()
