@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Localization;
 
 namespace VoxToVFXFramework.Scripts.UI.Settings
 {
@@ -12,6 +13,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		[SerializeField] private TMP_Dropdown ModeDropdown;
 		[SerializeField] private TMP_Dropdown ResolutionDropdown;
+		[SerializeField] private TMP_Dropdown LanguageDropdown;
 
 		#endregion
 
@@ -21,6 +23,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			ModeDropdown.onValueChanged.AddListener(OnModeValueChanged);
 			ResolutionDropdown.onValueChanged.AddListener(OnResolutionValueChanged);
+			LanguageDropdown.onValueChanged.AddListener(OnLanguageValueChanged);
 			Initialize();
 		}
 
@@ -28,6 +31,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			ModeDropdown.onValueChanged.RemoveListener(OnModeValueChanged);
 			ResolutionDropdown.onValueChanged.RemoveListener(OnResolutionValueChanged);
+			LanguageDropdown.onValueChanged.RemoveListener(OnLanguageValueChanged);
 		}
 
 		#endregion
@@ -42,14 +46,18 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			ModeDropdown.options = options;
 			ModeDropdown.SetValueWithoutNotify(Screen.fullScreenMode == FullScreenMode.FullScreenWindow ? 0 : 1);
 
-			List<TMP_Dropdown.OptionData> resolutions = Screen.resolutions.Select(resolution => new TMP_Dropdown.OptionData(resolution.ToString())).ToList();
+			List<TMP_Dropdown.OptionData> resolutions = Screen.resolutions
+				.Select(resolution => new TMP_Dropdown.OptionData(resolution.ToString())).ToList();
 			ResolutionDropdown.options = resolutions;
 
 			if (Screen.fullScreenMode == FullScreenMode.Windowed)
 			{
 				Resolution currentResolution = Screen.currentResolution;
-				ResolutionDropdown.SetValueWithoutNotify(resolutions.FindIndex(r => r.text == currentResolution.ToString()));
+				ResolutionDropdown.SetValueWithoutNotify(resolutions.FindIndex(r =>
+					r.text == currentResolution.ToString()));
 			}
+
+			LanguageDropdown.SetValueWithoutNotify(GetLanguageIndex());
 		}
 
 		private void OnModeValueChanged(int index)
@@ -61,6 +69,39 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			Resolution selectedResolution = Screen.resolutions[index];
 			Screen.SetResolution(selectedResolution.width, selectedResolution.height, Screen.fullScreenMode);
+		}
+
+		private void OnLanguageValueChanged(int index)
+		{
+			string newLanguage = GetLanguage(index);
+			LocalizationManager.Instance.SwitchLocalization(newLanguage);
+		}
+
+		private int GetLanguageIndex()
+		{
+			string currentLanguage = LocalizationManager.Instance.CurrentLanguage;
+			switch (currentLanguage)
+			{
+				case "fr":
+					return 0;
+				case "en":
+					return 1;
+				default:
+					return 0;
+			}
+		}
+
+		private string GetLanguage(int index)
+		{
+			switch (index)
+			{
+				case 0:
+					return "fr";
+				case 1:
+					return "en";
+				default:
+					return "fr";
+			}
 		}
 
 		#endregion

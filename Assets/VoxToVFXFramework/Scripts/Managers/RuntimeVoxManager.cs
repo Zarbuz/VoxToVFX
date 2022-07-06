@@ -352,6 +352,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mAdditionalLightData.RequestShadowMapRendering();
 		}
 
+
 		private int GetPlayerCurrentChunkIndex(Vector3 position)
 		{
 			FastMath.FloorToInt(position.x / WorldData.CHUNK_SIZE, position.y / WorldData.CHUNK_SIZE, position.z / WorldData.CHUNK_SIZE, out int chunkX, out int chunkY, out int chunkZ);
