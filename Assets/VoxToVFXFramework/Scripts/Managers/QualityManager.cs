@@ -14,6 +14,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string QUALITY_LEVEL_KEY = "QualityLevel";
 		private const string VSYNC_ACTIVE_KEY = "VSync";
 		private const string FOV_VALUE_KEY = "FieldOfView";
+		private const string LOD_0_DISTANCE_KEY = "Lod0";
+		private const string LOD_1_DISTANCE_KEY = "Lod1";
 		#endregion
 
 		#region Fields
@@ -23,11 +25,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int QualityLevel { get; protected set; }
 		public bool IsVSyncActive { get; protected set; }
 		public int FieldOfView { get; protected set; }
+		public int Lod0Distance { get; protected set; }
+		public int Lod1Distance { get; protected set; }
+
 		#endregion
 
 		#region PublicMethods
 
-		protected override void Init()
+		public void Initialize()
 		{
 			CurrentResolutionScaler = PlayerPrefs.GetFloat(RESOLUTION_SCALER_KEY, 1);
 			SetDynamicResolution(CurrentResolutionScaler);
@@ -43,6 +48,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			FieldOfView = PlayerPrefs.GetInt(FOV_VALUE_KEY, 60);
 			SetFieldOfView(FieldOfView);
+
+			Lod0Distance = PlayerPrefs.GetInt(LOD_0_DISTANCE_KEY, 300);
+			SetLod0Distance(Lod0Distance);
+
+			Lod1Distance = PlayerPrefs.GetInt(LOD_1_DISTANCE_KEY, 600);
+			SetLod1Distance(Lod1Distance);
 		}
 
 		public void SetDynamicResolution(float resolution)
@@ -78,6 +89,21 @@ namespace VoxToVFXFramework.Scripts.Managers
 			FieldOfView = value;
 			PlayerPrefs.SetInt(FOV_VALUE_KEY, value);
 			UnityEngine.Camera.main.fieldOfView = value;
+			RuntimeVoxManager.Instance.RefreshChunksToRender();
+		}
+
+		public void SetLod0Distance(int value)
+		{
+			Lod0Distance = value;
+			PlayerPrefs.SetInt(LOD_0_DISTANCE_KEY, value);
+			RuntimeVoxManager.Instance.LodDistanceLod0.Value = value;
+		}
+
+		public void SetLod1Distance(int value)
+		{
+			Lod1Distance = value;
+			PlayerPrefs.SetInt(LOD_1_DISTANCE_KEY, value);
+			RuntimeVoxManager.Instance.LodDistanceLod1.Value = value;
 		}
 
 		#endregion

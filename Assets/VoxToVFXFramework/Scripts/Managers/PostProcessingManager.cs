@@ -50,16 +50,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 			switch (index)
 			{
 				case 0:
-					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false);
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false, true);
 					break;
 				case 1:
-					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, false);
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, false, true);
 					break;
 				case 2:
-					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Low, false);
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Low, false, true);
 					break;
 				default:
-					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false);
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false, true);
 					break;
 
 			}

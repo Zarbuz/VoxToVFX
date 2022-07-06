@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.UI.Atomic;
 
 namespace VoxToVFXFramework.Scripts.UI.Settings
 {
@@ -13,9 +14,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		[SerializeField] private TMP_Dropdown RenderScaleDropdown;
 		[SerializeField] private TMP_Dropdown QualityDropdown;
 		[SerializeField] private Slider FieldOfViewSlider;
-		[SerializeField] private Toggle DepthOfFieldToggle;
-		[SerializeField] private Toggle DLSSToggle;
-		[SerializeField] private Toggle VSyncToggle;
+		[SerializeField] private Slider MaxDistanceLod0Slider;
+		[SerializeField] private Slider MaxDistanceLod1Slider;
+		//[SerializeField] private Toggle DepthOfFieldToggle;
+		[SerializeField] private ToggleHighlightable DLSSToggle;
+		[SerializeField] private ToggleHighlightable VSyncToggle;
 
 		#endregion
 
@@ -24,21 +27,28 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnEnable()
 		{
 			RenderScaleDropdown.onValueChanged.AddListener(OnRenderScaleValueChanged);
-			DLSSToggle.onValueChanged.AddListener(OnDLSSValueChanged);
+			DLSSToggle.AddListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.AddListener(OnQualityValueChanged);
-			VSyncToggle.onValueChanged.AddListener(OnVSyncValueChanged);
+			VSyncToggle.AddListenerToggle(OnVSyncValueChanged);
 			FieldOfViewSlider.onValueChanged.AddListener(OnFieldOfViewValueChanged);
+			MaxDistanceLod0Slider.onValueChanged.AddListener(OnMaxDistanceLod0ValueChanged);
+			MaxDistanceLod1Slider.onValueChanged.AddListener(OnMaxDistanceLod1ValueChanged);
+
 			Initialize();
 		}
 
 		private void OnDisable()
 		{
 			RenderScaleDropdown.onValueChanged.RemoveListener(OnRenderScaleValueChanged);
-			DLSSToggle.onValueChanged.RemoveListener(OnDLSSValueChanged);
+			DLSSToggle.RemoteListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.RemoveListener(OnQualityValueChanged);
-			VSyncToggle.onValueChanged.RemoveListener(OnVSyncValueChanged);
+			VSyncToggle.RemoteListenerToggle(OnVSyncValueChanged);
 			FieldOfViewSlider.onValueChanged.RemoveListener(OnFieldOfViewValueChanged);
+			MaxDistanceLod0Slider.onValueChanged.RemoveListener(OnMaxDistanceLod0ValueChanged);
+			MaxDistanceLod1Slider.onValueChanged.RemoveListener(OnMaxDistanceLod1ValueChanged);
 		}
+
+	
 
 		#endregion
 
@@ -60,9 +70,13 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 					break;
 			}
 
-			DLSSToggle.SetIsOnWithoutNotify(QualityManager.Instance.IsDLSSActive);
+			DLSSToggle.SetIsOn(QualityManager.Instance.IsDLSSActive, false);
 			QualityDropdown.SetValueWithoutNotify(QualityManager.Instance.QualityLevel);
-			VSyncToggle.SetIsOnWithoutNotify(QualityManager.Instance.IsDLSSActive);
+			VSyncToggle.SetIsOn(QualityManager.Instance.IsDLSSActive, false);
+			FieldOfViewSlider.SetValueWithoutNotify(QualityManager.Instance.FieldOfView);
+			MaxDistanceLod0Slider.SetValueWithoutNotify(QualityManager.Instance.Lod0Distance);
+			MaxDistanceLod1Slider.SetValueWithoutNotify(QualityManager.Instance.Lod1Distance);
+			MaxDistanceLod1Slider.minValue = QualityManager.Instance.Lod0Distance;
 		}
 
 		private void OnRenderScaleValueChanged(int index)
@@ -101,6 +115,21 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			QualityManager.Instance.SetFieldOfView((int)value);
 		}
 
+		private void OnMaxDistanceLod0ValueChanged(float value)
+		{
+			QualityManager.Instance.SetLod0Distance((int)value);
+			MaxDistanceLod1Slider.minValue = (int)value + 10;
+
+			if (QualityManager.Instance.Lod1Distance < value + 10)
+			{
+				MaxDistanceLod1Slider.value = value + 10;
+			}
+		}
+
+		private void OnMaxDistanceLod1ValueChanged(float value)
+		{
+			QualityManager.Instance.SetLod1Distance((int)value);
+		}
 		#endregion
 	}
 }

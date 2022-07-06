@@ -24,6 +24,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		protected override void OnStart()
 		{
 			SetConfig();
+			QualityManager.Instance.Initialize();
 		}
 
 		#endregion
