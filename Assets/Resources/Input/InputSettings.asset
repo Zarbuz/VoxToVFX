@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0794be0dae9791941bb36a1a888a8ecc, type: 3}
+  m_Name: InputSettings
+  m_EditorClassIdentifier: 
+  Settings:
+  - KeyName: INPUT_FORWARD
+    DefaultKey: 122
+    DisplayName: '[SETTINGS_KEY_FORWARD]'
+  - KeyName: INPUT_BACKWARD
+    DefaultKey: 115
+    DisplayName: '[SETTINGS_KEY_BACKWARD]'
+  - KeyName: INPUT_LEFT
+    DefaultKey: 113
+    DisplayName: '[SETTINGS_KEY_LEFT]'
+  - KeyName: INPUT_RIGHT
+    DefaultKey: 100
+    DisplayName: '[SETTINGS_KEY_RIGHT]'
+  - KeyName: INPUT_UP
+    DefaultKey: 114
+    DisplayName: '[SETTINGS_KEY_UP]'
+  - KeyName: INPUT_DOWN
+    DefaultKey: 102
+    DisplayName: '[SETTINGS_KEY_DOWN]'
+  - KeyName: INPUT_ORIENT_CAMERA
+    DefaultKey: 324
+    DisplayName: '[SETTINGS_KEY_CAMERA]'
