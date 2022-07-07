@@ -88,8 +88,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	public void ClearCacheFolder()
 	{
-		//TODO: Add confirm popup
-		//TODO: Add success message popup
 		DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
 		foreach (DirectoryInfo dir in di.EnumerateDirectories())
 		{

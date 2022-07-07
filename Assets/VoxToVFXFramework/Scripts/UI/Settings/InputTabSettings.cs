@@ -34,12 +34,14 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnEnable()
 		{
 			ResetSettingsButton.onClick.AddListener(OnResetSettingsClicked);
+			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 		}
 
 		private void OnDisable()
 		{
 			HidePreviousWarning();
 			ResetSettingsButton.onClick.RemoveListener(OnResetSettingsClicked);
+			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 		}
 
 		private void Start()
