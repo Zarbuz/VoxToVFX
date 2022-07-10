@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Singleton;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -35,6 +36,67 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		}
 
+		public void SetDepthOfField(bool active)
+		{
+			if (mVolume.sharedProfile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
+			{
+				depthOfField.active = active;
+			}
+		}
+
+		public void SetQualityLevel(int index)
+		{
+			ScalableSettingLevelParameter scalableSettingLevelParameter;
+			switch (index)
+			{
+				case 0:
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false, true);
+					break;
+				case 1:
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, false, true);
+					break;
+				case 2:
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Low, false, true);
+					break;
+				default:
+					scalableSettingLevelParameter = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.High, false, true);
+					break;
+
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(AmbientOcclusion), out AmbientOcclusion ambientOcclusion))
+			{
+				ambientOcclusion.quality = scalableSettingLevelParameter;
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(Fog), out Fog fog))
+			{
+				fog.quality = scalableSettingLevelParameter;
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(GlobalIllumination), out GlobalIllumination globalIllumination))
+			{
+				globalIllumination.quality = scalableSettingLevelParameter;
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(Bloom), out Bloom bloom))
+			{
+				bloom.quality = scalableSettingLevelParameter;
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(ScreenSpaceReflection), out ScreenSpaceReflection screenSpaceReflection))
+			{
+				screenSpaceReflection.quality = scalableSettingLevelParameter;
+			}
+
+			if (mVolume.sharedProfile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
+			{
+				depthOfField.quality = scalableSettingLevelParameter;
+			}
+		}
+
 		#endregion
+
+
 	}
 }

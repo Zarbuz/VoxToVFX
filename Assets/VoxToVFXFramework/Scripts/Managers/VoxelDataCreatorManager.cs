@@ -61,7 +61,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		mInputFileName = Path.GetFileNameWithoutExtension(inputPath);
 		mOutputPath = outputPath;
-		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		mChunksWrited.Clear();
 		mImporter = new VoxImporter();
 		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
@@ -89,8 +88,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	public void ClearCacheFolder()
 	{
-		//TODO: Add confirm popup
-		//TODO: Add success message popup
 		DirectoryInfo di = new DirectoryInfo(Application.persistentDataPath);
 		foreach (DirectoryInfo dir in di.EnumerateDirectories())
 		{
@@ -119,7 +116,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			yield break;
 		}
 
-		CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
 		List<string> files = ReadStructureFile(structureFiles[0]);
 
 		mTaskList.Clear();
@@ -395,6 +391,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 		Directory.CreateDirectory(outputFolder);
 		MoveFilesFromFolder(inputFolder, outputFolder);
+		Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
 		LoadFinishedCallback?.Invoke();
 	}
 

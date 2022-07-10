@@ -49,53 +49,25 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Vector2 MinMaxX { get; set; }
 		public Vector2 MinMaxY { get; set; }
 		public Vector2 MinMaxZ { get; set; }
+		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
+		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
+		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
+		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
 
 		[HideInInspector] public NativeArray<ChunkVFX> Chunks;
 
 		private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
-		//private UnsafeHashMap<int, UnsafeList<VoxelVFX>> mChunksLoaded;
 		private VisualEffect mVisualEffect;
 		private GraphicsBuffer mPaletteBuffer;
 		private GraphicsBuffer mGraphicsBuffer;
 
 		private GraphicsBuffer mChunkBuffer;
 
-		//private GraphicsBuffer mRotationBuffer;
 		private Plane[] mPlanes;
 		private Light mDirectionalLight;
 		private HDAdditionalLightData mAdditionalLightData;
 
-		//private Entity mEntityPrefab;
-		//private PhysicsShapeQuerySystem mPhysicsShapeQuerySystem;
-		//private EndSimulationEntityCommandBufferSystem mEndSimulationEntityCommandBufferSystem;
-		//private EntityManager mEntityManager;
-		//private EntityArchetype mEntityArchetype;
-
 		private bool mIsLoaded;
-		private Transform mVisualItemsParent;
-
-		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
-
-		public Wrapped<int> ForcedLevelLod = new Wrapped<int>(-1);
-
-		public Wrapped<Vector3> LodDistance = new Wrapped<Vector3>(new Vector3(0, 300, 600));
-
-		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
-
-		//private int mMaxDistanceColliders = 5;
-
-		//public int MaxDistanceColliders
-		//{
-		//	get => mMaxDistanceColliders;
-		//	set
-		//	{
-		//		if (mMaxDistanceColliders != value)
-		//		{
-		//			mMaxDistanceColliders = value;
-		//			RefreshChunksColliders();
-		//		}
-		//	}
-		//}
 
 		private int mPreviousPlayerChunkIndex;
 		private int mCurrentChunkWorldIndex;
@@ -111,7 +83,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		protected override void OnStart()
 		{
 			mCamera = UnityEngine.Camera.main;
-			mVisualItemsParent = new GameObject("VisualItemsParent").transform;
 			mDirectionalLight = FindObjectOfType<Light>();
 			mAdditionalLightData = mDirectionalLight.GetComponent<HDAdditionalLightData>();
 
@@ -124,17 +95,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;
-			LodDistance.OnValueChanged += RefreshChunksToRender;
-			ForcedLevelLod.OnValueChanged += RefreshChunksToRender;
+
+			LodDistanceLod0.OnValueChanged += RefreshChunksToRender;
+			LodDistanceLod1.OnValueChanged += RefreshChunksToRender;
 		}
 
 		private void OnDestroy()
 		{
-
 			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
 			DebugLod.OnValueChanged -= RefreshDebugLod;
-			LodDistance.OnValueChanged -= RefreshChunksToRender;
-			ForcedLevelLod.OnValueChanged -= RefreshChunksToRender;
+			LodDistanceLod0.OnValueChanged -= RefreshChunksToRender;
+			LodDistanceLod1.OnValueChanged -= RefreshChunksToRender;
 
 			Release();
 		}
@@ -146,7 +117,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
 			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
 			float angle = Quaternion.Angle(mCamera.transform.rotation, mPreviousRotation);
 			mPreviousCheckTimer += Time.unscaledDeltaTime;
@@ -158,14 +128,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 				{
 					mPreviousPlayerChunkIndex = mCurrentChunkWorldIndex;
 				}
-				mPreviousRotation = mCamera.transform.rotation;
+				else
+				{
+					mPreviousRotation = mCamera.transform.rotation;
+				}
 				RefreshChunksToRender();
 			}
 
 			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
 			{
 				mPreviousPosition = mCamera.transform.position;
-				RefreshChunksColliders();
 			}
 		}
 
@@ -197,10 +169,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 
 			Gizmos.color = Color.green;
-			Gizmos.DrawWireSphere(position, LodDistance.Value.y);
+			Gizmos.DrawWireSphere(position, LodDistanceLod0.Value);
 
 			Gizmos.color = Color.yellow;
-			Gizmos.DrawWireSphere(position, LodDistance.Value.z);
+			Gizmos.DrawWireSphere(position, LodDistanceLod1.Value);
 
 			//Gizmos.color = Color.red;
 			//Gizmos.DrawWireSphere(position, LodDistance.w);
@@ -243,20 +215,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		//public void InitEntities()
-		//{
-		//	mEntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-		//	mEntityArchetype = mEntityManager.CreateArchetype(
-		//		typeof(Translation),
-		//		typeof(PhysicsCollider),
-		//		typeof(LocalToWorld),
-		//		typeof(PhysicsWorldIndex),
-		//		typeof(VoxelPrefabTag));
-
-		//	mPhysicsShapeQuerySystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsShapeQuerySystem>();
-		//	mEndSimulationEntityCommandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-		//}
-
 		public void SetMaterials(VoxelMaterialVFX[] materials)
 		{
 			mPaletteBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, materials.Length, Marshal.SizeOf(typeof(VoxelMaterialVFX)));
@@ -274,12 +232,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void OnChunkLoadedFinished()
 		{
-			//InitEntities();
-			mVisualEffect = Instantiate(VisualEffectItemPrefab, mVisualItemsParent, false);
-			mVisualEffect.transform.SetParent(mVisualItemsParent);
+			mVisualEffect = Instantiate(VisualEffectItemPrefab);
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
-			//mVisualEffectItem.OpaqueVisualEffect.SetGraphicsBuffer(ROTATION_VFX_BUFFER_KEY, mRotationBuffer);
 			mVisualEffect.enabled = true;
 			SetCameraToWorldCenter();
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
@@ -293,6 +248,53 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			mChunkBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, chunks.Length, Marshal.SizeOf(typeof(ChunkVFX)));
 			mChunkBuffer.SetData(chunks);
+		}
+
+		public void RefreshChunksToRender()
+		{
+			if (!Chunks.IsCreated)
+				return;
+
+			mPlanes = GeometryUtility.CalculateFrustumPlanes(mCamera);
+
+			NativeList<int> chunkIndex = new NativeList<int>(Allocator.TempJob);
+			NativeList<ChunkVFX> activeChunks = new NativeList<ChunkVFX>(Allocator.TempJob);
+			for (int index = 0; index < Chunks.Length; index++)
+			{
+				ChunkVFX chunkVFX = Chunks[index];
+
+				chunkVFX.IsActive = GeometryUtility.TestPlanesAABB(mPlanes, new Bounds(Chunks[index].CenterWorldPosition, Vector3.one * WorldData.CHUNK_SIZE)) ? 1 : 0;
+				Chunks[index] = chunkVFX;
+				if (chunkVFX.IsActive == 1)
+				{
+					activeChunks.Add(chunkVFX);
+					chunkIndex.Add(index);
+				}
+			}
+			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
+			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
+			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
+			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
+			{
+				LodDistanceLod0 = LodDistanceLod0.Value,
+				LodDistanceLod1 = LodDistanceLod1.Value,
+				CameraPosition = mCamera.transform.position,
+				Data = mChunksLoaded,
+				Chunks = activeChunks,
+				Buffer = buffer.AsParallelWriter(),
+				ChunkIndex = chunkIndex,
+			}.Schedule(totalActive, 64);
+
+			computeRenderingChunkJob.Complete();
+			activeChunks.Dispose();
+			chunkIndex.Dispose();
+
+			if (buffer.Length > 0)
+			{
+				RefreshRender(buffer);
+			}
+
+			buffer.Dispose();
 		}
 
 		#endregion
@@ -326,99 +328,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.Play();
 		}
 
-		private void RefreshChunksToRender()
-		{
-			if (!Chunks.IsCreated)
-				return;
-
-			NativeList<int> chunkIndex = new NativeList<int>(Allocator.TempJob);
-			NativeList<ChunkVFX> activeChunks = new NativeList<ChunkVFX>(Allocator.TempJob);
-			for (int index = 0; index < Chunks.Length; index++)
-			{
-				ChunkVFX chunkVFX = Chunks[index];
-
-				chunkVFX.IsActive = GeometryUtility.TestPlanesAABB(mPlanes, new Bounds(Chunks[index].CenterWorldPosition, Vector3.one * WorldData.CHUNK_SIZE)) ? 1 : 0;
-				Chunks[index] = chunkVFX;
-				if (chunkVFX.IsActive == 1)
-				{
-					activeChunks.Add(chunkVFX);
-					chunkIndex.Add(index);
-				}
-			}
-			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
-			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
-			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
-			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
-			{
-				LodDistance = LodDistance.Value,
-				ForcedLevelLod = ForcedLevelLod.Value,
-				CameraPosition = mCamera.transform.position,
-				Data = mChunksLoaded,
-				Chunks = activeChunks,
-				Buffer = buffer.AsParallelWriter(),
-				ChunkIndex = chunkIndex,
-			}.Schedule(totalActive, 64);
-
-			computeRenderingChunkJob.Complete();
-			activeChunks.Dispose();
-			chunkIndex.Dispose();
-
-			if (buffer.Length > 0)
-			{
-				RefreshRender(buffer);
-			}
-
-			buffer.Dispose();
-		}
-
-		private void RefreshChunksColliders()
-		{
-			if (!mIsLoaded)
-			{
-				return;
-			}
-
-			//int lodLevel = ForcedLevelLod switch
-			//{
-			//	0 => 1,
-			//	1 => 2,
-			//	2 => 4,
-			//	_ => 1
-			//};
-
-			//for (int index = 0; index < Chunks.Length; index++)
-			//{
-			//	ChunkVFX chunkVFX = Chunks[index];
-			//	if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == lodLevel)
-			//	{
-			//		mCurrentChunkIndex = index;
-			//	}
-			//}
-			//ChunkVFX? currentChunk = Chunks.Where(chunk => chunk.ChunkIndex == mCurrentChunkWorldIndex && chunk.LodLevel == lodLevel).Cast<ChunkVFX?>().FirstOrDefault();
-			//if (currentChunk == null)
-			//{
-			//	mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
-			//	return;
-			//}
-			//EntityCommandBuffer ecb = mEndSimulationEntityCommandBufferSystem.CreateCommandBuffer();
-			//UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
-
-			//mEntityManager.DestroyEntity(mPhysicsShapeQuerySystem.EntityQuery);
-			//mEntityPrefab = mEntityManager.CreateEntity(mEntityArchetype);
-
-			//JobHandle createPhysicsEntityJob = new CreatePhysicsEntityJob()
-			//{
-			//	Chunk = currentChunk.Value,
-			//	ECB = ecb.AsParallelWriter(),
-			//	PrefabEntity = mEntityPrefab,
-			//	Data = data,
-			//	Collider = mPhysicsShapeQuerySystem.GetBlobAssetReference(currentChunk.Value.LodLevel),
-			//	PlayerPosition = new float3(mCamera.transform.position.x, mCamera.transform.position.y, mCamera.transform.position.z),
-			//	DistanceCheckVoxels = MaxDistanceColliders 
-			//}.Schedule(data.Length, 64);
-
-			//createPhysicsEntityJob.Complete();
-		}
+		
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
 		{
@@ -441,6 +351,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			mAdditionalLightData.RequestShadowMapRendering();
 		}
+
 
 		private int GetPlayerCurrentChunkIndex(Vector3 position)
 		{

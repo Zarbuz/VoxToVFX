@@ -1,40 +1,47 @@
-﻿using System.Globalization;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.ImportScene;
+using VoxToVFXFramework.Scripts.UI.Settings;
 
 namespace VoxToVFXFramework.Scripts.UI
 {
 	public enum CanvasPlayerPCState
 	{
-		None,
-		Loading,
+		Closed,
+		Pause,
+		ImportScene,
+		Settings
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
 	{
 		#region ScriptParameters
 
-		[SerializeField] private TextMeshProUGUI LoadingProgressText;
-		
-
+		[SerializeField] private PausePanel PausePanel;
+		[SerializeField] private ImportScenePanel ImportScenePanel;
+		[SerializeField] private SettingsPanel SettingsPanel;
 		#endregion
 
 		#region Fields
 
 		private CanvasPlayerPCState mCanvasPlayerPcState;
 
-		private CanvasPlayerPCState CanvasPlayerPcState
+		public CanvasPlayerPCState CanvasPlayerPcState
 		{
 			get => mCanvasPlayerPcState;
 			set
 			{
 				mCanvasPlayerPcState = value;
-				LoadingProgressText.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
+				PausePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
+				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
+				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
+
+				PostProcessingManager.Instance.SetDepthOfField(mCanvasPlayerPcState != CanvasPlayerPCState.Closed);
 			}
 		}
+
+		public bool PauseLockedState { get; set; }
 
 		#endregion
 
@@ -42,21 +49,16 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		protected override void OnStart()
 		{
-			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
-			RuntimeVoxManager.Instance.LoadFinishedCallback += OnLoadFinished;
-			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadFinished;
-			CanvasPlayerPcState = CanvasPlayerPCState.None;
+			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
-		private void OnDestroy()
+		private void Update()
 		{
-			if (RuntimeVoxManager.Instance != null)
+			if (Input.GetKeyDown(KeyCode.Escape) && !PauseLockedState)
 			{
-				VoxelDataCreatorManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
-				RuntimeVoxManager.Instance.LoadFinishedCallback -= OnLoadFinished;
-				VoxelDataCreatorManager.Instance.LoadFinishedCallback -= OnLoadFinished;
+				GenericTogglePanel(CanvasPlayerPCState.Pause);
 			}
-		}
+		}	
 
 		#endregion
 
@@ -67,20 +69,24 @@ namespace VoxToVFXFramework.Scripts.UI
 			CanvasPlayerPcState = state;
 		}
 
-		#endregion
-
-		#region PrivateMethods
-
-		private void OnLoadProgressUpdate(int step, float progress)
+		public void GenericTogglePanel(CanvasPlayerPCState state)
 		{
-			LoadingProgressText.text = "Step: " + step + " - Progress: " + progress.ToString("P", CultureInfo.InvariantCulture);
+			CanvasPlayerPcState = CanvasPlayerPcState == state ? CanvasPlayerPCState.Closed : state;
 		}
 
-		private void OnLoadFinished()
+		public void GenericClosePanel()
 		{
-			SetCanvasPlayerState(CanvasPlayerPCState.None);
+			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
+		}
+
+		public void OpenImportScenePanel(ImportScenePanel.EDataImportType dataImportType)
+		{
+			ImportScenePanel.Initialize(dataImportType);
+			GenericTogglePanel(CanvasPlayerPCState.ImportScene);
 		}
 
 		#endregion
+
+		
 	}
 }
