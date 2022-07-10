@@ -21,14 +21,12 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			OpenCacheButton.onClick.AddListener(OnOpenCacheClicked);
 			DeleteCacheButton.onClick.AddListener(OnDeleteCacheClicked);
-			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 		}
 
 		private void OnDisable()
 		{
 			OpenCacheButton.onClick.RemoveListener(OnOpenCacheClicked);
 			DeleteCacheButton.onClick.RemoveListener(OnDeleteCacheClicked);
-			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 
 		}
 
