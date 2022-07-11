@@ -24,6 +24,15 @@ Then you can import the data.
 
 ![](img/img31.png)
 
+## Custom version of Visual Effect Graph 12.1.7
+
+I made a fork of the Visual Effect Graph to be able to use more than 16 contexts since it's not possible to use per-particle sub-mesh mask. 
+The modification is in the file "com.unity.visualeffectgraph@12.1.7\Editor\Data\VFXData.cs" line 400 :
+`` if (contextCount > 16)
+                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", contextCount));``
+				
+Change 16 to 32
+
 ## TODO
 
 - Add collisions with the camera
