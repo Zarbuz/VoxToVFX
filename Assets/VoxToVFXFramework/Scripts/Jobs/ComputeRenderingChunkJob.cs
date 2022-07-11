@@ -25,7 +25,6 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			//if (chunk.IsActive == 0)
 			//	return;
 
-
 			float distance = Vector3.Distance(CameraPosition, chunkVFX.CenterWorldPosition);
 			if (distance < LodDistanceLod0 && chunkVFX.LodLevel == 1)
 			{

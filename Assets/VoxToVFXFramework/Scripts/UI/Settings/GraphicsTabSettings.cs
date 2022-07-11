@@ -19,6 +19,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		//[SerializeField] private Toggle DepthOfFieldToggle;
 		[SerializeField] private ToggleHighlightable DLSSToggle;
 		[SerializeField] private ToggleHighlightable VSyncToggle;
+		[SerializeField] private ToggleHighlightable DebugLodToggle;
 
 		#endregion
 
@@ -33,6 +34,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			FieldOfViewSlider.onValueChanged.AddListener(OnFieldOfViewValueChanged);
 			MaxDistanceLod0Slider.onValueChanged.AddListener(OnMaxDistanceLod0ValueChanged);
 			MaxDistanceLod1Slider.onValueChanged.AddListener(OnMaxDistanceLod1ValueChanged);
+			DebugLodToggle.AddListenerToggle(OnDebugLodValueChanged);
 
 			Initialize();
 		}
@@ -46,6 +48,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			FieldOfViewSlider.onValueChanged.RemoveListener(OnFieldOfViewValueChanged);
 			MaxDistanceLod0Slider.onValueChanged.RemoveListener(OnMaxDistanceLod0ValueChanged);
 			MaxDistanceLod1Slider.onValueChanged.RemoveListener(OnMaxDistanceLod1ValueChanged);
+			DebugLodToggle.RemoteListenerToggle(OnDebugLodValueChanged);
 		}
 
 	
@@ -129,6 +132,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnMaxDistanceLod1ValueChanged(float value)
 		{
 			QualityManager.Instance.SetLod1Distance((int)value);
+		}
+
+		private void OnDebugLodValueChanged(bool value)
+		{
+			RuntimeVoxManager.Instance.DebugLod.Value = value;
 		}
 		#endregion
 	}
