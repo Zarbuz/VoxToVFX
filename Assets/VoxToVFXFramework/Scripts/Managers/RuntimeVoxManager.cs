@@ -38,8 +38,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string EXPOSURE_WEIGHT_KEY = "ExposureWeight";
 		private const string INITIAL_BURST_COUNT_KEY = "InitialBurstCount";
 
-		private const float MIN_DIFF_ANGLE_CAMERA = 10f;
-		private const float MIN_TIMER_CHECK_CAMERA = 0.4f;
+		private const float MIN_DIFF_ANGLE_CAMERA = 1f;
+		private const float MIN_TIMER_CHECK_CAMERA = 0.1f;
 
 		#endregion
 
@@ -327,8 +327,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.Play();
 		}
-
-		
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
 		{
