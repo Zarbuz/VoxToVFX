@@ -28,6 +28,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		[SerializeField] private VisualEffect VisualEffectItemPrefab;
 		[SerializeField] private bool ShowOnlyActiveChunkGizmos;
+		[SerializeField] private GameObject PlayerPosition;
 
 		#endregion
 
@@ -53,6 +54,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Vector2 MinMaxX { get; set; }
 		public Vector2 MinMaxY { get; set; }
 		public Vector2 MinMaxZ { get; set; }
+		public bool IsReady { get; private set; }
+
 		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
 		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
 		public Wrapped<float> ColliderDistance = new Wrapped<float>(5);
@@ -72,7 +75,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Light mDirectionalLight;
 		private HDAdditionalLightData mAdditionalLightData;
 
-		private bool mIsLoaded;
 		private List<GameObject> mBoxColliders;
 
 		private int mPreviousPlayerChunkIndex;
@@ -122,12 +124,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void Update()
 		{
-			if (!mIsLoaded)
+			if (!IsReady)
 			{
 				return;
 			}
 
-			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(mCamera.transform.position);
+			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
 			float angle = Quaternion.Angle(mCamera.transform.rotation, mPreviousRotation);
 			mPreviousCheckTimer += Time.unscaledDeltaTime;
 			bool isAnotherChunk = mPreviousPlayerChunkIndex != mCurrentChunkWorldIndex;
@@ -145,9 +147,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 				RefreshChunksToRender();
 			}
 
-			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
+			if (Vector3.Distance(PlayerPosition.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
 			{
-				mPreviousPosition = mCamera.transform.position;
+				mPreviousPosition = PlayerPosition.transform.position;
 				RefreshColliders();
 			}
 		}
@@ -195,7 +197,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void Release()
 		{
-			mIsLoaded = false;
+			IsReady = false;
 			mGraphicsBuffer?.Release();
 			mPaletteBuffer?.Release();
 			mChunkBuffer?.Release();
@@ -247,9 +249,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
 			mVisualEffect.enabled = true;
-			SetCameraToWorldCenter();
+			SetPlayerPosition();
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
-			mIsLoaded = true;
+			IsReady = true;
 			LoadFinishedCallback?.Invoke();
 		}
 
@@ -285,12 +287,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
 			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
 			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
-			Vector3 position = mCamera.transform.position;
 			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
 			{
 				LodDistanceLod0 = LodDistanceLod0.Value,
 				LodDistanceLod1 = LodDistanceLod1.Value,
-				CameraPosition = position,
+				PlayerPosition = PlayerPosition.transform.position,
 				Data = mChunksLoaded,
 				Chunks = activeChunks,
 				Buffer = buffer.AsParallelWriter(),
@@ -340,7 +341,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
 			NativeList<int> buffer = new NativeList<int>(data.Length, Allocator.TempJob);
-			Vector3 position = mCamera.transform.position;
+			Vector3 position = PlayerPosition.transform.position;
 			Vector3 worldPosition = Chunks[mCurrentChunkIndex].WorldPosition;
 
 			JobHandle computeVoxelNearPlayer = new ComputeVoxelNearPlayer()
@@ -369,14 +370,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 			buffer.Dispose();
 		}
 
-		private void SetCameraToWorldCenter()
+		private void SetPlayerPosition()
 		{
-			mCamera.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, (MinMaxY.y + MinMaxY.x) / 2 + 1, (MinMaxZ.y + MinMaxZ.x) / 2);
+			PlayerPosition.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, (MinMaxY.y + MinMaxY.x) / 2 + 1, (MinMaxZ.y + MinMaxZ.x) / 2);
 		}
 
 		private void RefreshDebugLod()
 		{
-			if (!mIsLoaded)
+			if (!IsReady)
 			{
 				return;
 			}
@@ -387,7 +388,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void RefreshExposureWeight()
 		{
-			if (!mIsLoaded)
+			if (!IsReady)
 			{
 				return;
 			}

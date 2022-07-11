@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
@@ -52,11 +53,22 @@ namespace VoxToVFXFramework.Scripts.UI
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
+
 		private void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.Escape) && !PauseLockedState)
+			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
 				GenericTogglePanel(CanvasPlayerPCState.Pause);
+				if (CanvasPlayerPcState == CanvasPlayerPCState.Pause)
+				{
+					Cursor.visible = true;
+					Cursor.lockState = CursorLockMode.None;
+				}
+				else
+				{
+					Cursor.visible = false;
+					Cursor.lockState = CursorLockMode.Locked;
+				}
 			}
 		}	
 
