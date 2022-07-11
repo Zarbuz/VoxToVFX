@@ -1,5 +1,6 @@
 ﻿using FileToVoxCore.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -7,11 +8,13 @@ using FileToVoxCore.Vox;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.VFX;
 using VoxToVFXFramework.Scripts.Core;
 using VoxToVFXFramework.Scripts.Data;
+using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -41,6 +44,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const float MIN_DIFF_ANGLE_CAMERA = 1f;
 		private const float MIN_TIMER_CHECK_CAMERA = 0.1f;
 
+		private const int BUFFER_COLLIDERS_SIZE = 1000;
 		#endregion
 
 		#region Fields
@@ -51,6 +55,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Vector2 MinMaxZ { get; set; }
 		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
 		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
+		public Wrapped<float> ColliderDistance = new Wrapped<float>(5);
 		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
 		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
 
@@ -68,6 +73,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private HDAdditionalLightData mAdditionalLightData;
 
 		private bool mIsLoaded;
+		private List<GameObject> mBoxColliders;
 
 		private int mPreviousPlayerChunkIndex;
 		private int mCurrentChunkWorldIndex;
@@ -98,7 +104,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			LodDistanceLod0.OnValueChanged += RefreshChunksToRender;
 			LodDistanceLod1.OnValueChanged += RefreshChunksToRender;
+
+			InitCollidersBuffer();
 		}
+
+
 
 		private void OnDestroy()
 		{
@@ -138,6 +148,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (Vector3.Distance(mCamera.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
 			{
 				mPreviousPosition = mCamera.transform.position;
+				RefreshColliders();
 			}
 		}
 
@@ -274,17 +285,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 			int totalActive = Chunks.Count(chunk => chunk.IsActive == 1);
 			int totalLength = Chunks.Where(chunk => chunk.IsActive == 1).Sum(chunk => chunk.Length);
 			NativeList<VoxelVFX> buffer = new NativeList<VoxelVFX>(totalLength, Allocator.TempJob);
+			Vector3 position = mCamera.transform.position;
 			JobHandle computeRenderingChunkJob = new ComputeRenderingChunkJob()
 			{
 				LodDistanceLod0 = LodDistanceLod0.Value,
 				LodDistanceLod1 = LodDistanceLod1.Value,
-				CameraPosition = mCamera.transform.position,
+				CameraPosition = position,
 				Data = mChunksLoaded,
 				Chunks = activeChunks,
 				Buffer = buffer.AsParallelWriter(),
 				ChunkIndex = chunkIndex,
 			}.Schedule(totalActive, 64);
-
 			computeRenderingChunkJob.Complete();
 			activeChunks.Dispose();
 			chunkIndex.Dispose();
@@ -297,9 +308,66 @@ namespace VoxToVFXFramework.Scripts.Managers
 			buffer.Dispose();
 		}
 
+
 		#endregion
 
 		#region PrivateMethods
+
+		private void InitCollidersBuffer()
+		{
+			mBoxColliders = new List<GameObject>(BUFFER_COLLIDERS_SIZE);
+			GameObject colliderParent = new GameObject("ColliderParent");
+
+			for (int i = 0; i < mBoxColliders.Capacity; i++)
+			{
+				GameObject collider = new GameObject("Collider_" + i);
+				collider.transform.parent = colliderParent.transform;
+				collider.AddComponent<BoxCollider>();
+				mBoxColliders.Add(collider);
+			}
+		}
+
+		private void RefreshColliders()
+		{
+			for (int index = 0; index < Chunks.Length; index++)
+			{
+				ChunkVFX chunkVFX = Chunks[index];
+				if (chunkVFX.ChunkIndex == mCurrentChunkWorldIndex && chunkVFX.LodLevel == 1)
+				{
+					mCurrentChunkIndex = index;
+				}
+			}
+
+			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
+			NativeList<int> buffer = new NativeList<int>(data.Length, Allocator.TempJob);
+			Vector3 position = mCamera.transform.position;
+			Vector3 worldPosition = Chunks[mCurrentChunkIndex].WorldPosition;
+
+			JobHandle computeVoxelNearPlayer = new ComputeVoxelNearPlayer()
+			{
+				Data = data,
+				Buffer = buffer.AsParallelWriter(),
+				DistanceCheckVoxels = ColliderDistance.Value,
+				ChunkWorldPosition = new float3(worldPosition.x, worldPosition.y, worldPosition.z),
+				PlayerPosition = new float3(position.x, position.y, position.z)
+			}.Schedule(data.Length, 64);
+
+			computeVoxelNearPlayer.Complete();
+
+			for (int i = 0; i < buffer.Length; i++)
+			{
+				if (i < BUFFER_COLLIDERS_SIZE)
+				{
+					VoxelVFX voxel = data[buffer[i]];
+					float3 voxelRelativePosition = voxel.DecodePosition();
+
+					mBoxColliders[i].transform.position = new Vector3(worldPosition.x + voxelRelativePosition.x,
+						worldPosition.y + voxelRelativePosition.y, worldPosition.z + voxelRelativePosition.z);
+				}
+			}
+
+			buffer.Dispose();
+		}
 
 		private void SetCameraToWorldCenter()
 		{
