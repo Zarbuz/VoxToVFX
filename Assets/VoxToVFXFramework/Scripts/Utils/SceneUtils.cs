@@ -24,7 +24,7 @@ namespace VoxToVFXFramework.Scripts.Utils
 			return results;
 		}
 
-		public static T FindObjectOfType<T>()
+		public static T FindObjectOfType<T>() where T : UnityEngine.Object
 		{
 			for (int i = 0; i < SceneManager.sceneCount; i++)
 			{
@@ -42,7 +42,7 @@ namespace VoxToVFXFramework.Scripts.Utils
 					}
 				}
 			}
-			return default;
+			return null;
 		}
 	}
 }

@@ -129,6 +129,11 @@ namespace VoxToVFXFramework.Scripts.FirstPersonController
 
 		private void LateUpdate()
 		{
+			if (!RuntimeVoxManager.Instance.IsReady)
+			{
+				return;
+			}
+
 			CameraRotation();
 		}
 

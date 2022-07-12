@@ -323,6 +323,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				foundCollisions = Physics.Raycast(PlayerPosition.transform.position, Vector3.down, out RaycastHit hit, distance);
 				if (!foundCollisions)
 				{
+					//TODO: Add more verification if there is a hole in the center of the map
 					PlayerPosition.transform.Translate(Vector3.down * distance);
 					mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
 					RefreshColliders();

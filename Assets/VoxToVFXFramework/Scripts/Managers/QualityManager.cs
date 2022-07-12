@@ -14,6 +14,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string RESOLUTION_SCALER_KEY = "ResolutionScaler";
 		private const string DLSS_ACTIVE_KEY = "DeepLearningSuperSampling";
 		private const string QUALITY_LEVEL_KEY = "QualityLevel";
+		private const string SHADOW_QUALITY_LEVEL_KEY = "ShadowQualityLevel";
 		private const string VSYNC_ACTIVE_KEY = "VSync";
 		private const string FOV_VALUE_KEY = "FieldOfView";
 		private const string LOD_0_DISTANCE_KEY = "Lod0";
@@ -25,13 +26,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public float CurrentResolutionScaler { get; protected set; }
 		public bool IsDLSSActive { get; protected set; }
 		public int QualityLevel { get; protected set; }
+		public int ShadowQualityLevel { get; protected set; }
 		public bool IsVSyncActive { get; protected set; }
 		public int FieldOfView { get; protected set; }
 		public int Lod0Distance { get; protected set; }
 		public int Lod1Distance { get; protected set; }
 
 		private CinemachineVirtualCamera mVirtualCamera;
-
+		private HDAdditionalLightData mDirectionalLight;
 		#endregion
 
 		#region PublicMethods
@@ -39,6 +41,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void Initialize()
 		{
 			mVirtualCamera = SceneUtils.FindObjectOfType<CinemachineVirtualCamera>();
+			mDirectionalLight = SceneUtils.FindObjectOfType<HDAdditionalLightData>();
 
 			CurrentResolutionScaler = PlayerPrefs.GetFloat(RESOLUTION_SCALER_KEY, 1);
 			SetDynamicResolution(CurrentResolutionScaler);
@@ -61,6 +64,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Lod1Distance = PlayerPrefs.GetInt(LOD_1_DISTANCE_KEY, 600);
 			SetLod1Distance(Lod1Distance);
 
+			ShadowQualityLevel = PlayerPrefs.GetInt(SHADOW_QUALITY_LEVEL_KEY, 1);
+			SetShadowQualityLevel(ShadowQualityLevel);
 		}
 
 		public void SetDynamicResolution(float resolution)
@@ -82,6 +87,27 @@ namespace VoxToVFXFramework.Scripts.Managers
 			QualityLevel = index;
 			PlayerPrefs.SetInt(QUALITY_LEVEL_KEY, index);
 			PostProcessingManager.Instance.SetQualityLevel(index);
+		}
+
+		public void SetShadowQualityLevel(int index)
+		{
+			ShadowQualityLevel = index;
+			PlayerPrefs.SetInt(SHADOW_QUALITY_LEVEL_KEY, index);
+			switch (index)
+			{
+				case 0:
+					mDirectionalLight.SetShadowResolutionLevel(2);
+					break;
+				case 1:
+					mDirectionalLight.SetShadowResolutionLevel(1);
+					break;
+				case 2:
+					mDirectionalLight.SetShadowResolutionLevel(0);
+					break;
+				default:
+					mDirectionalLight.SetShadowResolutionLevel(1);
+					break;
+			}
 		}
 
 		public void SetVerticalSync(bool active)
