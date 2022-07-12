@@ -19,6 +19,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string FOV_VALUE_KEY = "FieldOfView";
 		private const string LOD_0_DISTANCE_KEY = "Lod0";
 		private const string LOD_1_DISTANCE_KEY = "Lod1";
+		private const string DEPTH_OF_FIELD_KEY = "DepthOfField";
 		#endregion
 
 		#region Fields
@@ -31,6 +32,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int FieldOfView { get; protected set; }
 		public int Lod0Distance { get; protected set; }
 		public int Lod1Distance { get; protected set; }
+		public bool IsDepthOfFieldActive { get; protected set; }
 
 		private CinemachineVirtualCamera mVirtualCamera;
 		private HDAdditionalLightData mDirectionalLight;
@@ -66,7 +68,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			ShadowQualityLevel = PlayerPrefs.GetInt(SHADOW_QUALITY_LEVEL_KEY, 1);
 			SetShadowQualityLevel(ShadowQualityLevel);
+
+			IsDepthOfFieldActive = PlayerPrefs.GetInt(DEPTH_OF_FIELD_KEY, 1) == 1;
+			SetDepthOfField(IsDepthOfFieldActive);
 		}
+
 
 		public void SetDynamicResolution(float resolution)
 		{
@@ -137,6 +143,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Lod1Distance = value;
 			PlayerPrefs.SetInt(LOD_1_DISTANCE_KEY, value);
 			RuntimeVoxManager.Instance.LodDistanceLod1.Value = value;
+		}
+
+		public void SetDepthOfField(bool active)
+		{
+			IsDepthOfFieldActive = active;
+			PlayerPrefs.SetInt(DEPTH_OF_FIELD_KEY, active ? 1 : 0);
 		}
 
 		#endregion

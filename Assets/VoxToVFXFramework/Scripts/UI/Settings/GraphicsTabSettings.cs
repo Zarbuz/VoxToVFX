@@ -17,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		[SerializeField] private Slider FieldOfViewSlider;
 		[SerializeField] private Slider MaxDistanceLod0Slider;
 		[SerializeField] private Slider MaxDistanceLod1Slider;
-		//[SerializeField] private Toggle DepthOfFieldToggle;
+		[SerializeField] private ToggleHighlightable DepthOfFieldToggle;
 		[SerializeField] private ToggleHighlightable DLSSToggle;
 		[SerializeField] private ToggleHighlightable VSyncToggle;
 		[SerializeField] private ToggleHighlightable DebugLodToggle;
@@ -30,6 +30,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.AddListener(OnRenderScaleValueChanged);
 			ShadowQualityDropdown.onValueChanged.AddListener(OnShadowQualityValueChanged);
+			DepthOfFieldToggle.AddListenerToggle(OnDepthOfFieldValueChanged);
 			DLSSToggle.AddListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.AddListener(OnQualityValueChanged);
 			VSyncToggle.AddListenerToggle(OnVSyncValueChanged);
@@ -45,6 +46,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.RemoveListener(OnRenderScaleValueChanged);
 			ShadowQualityDropdown.onValueChanged.RemoveListener(OnShadowQualityValueChanged);
+			DepthOfFieldToggle.RemoteListenerToggle(OnDepthOfFieldValueChanged);
 			DLSSToggle.RemoteListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.RemoveListener(OnQualityValueChanged);
 			VSyncToggle.RemoteListenerToggle(OnVSyncValueChanged);
@@ -82,6 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			MaxDistanceLod0Slider.SetValueWithoutNotify(QualityManager.Instance.Lod0Distance);
 			MaxDistanceLod1Slider.SetValueWithoutNotify(QualityManager.Instance.Lod1Distance);
 			MaxDistanceLod1Slider.minValue = QualityManager.Instance.Lod0Distance;
+			DepthOfFieldToggle.SetIsOn(QualityManager.Instance.IsDepthOfFieldActive, false);
 		}
 
 		private void OnRenderScaleValueChanged(int index)
@@ -144,6 +147,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnShadowQualityValueChanged(int index)
 		{
 			QualityManager.Instance.SetShadowQualityLevel(index);
+		}
+
+		private void OnDepthOfFieldValueChanged(bool value)
+		{
+			QualityManager.Instance.SetDepthOfField(value);
 		}
 		#endregion
 	}
