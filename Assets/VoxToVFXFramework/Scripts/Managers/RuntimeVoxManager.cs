@@ -18,6 +18,7 @@ using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.Popups;
 using Plane = UnityEngine.Plane;
 
 namespace VoxToVFXFramework.Scripts.Managers
@@ -45,6 +46,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const float MIN_DIFF_ANGLE_CAMERA = 1f;
 		private const float MIN_TIMER_CHECK_CAMERA = 0.1f;
 
+		private const int MAX_CAPACITY_VFX = 5000000;
 		private const int BUFFER_COLLIDERS_SIZE = 1000;
 		#endregion
 
@@ -427,6 +429,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			//	Debug.Log("additional: " + voxel.DecodeAdditionalData());
 			//}
 
+			string colorGreen = "green";
+			string colorRed = "red";
+			Debug.Log($"[RuntimeVoxManager] <color={(voxels.Length < MAX_CAPACITY_VFX ? colorGreen : colorRed)}> RefreshRender: {voxels.Length}</color>");
+			if (voxels.Length > MAX_CAPACITY_VFX)
+			{
+				MessagePopup.Show("Too much voxels", LogType.Warning); //TODO loc
+			}
 			mGraphicsBuffer?.Release();
 			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Length, Marshal.SizeOf(typeof(VoxelVFX)));
 			mGraphicsBuffer.SetData(voxels.AsArray());
