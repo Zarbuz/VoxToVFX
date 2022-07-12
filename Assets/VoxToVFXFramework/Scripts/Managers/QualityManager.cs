@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using Cinemachine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.Utils;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -28,12 +30,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int Lod0Distance { get; protected set; }
 		public int Lod1Distance { get; protected set; }
 
+		private CinemachineVirtualCamera mVirtualCamera;
+
 		#endregion
 
 		#region PublicMethods
 
 		public void Initialize()
 		{
+			mVirtualCamera = SceneUtils.FindObjectOfType<CinemachineVirtualCamera>();
+
 			CurrentResolutionScaler = PlayerPrefs.GetFloat(RESOLUTION_SCALER_KEY, 1);
 			SetDynamicResolution(CurrentResolutionScaler);
 
@@ -54,6 +60,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			Lod1Distance = PlayerPrefs.GetInt(LOD_1_DISTANCE_KEY, 600);
 			SetLod1Distance(Lod1Distance);
+
 		}
 
 		public void SetDynamicResolution(float resolution)
@@ -88,7 +95,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			FieldOfView = value;
 			PlayerPrefs.SetInt(FOV_VALUE_KEY, value);
-			UnityEngine.Camera.main.fieldOfView = value;
+			mVirtualCamera.m_Lens.FieldOfView = value;
 			RuntimeVoxManager.Instance.RefreshChunksToRender();
 		}
 

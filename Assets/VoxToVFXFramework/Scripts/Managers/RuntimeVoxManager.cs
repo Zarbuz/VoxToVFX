@@ -154,14 +154,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		private void OnDrawGizmosSelected()
+		private void OnDrawGizmos()
 		{
 			if (!Application.isPlaying)
 			{
 				return;
 			}
 
-			Vector3 position = mCamera.transform.position;
+			Vector3 position = PlayerPosition.transform.position;
 			if (ShowOnlyActiveChunkGizmos)
 			{
 				Gizmos.color = Color.green;
@@ -180,12 +180,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 				}
 			}
 
-
 			Gizmos.color = Color.green;
 			Gizmos.DrawWireSphere(position, LodDistanceLod0.Value);
 
 			Gizmos.color = Color.yellow;
 			Gizmos.DrawWireSphere(position, LodDistanceLod1.Value);
+
+			Gizmos.color = Color.blue;
+			Gizmos.DrawWireSphere(position, ColliderDistance.Value);
 
 			//Gizmos.color = Color.red;
 			//Gizmos.DrawWireSphere(position, LodDistance.w);
@@ -249,7 +251,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
 			mVisualEffect.enabled = true;
-			SetPlayerPosition();
+			SetPlayerToWorldCenter();
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
 			IsReady = true;
 			LoadFinishedCallback?.Invoke();
@@ -309,7 +311,29 @@ namespace VoxToVFXFramework.Scripts.Managers
 			buffer.Dispose();
 		}
 
+		public void SetPlayerToWorldCenter()
+		{
+			float distance = 10;
+			PlayerPosition.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, 2000, (MinMaxZ.y + MinMaxZ.x) / 2);
+			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
+			RefreshColliders();
+			bool foundCollisions;
+			do
+			{
+				foundCollisions = Physics.Raycast(PlayerPosition.transform.position, Vector3.down, out RaycastHit hit, distance);
+				if (!foundCollisions)
+				{
+					PlayerPosition.transform.Translate(Vector3.down * distance);
+					mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
+					RefreshColliders();
+				}
+				else
+				{
+					PlayerPosition.transform.position = hit.point + Vector3.up * 0.1f;
+				}
 
+			} while (!foundCollisions);
+		}
 		#endregion
 
 		#region PrivateMethods
@@ -323,7 +347,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				GameObject collider = new GameObject("Collider_" + i);
 				collider.transform.parent = colliderParent.transform;
-				collider.AddComponent<BoxCollider>();
+				BoxCollider boxCollider = collider.AddComponent<BoxCollider>();
+				boxCollider.size = Vector3.one;
 				mBoxColliders.Add(collider);
 			}
 		}
@@ -362,19 +387,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 					VoxelVFX voxel = data[buffer[i]];
 					float3 voxelRelativePosition = voxel.DecodePosition();
 
-					mBoxColliders[i].transform.position = new Vector3(worldPosition.x + voxelRelativePosition.x,
-						worldPosition.y + voxelRelativePosition.y, worldPosition.z + voxelRelativePosition.z);
+					mBoxColliders[i].transform.position = new Vector3(worldPosition.x + voxelRelativePosition.x, worldPosition.y + voxelRelativePosition.y, worldPosition.z + voxelRelativePosition.z);
 				}
 			}
 
 			buffer.Dispose();
 		}
-
-		private void SetPlayerPosition()
-		{
-			PlayerPosition.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, (MinMaxY.y + MinMaxY.x) / 2 + 1, (MinMaxZ.y + MinMaxZ.x) / 2);
-		}
-
 		private void RefreshDebugLod()
 		{
 			if (!IsReady)
