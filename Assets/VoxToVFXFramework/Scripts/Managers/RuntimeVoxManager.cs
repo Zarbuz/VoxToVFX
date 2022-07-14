@@ -30,6 +30,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private VisualEffect VisualEffectItemPrefab;
 		[SerializeField] private bool ShowOnlyActiveChunkGizmos;
 		[SerializeField] private GameObject PlayerPosition;
+		[SerializeField] private float ExposureWeight;
 
 		#endregion
 
@@ -59,7 +60,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public bool IsReady { get; private set; }
 
 		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
-		public Wrapped<float> ExposureWeight = new Wrapped<float>(0);
+		//public Wrapped<float> ExposureWeight = new Wrapped<float>(-15);
 		public Wrapped<float> ColliderDistance = new Wrapped<float>(10);
 		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
 		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
@@ -86,6 +87,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Quaternion mPreviousRotation;
 		private Vector3 mPreviousPosition;
 		private float mPreviousCheckTimer;
+		private float mPreviousExposureWeight;
 		#endregion
 
 		#region UnityMethods
@@ -103,7 +105,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			Debug.Log("FileToVoxCore version: " + runtimeVersion.Version);
 
-			ExposureWeight.OnValueChanged += RefreshExposureWeight;
+
+			//ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;
 
 			LodDistanceLod0.OnValueChanged += RefreshChunksToRender;
@@ -116,7 +119,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDestroy()
 		{
-			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
+			//ExposureWeight.OnValueChanged -= RefreshExposureWeight;
 			DebugLod.OnValueChanged -= RefreshDebugLod;
 			LodDistanceLod0.OnValueChanged -= RefreshChunksToRender;
 			LodDistanceLod1.OnValueChanged -= RefreshChunksToRender;
@@ -129,6 +132,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!IsReady)
 			{
 				return;
+			}
+
+			if (mPreviousExposureWeight != ExposureWeight)
+			{
+				mPreviousExposureWeight = ExposureWeight;
+				RefreshExposureWeight();
 			}
 
 			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
@@ -414,7 +423,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mVisualEffect.Reinit();
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
 			mVisualEffect.Play();
 		}
 
@@ -432,10 +441,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			string colorGreen = "green";
 			string colorRed = "red";
 			Debug.Log($"[RuntimeVoxManager] <color={(voxels.Length < MAX_CAPACITY_VFX ? colorGreen : colorRed)}> RefreshRender: {voxels.Length}</color>");
-			if (voxels.Length > MAX_CAPACITY_VFX)
-			{
-				MessagePopup.Show("Too much voxels", LogType.Warning); //TODO loc
-			}
+			
 			mGraphicsBuffer?.Release();
 			mGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, voxels.Length, Marshal.SizeOf(typeof(VoxelVFX)));
 			mGraphicsBuffer.SetData(voxels.AsArray());

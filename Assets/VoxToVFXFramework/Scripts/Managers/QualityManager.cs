@@ -60,10 +60,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 			FieldOfView = PlayerPrefs.GetInt(FOV_VALUE_KEY, 60);
 			SetFieldOfView(FieldOfView);
 
-			Lod0Distance = PlayerPrefs.GetInt(LOD_0_DISTANCE_KEY, 300);
+			Lod0Distance = PlayerPrefs.GetInt(LOD_0_DISTANCE_KEY, 115);
 			SetLod0Distance(Lod0Distance);
 
-			Lod1Distance = PlayerPrefs.GetInt(LOD_1_DISTANCE_KEY, 600);
+			Lod1Distance = PlayerPrefs.GetInt(LOD_1_DISTANCE_KEY, 300);
 			SetLod1Distance(Lod1Distance);
 
 			ShadowQualityLevel = PlayerPrefs.GetInt(SHADOW_QUALITY_LEVEL_KEY, 1);
