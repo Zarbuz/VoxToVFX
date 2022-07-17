@@ -15,7 +15,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		[ReadOnly] public int LodDistanceLod0;
 		[ReadOnly] public int LodDistanceLod1;
 		[ReadOnly] public UnsafeHashMap<int, UnsafeList<VoxelVFX>> Data;
-		[ReadOnly] public Vector3 CameraPosition;
+		[ReadOnly] public Vector3 PlayerPosition;
 		public NativeList<VoxelVFX>.ParallelWriter Buffer;
 
 		public void Execute(int index)
@@ -25,7 +25,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 			//if (chunk.IsActive == 0)
 			//	return;
 
-			float distance = Vector3.Distance(CameraPosition, chunkVFX.CenterWorldPosition);
+			float distance = Vector3.Distance(PlayerPosition, chunkVFX.CenterWorldPosition);
 			if (distance < LodDistanceLod0 && chunkVFX.LodLevel == 1)
 			{
 				Buffer.AddRangeNoResize(Data[chunkIndex]);

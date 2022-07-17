@@ -11,6 +11,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 	{
 		#region Fields
 
+		public DepthOfField DepthOfField;
+
 		private Volume mVolume;
 
 		#endregion
@@ -20,6 +22,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		protected override void OnAwake()
 		{
 			mVolume = GetComponent<Volume>();
+			mVolume.profile.TryGet(typeof(DepthOfField), out DepthOfField);
 		}
 
 		#endregion
@@ -28,20 +31,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void SetEdgePostProcess(float intensity, Color color)
 		{
-			if (mVolume.sharedProfile.TryGet(typeof(Sobel), out Sobel sobel))
+			if (mVolume.profile.TryGet(typeof(Sobel), out Sobel sobel))
 			{
 				sobel.intensity.value = Mathf.Clamp01(intensity);
 				sobel.outlineColour.value = color;
 			}
-
 		}
 
 		public void SetDepthOfField(bool active)
 		{
-			if (mVolume.sharedProfile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
-			{
-				depthOfField.active = active;
-			}
+			DepthOfField.active = active;
+		}
+
+		public void SetDepthOfFieldFocus(float distance, bool isHit)
+		{
+			DepthOfField.active = true;
+			DepthOfField.farFocusEnd.value = distance;
+			DepthOfField.nearFocusEnd.value = isHit ? 0.2f : 6f;
+			DepthOfField.focusMode = new DepthOfFieldModeParameter(DepthOfFieldMode.Manual);
 		}
 
 		public void SetQualityLevel(int index)
@@ -64,32 +71,32 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(AmbientOcclusion), out AmbientOcclusion ambientOcclusion))
+			if (mVolume.profile.TryGet(typeof(AmbientOcclusion), out AmbientOcclusion ambientOcclusion))
 			{
 				ambientOcclusion.quality = scalableSettingLevelParameter;
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(Fog), out Fog fog))
+			if (mVolume.profile.TryGet(typeof(Fog), out Fog fog))
 			{
 				fog.quality = scalableSettingLevelParameter;
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(GlobalIllumination), out GlobalIllumination globalIllumination))
+			if (mVolume.profile.TryGet(typeof(GlobalIllumination), out GlobalIllumination globalIllumination))
 			{
 				globalIllumination.quality = scalableSettingLevelParameter;
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(Bloom), out Bloom bloom))
+			if (mVolume.profile.TryGet(typeof(Bloom), out Bloom bloom))
 			{
 				bloom.quality = scalableSettingLevelParameter;
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(ScreenSpaceReflection), out ScreenSpaceReflection screenSpaceReflection))
+			if (mVolume.profile.TryGet(typeof(ScreenSpaceReflection), out ScreenSpaceReflection screenSpaceReflection))
 			{
 				screenSpaceReflection.quality = scalableSettingLevelParameter;
 			}
 
-			if (mVolume.sharedProfile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
+			if (mVolume.profile.TryGet(typeof(DepthOfField), out DepthOfField depthOfField))
 			{
 				depthOfField.quality = scalableSettingLevelParameter;
 			}
