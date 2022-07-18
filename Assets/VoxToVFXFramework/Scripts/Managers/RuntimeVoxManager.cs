@@ -17,6 +17,7 @@ using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Extensions;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
+using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using Plane = UnityEngine.Plane;
@@ -28,6 +29,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region SerializeFields
 
 		[SerializeField] private VisualEffect VisualEffectItemPrefab;
+		[SerializeField] private VFXListAsset VFXListAsset;
 		[SerializeField] private bool ShowOnlyActiveChunkGizmos;
 		[SerializeField] private GameObject PlayerPosition;
 		[SerializeField] private float ExposureWeight;
@@ -49,6 +51,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private const int MAX_CAPACITY_VFX = 5000000;
 		private const int BUFFER_COLLIDERS_SIZE = 1000;
+		public const int STEP_CAPACITY = 100000;
+
 		#endregion
 
 		#region Fields
@@ -114,8 +118,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			InitCollidersBuffer();
 		}
-
-
 
 		private void OnDestroy()
 		{
@@ -259,8 +261,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void OnChunkLoadedFinished()
 		{
 			mVisualEffect = Instantiate(VisualEffectItemPrefab);
-			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
-			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
+			
 			mVisualEffect.enabled = true;
 			SetPlayerToWorldCenter();
 			Debug.Log("[RuntimeVoxController] OnChunkLoadedFinished");
@@ -429,6 +430,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void RefreshRender(NativeList<VoxelVFX> voxels)
 		{
+			mVisualEffect.visualEffectAsset = GetVisualEffectAsset(voxels.Length);
 			mVisualEffect.Reinit();
 
 			//for (int index = 0; index < voxels.Length && index < 200; index++)
@@ -448,9 +450,27 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			mVisualEffect.SetInt(INITIAL_BURST_COUNT_KEY, voxels.Length);
 			mVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
+			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
+			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod.Value);
+
 			mVisualEffect.Play();
 
 			mAdditionalLightData.RequestShadowMapRendering();
+		}
+
+		private VisualEffectAsset GetVisualEffectAsset(int voxelCount)
+		{
+			int index = voxelCount / STEP_CAPACITY;
+			if (index > VFXListAsset.VisualEffectAssets.Count)
+			{
+				index = VFXListAsset.VisualEffectAssets.Count - 1;
+			}
+
+			VisualEffectAsset asset = VFXListAsset.VisualEffectAssets[index];
+			Debug.Log("[RuntimeVoxManager] Selected VisualEffectAsset: " + asset.name);
+			return asset;
 		}
 
 
