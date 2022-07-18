@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -31,9 +32,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private string mOutputPath;
 	private string mInputFileName;
 	private VoxImporter mImporter;
+	private string mAppPersistantPath;
 
 	private string mCurrentInputFolder;
-	private readonly List<ChunkDataFile> mChunksWrited = new List<ChunkDataFile>();
+	private readonly ConcurrentBag<ChunkDataFile> mChunksWritten = new ConcurrentBag<ChunkDataFile>();
 	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
 	private int mReadCompleted;
@@ -48,6 +50,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	#region UnityMethods
 
+	protected override void OnStart()
+	{
+		mAppPersistantPath = Application.persistentDataPath;
+	}
+
 	private void OnApplicationQuit()
 	{
 		mImporter?.Dispose();
@@ -61,7 +68,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		mInputFileName = Path.GetFileNameWithoutExtension(inputPath);
 		mOutputPath = outputPath;
-		mChunksWrited.Clear();
+		mChunksWritten.Clear();
 		mImporter = new VoxImporter();
 		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
 	}
@@ -250,7 +257,18 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			CleanFolder(tmpPath);
 		}
 
-		StartCoroutine(worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
+		StartCoroutine(ComputeLodCo(worldData));
+
+	}
+
+	private IEnumerator ComputeLodCo(WorldData worldData)
+	{
+		Task task = Task.Run(() => worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
+
+		while (!task.IsCompleted)
+		{
+			yield return null;
+		}
 	}
 
 	private void CleanFolder(string folderPath)
@@ -274,7 +292,10 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private void OnChunkLoadResult(float progress, VoxelResult voxelResult)
 	{
-		LoadProgressCallback?.Invoke(2, progress);
+		UnityMainThreadManager.Instance.EnqueueAsync(() =>
+		{
+			LoadProgressCallback?.Invoke(2, progress);
+		});
 
 		if (voxelResult.Data.Length == 0)
 		{
@@ -282,7 +303,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 
 		string fileName = $"{mInputFileName}_{voxelResult.LodLevel}_{voxelResult.ChunkCenterWorldPosition.x}_{voxelResult.ChunkCenterWorldPosition.y}_{voxelResult.ChunkCenterWorldPosition.z}.data";
-		using (FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
+		using (FileStream stream = File.Open(Path.Combine(mAppPersistantPath, EXTRACT_TMP_FOLDER_NAME, fileName), FileMode.Create))
 		{
 			using BinaryWriter binaryWriter = new BinaryWriter(stream);
 			binaryWriter.Write(voxelResult.Data.Length);
@@ -317,12 +338,18 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			LodLevel = voxelResult.LodLevel,
 			Length = voxelResult.Data.Length,
 		};
-		mChunksWrited.Add(chunk);
+		mChunksWritten.Add(chunk);
+	}
+
+	private IEnumerator WaitEndOfFrame(float progress)
+	{
+		yield return new WaitForEndOfFrame();
+
 	}
 
 	private void WriteStructureFile()
 	{
-		using FileStream stream = File.Open(Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME, mInputFileName + ".structure"), FileMode.Create);
+		using FileStream stream = File.Open(Path.Combine(mAppPersistantPath, EXTRACT_TMP_FOLDER_NAME, mInputFileName + ".structure"), FileMode.Create);
 		using BinaryWriter binaryWriter = new BinaryWriter(stream);
 		binaryWriter.Write(mMinX);
 		binaryWriter.Write(mMaxX);
@@ -330,8 +357,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		binaryWriter.Write(mMaxY);
 		binaryWriter.Write(mMinZ);
 		binaryWriter.Write(mMaxZ);
-		binaryWriter.Write(mChunksWrited.Count);
-		foreach (ChunkDataFile chunk in mChunksWrited)
+		binaryWriter.Write(mChunksWritten.Count);
+		foreach (ChunkDataFile chunk in mChunksWritten)
 		{
 			binaryWriter.Write(chunk.ChunkIndex);
 			binaryWriter.Write(chunk.LodLevel);
@@ -376,7 +403,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		WriteStructureFile();
 		mImporter.Dispose();
 		mImporter = null;
-		string inputFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
+		string inputFolder = Path.Combine(mAppPersistantPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))
 		{
 			File.Delete(mOutputPath);
@@ -384,7 +411,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		ZipFile.CreateFromDirectory(inputFolder, mOutputPath, CompressionLevel.Optimal, false, Encoding.UTF8);
 		string md5ResultFile = GetMd5Checksum(mOutputPath);
 
-		string outputFolder = Path.Combine(Application.persistentDataPath, md5ResultFile);
+		string outputFolder = Path.Combine(mAppPersistantPath, md5ResultFile);
 		if (Directory.Exists(outputFolder))
 		{
 			Directory.Delete(outputFolder);
@@ -392,7 +419,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		Directory.CreateDirectory(outputFolder);
 		MoveFilesFromFolder(inputFolder, outputFolder);
 		Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
-		LoadFinishedCallback?.Invoke();
+
+		UnityMainThreadManager.Instance.Enqueue(() =>
+		{
+			LoadFinishedCallback?.Invoke();
+		});
 	}
 
 	#endregion
