@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FileToVoxCore.Schematics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,6 +22,12 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		[SerializeField] private ToggleHighlightable DLSSToggle;
 		[SerializeField] private ToggleHighlightable VSyncToggle;
 		[SerializeField] private ToggleHighlightable DebugLodToggle;
+
+		#endregion
+
+		#region ConstStatic
+
+		private const int MIN_MARGIN_LOD = 50;
 
 		#endregion
 
@@ -81,9 +88,10 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			ShadowQualityDropdown.SetValueWithoutNotify(QualityManager.Instance.ShadowQualityLevel);
 			VSyncToggle.SetIsOn(QualityManager.Instance.IsDLSSActive, false);
 			FieldOfViewSlider.SetValueWithoutNotify(QualityManager.Instance.FieldOfView);
+			MaxDistanceLod1Slider.minValue = Schematic.CHUNK_SIZE + 1;
 			MaxDistanceLod0Slider.SetValueWithoutNotify(QualityManager.Instance.Lod0Distance);
 			MaxDistanceLod1Slider.SetValueWithoutNotify(QualityManager.Instance.Lod1Distance);
-			MaxDistanceLod1Slider.minValue = QualityManager.Instance.Lod0Distance;
+			MaxDistanceLod1Slider.minValue = QualityManager.Instance.Lod0Distance + MIN_MARGIN_LOD;
 			DepthOfFieldToggle.SetIsOn(QualityManager.Instance.IsDepthOfFieldActive, false);
 		}
 
@@ -126,11 +134,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnMaxDistanceLod0ValueChanged(float value)
 		{
 			QualityManager.Instance.SetLod0Distance((int)value);
-			MaxDistanceLod1Slider.minValue = (int)value + 10;
+			MaxDistanceLod1Slider.minValue = (int)value + MIN_MARGIN_LOD;
 
-			if (QualityManager.Instance.Lod1Distance < value + 10)
+			if (QualityManager.Instance.Lod1Distance < value + MIN_MARGIN_LOD)
 			{
-				MaxDistanceLod1Slider.value = value + 10;
+				MaxDistanceLod1Slider.value = value + MIN_MARGIN_LOD;
 			}
 		}
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
 using Unity.Collections;
@@ -8,8 +10,10 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Core;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
+using VoxToVFXFramework.Scripts.Managers;
 using Color = FileToVoxCore.Drawing.Color;
 
 namespace VoxToVFXFramework.Scripts.Data
@@ -48,54 +52,29 @@ namespace VoxToVFXFramework.Scripts.Data
 			addVoxelsJob.Complete();
 		}
 
-		public IEnumerator ComputeLodsChunks(Action<float, VoxelResult> onChunkLoadedCallback, Action onChunkLoadedFinished)
+		public void ComputeLodsChunks(Action<VoxelResult> onChunkLoadedCallback, Action<float> onProgressCallback, Action onChunkLoadedFinished)
 		{
 			NativeArray<int> keys = WorldDataPositions.GetKeyArray(Allocator.Persistent);
-			
-			for (int index = 0; index < keys.Length; index++)
+			int counter = 0;
+			object lockTarget = new object();
+			Parallel.For(0, keys.Length, index =>
 			{
-				int chunkIndex = keys[index];
-				int3 chunkWorldPosition = GetChunkWorldPosition(chunkIndex);
-				Vector3 chunkCenterWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
-				UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
-				
-				UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
-				NativeList<VoxelData> finalResultLod0 = ComputeRotation(resultLod0, WorldDataPositions, Materials, 1, chunkWorldPosition);
+				ComputeLodInternal(keys, index, onChunkLoadedCallback);
 
-				VoxelResult voxelResult = new VoxelResult
+				lock (lockTarget)
 				{
-					Data = finalResultLod0,
-					ChunkIndex = chunkIndex,
-					ChunkCenterWorldPosition = chunkCenterWorldPosition,
-					ChunkWorldPosition = new Vector3(chunkWorldPosition.x, chunkWorldPosition.y, chunkWorldPosition.z),
-					LodLevel = 1
-				};
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
-				voxelResult.Data.Dispose();
-				yield return new WaitForEndOfFrame();
+					counter++;
+					onProgressCallback?.Invoke(counter / (float)keys.Length);
+				}
+				//counter = Interlocked.Increment(ref counter);
 
-				UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, chunkWorldPosition, 2, 4);
-				NativeList<VoxelData> finalResultLod1 = ComputeRotation(resultLod1, WorldDataPositions,  Materials, 2, chunkWorldPosition);
-				resultLod1.Dispose();
-				voxelResult.Data = finalResultLod1;
-				voxelResult.LodLevel = 2;
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
-				voxelResult.Data.Dispose();
-				yield return new WaitForEndOfFrame();
-
-				NativeList<VoxelData> finalResultLod2 = ComputeRotation(resultLod2, WorldDataPositions, Materials, 4, chunkWorldPosition);
-				resultLod2.Dispose();
-				voxelResult.Data = finalResultLod2;
-				voxelResult.LodLevel = 4;
-				onChunkLoadedCallback?.Invoke(index / (float)keys.Length, voxelResult);
-				voxelResult.Data.Dispose();
-				yield return new WaitForEndOfFrame();
-
-				
-			}
-
-			keys.Dispose();
-			onChunkLoadedFinished?.Invoke();
+				if (counter == keys.Length)
+				{
+					keys.Dispose();
+					onChunkLoadedFinished?.Invoke();
+				}
+			}); 
+		
 		}
 
 		public void Dispose()
@@ -114,6 +93,44 @@ namespace VoxToVFXFramework.Scripts.Data
 		#endregion
 
 		#region PrivateMethods
+
+		private void ComputeLodInternal(NativeArray<int> keys, int index, Action<VoxelResult> onChunkLoadedCallback)
+		{
+			int chunkIndex = keys[index];
+			int3 chunkWorldPosition = GetChunkWorldPosition(chunkIndex);
+			Vector3 chunkCenterWorldPosition = GetCenterChunkWorldPosition(chunkIndex);
+			UnsafeHashMap<int, VoxelData> resultLod0 = WorldDataPositions[chunkIndex];
+
+			UnsafeHashMap<int, VoxelData> resultLod1 = ComputeLod(resultLod0, chunkWorldPosition, 1, 2);
+			NativeList<VoxelData> finalResultLod0 = ComputeRotation(resultLod0, WorldDataPositions, Materials, 1, chunkWorldPosition);
+
+			VoxelResult voxelResult = new VoxelResult
+			{
+				Data = finalResultLod0,
+				ChunkIndex = chunkIndex,
+				ChunkCenterWorldPosition = chunkCenterWorldPosition,
+				ChunkWorldPosition = new Vector3(chunkWorldPosition.x, chunkWorldPosition.y, chunkWorldPosition.z),
+				LodLevel = 1
+			};
+
+			onChunkLoadedCallback?.Invoke(voxelResult);
+			voxelResult.Data.Dispose();
+
+			UnsafeHashMap<int, VoxelData> resultLod2 = ComputeLod(resultLod1, chunkWorldPosition, 2, 4);
+			NativeList<VoxelData> finalResultLod1 = ComputeRotation(resultLod1, WorldDataPositions, Materials, 2, chunkWorldPosition);
+			resultLod1.Dispose();
+			voxelResult.Data = finalResultLod1;
+			voxelResult.LodLevel = 2;
+			onChunkLoadedCallback?.Invoke(voxelResult);
+			voxelResult.Data.Dispose();
+
+			NativeList<VoxelData> finalResultLod2 = ComputeRotation(resultLod2, WorldDataPositions, Materials, 4, chunkWorldPosition);
+			resultLod2.Dispose();
+			voxelResult.Data = finalResultLod2;
+			voxelResult.LodLevel = 4;
+			onChunkLoadedCallback?.Invoke(voxelResult);
+			voxelResult.Data.Dispose();
+		}
 
 		private void WriteMaterials(VoxModelCustom voxModel)
 		{
@@ -206,7 +223,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		
 		private static UnsafeHashMap<int, VoxelData> ComputeLod(UnsafeHashMap<int, VoxelData> data, int3 worldChunkPosition, int step, int moduloCheck)
 		{
-			UnsafeHashMap<int, VoxelData> resultLod1 = new UnsafeHashMap<int, VoxelData>(data.Count(), Allocator.TempJob);
+			UnsafeHashMap<int, VoxelData> resultLod1 = new UnsafeHashMap<int, VoxelData>(data.Count(), Allocator.Persistent);
 			ComputeLodJob computeLodJob = new ComputeLodJob()
 			{
 				VolumeSize = ChunkVolume,
@@ -224,8 +241,8 @@ namespace VoxToVFXFramework.Scripts.Data
 
 		private static NativeList<VoxelData> ComputeRotation(UnsafeHashMap<int, VoxelData> data, UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> worldDataPositions, NativeArray<VoxelMaterialVFX> materials, int step, int3 worldChunkPosition)
 		{
-			NativeArray<int> keys = data.GetKeyArray(Allocator.TempJob);
-			NativeList<VoxelData> result = new NativeList<VoxelData>(data.Count(), Allocator.TempJob);
+			NativeArray<int> keys = data.GetKeyArray(Allocator.Persistent);
+			NativeList<VoxelData> result = new NativeList<VoxelData>(data.Count(), Allocator.Persistent);
 			JobHandle computeRotationJob = new ComputeVoxelRotationJob()
 			{
 				Data = data,
