@@ -263,7 +263,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private IEnumerator ComputeLodCo(WorldData worldData)
 	{
-		Task task = Task.Run(() => worldData.ComputeLodsChunks(OnChunkLoadResult, OnChunkLoadedFinished));
+		Task task = Task.Run(() => worldData.ComputeLodsChunks(OnChunkLoadResult, OnProgressChunkLoadResult, OnChunkLoadedFinished));
 
 		while (!task.IsCompleted)
 		{
@@ -290,13 +290,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 	}
 
-	private void OnChunkLoadResult(float progress, VoxelResult voxelResult)
+	private void OnChunkLoadResult(VoxelResult voxelResult)
 	{
-		UnityMainThreadManager.Instance.EnqueueAsync(() =>
-		{
-			LoadProgressCallback?.Invoke(2, progress);
-		});
-
 		if (voxelResult.Data.Length == 0)
 		{
 			return;
@@ -341,10 +336,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		mChunksWritten.Add(chunk);
 	}
 
-	private IEnumerator WaitEndOfFrame(float progress)
+	private void OnProgressChunkLoadResult(float progress)
 	{
-		yield return new WaitForEndOfFrame();
-
+		UnityMainThreadManager.Instance.Enqueue(() =>
+		{
+			LoadProgressCallback?.Invoke(2, progress);
+		});
 	}
 
 	private void WriteStructureFile()
