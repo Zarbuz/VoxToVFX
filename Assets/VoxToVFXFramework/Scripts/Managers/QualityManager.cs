@@ -69,7 +69,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			ShadowQualityLevel = PlayerPrefs.GetInt(SHADOW_QUALITY_LEVEL_KEY, 1);
 			SetShadowQualityLevel(ShadowQualityLevel);
 
-			IsDepthOfFieldActive = PlayerPrefs.GetInt(DEPTH_OF_FIELD_KEY, 1) == 1;
+			IsDepthOfFieldActive = PlayerPrefs.GetInt(DEPTH_OF_FIELD_KEY, 0) == 1;
 			SetDepthOfField(IsDepthOfFieldActive);
 		}
 
