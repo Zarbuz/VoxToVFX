@@ -5,6 +5,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Settings;
+using VoxToVFXFramework.Scripts.UI.Weather;
 
 namespace VoxToVFXFramework.Scripts.UI
 {
@@ -13,7 +14,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Closed,
 		Pause,
 		ImportScene,
-		Settings
+		Settings,
+		Weather
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -23,6 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
 		[SerializeField] private SettingsPanel SettingsPanel;
+		[SerializeField] private WeatherPanel WeatherPanel;
 		#endregion
 
 		#region Fields
@@ -38,6 +41,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				PausePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
 				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
 				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
+				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
 
 				PostProcessingManager.Instance.SetDepthOfField(mCanvasPlayerPcState != CanvasPlayerPCState.Closed);
 			}
@@ -53,7 +57,6 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
-
 
 		private void Update()
 		{
@@ -85,6 +88,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		public void GenericClosePanel()
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
+			RefreshCursorState();
 		}
 
 		public void OpenImportScenePanel(ImportScenePanel.EDataImportType dataImportType)

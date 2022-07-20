@@ -67,7 +67,7 @@ public class PausePanel : MonoBehaviour
 
 	private void OnChangeWeatherClicked()
 	{
-		throw new NotImplementedException();
+		CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Weather);
 	}
 
 	private void OnQuitSceneClicked()

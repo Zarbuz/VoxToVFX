@@ -11,7 +11,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 	{
 		#region Fields
 
-		public DepthOfField DepthOfField;
+		[HideInInspector] public DepthOfField DepthOfField;
 
 		private Volume mVolume;
 

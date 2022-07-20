@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 264017584035478352}
   - component: {fileID: 264017584035478355}
   - component: {fileID: 1566526208579906350}
+  - component: {fileID: 7250176792778067368}
   m_Layer: 0
   m_Name: PostProcessingManager
   m_TagString: Untagged
@@ -63,6 +64,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DepthOfField: {fileID: 0}
+--- !u!114 &7250176792778067368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 264017584035478354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab3892e86db16e041b5812ec87ddfd49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SunriseMaterial: {fileID: 8900000, guid: dccbe03bdbbbbf9469ff21c6ef6b6ace, type: 3}
+  SunnyMaterial: {fileID: 8900000, guid: 4dcce33b84be0fb428c681e890a0a4c2, type: 3}
+  FoggyMaterial: {fileID: 8900000, guid: 74bd55a6261e5554d8c80290415a4f44, type: 3}
+  SunsetMaterial: {fileID: 8900000, guid: c2d415f3e8249bc4c9f2d223f7fc41ac, type: 3}
+  DuskMaterial: {fileID: 8900000, guid: de6bb23d590834541bbf3e5a3d694078, type: 3}
+  DawnMaterial: {fileID: 8900000, guid: 2c6e236bf6a9a5444b8d0bf187f1fdf4, type: 3}
 --- !u!1 &686402521972865103
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,7 +126,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07b090072001eda4191160654e9f3ed5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InputSettings: {fileID: 11400000, guid: 1fb3a57e7fee38f4fbdac317abef66a7, type: 2}
 --- !u!1 &927305442969751440
 GameObject:
   m_ObjectHideFlags: 0
