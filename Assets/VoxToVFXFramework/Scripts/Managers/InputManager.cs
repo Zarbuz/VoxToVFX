@@ -9,15 +9,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 {
 	public class InputManager : ModuleSingleton<InputManager>
 	{
-		public InputSettings InputSettings;
 		public Dictionary<string, InfoKey> ConfigKeys = new Dictionary<string, InfoKey>();
 
 		protected override void OnAwake()
 		{
-			foreach (InputInfo inputInfo in InputSettings.Settings)
-			{
-				ConfigKeys[inputInfo.KeyName] = new InfoKey((KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString(inputInfo.KeyName, inputInfo.DefaultKey.ToString())));
-			}
+			
 		}
 
 		public bool SetKey(string keyName, KeyCode newKeyCode)
@@ -40,11 +36,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public void ResetSettings()
 		{
-			foreach (InputInfo inputInfo in InputSettings.Settings)
-			{
-				ConfigKeys[inputInfo.KeyName].Key = inputInfo.DefaultKey;
-				PlayerPrefs.SetString(inputInfo.KeyName, inputInfo.DefaultKey.ToString());
-			}
+			
 		}
 	}
 
