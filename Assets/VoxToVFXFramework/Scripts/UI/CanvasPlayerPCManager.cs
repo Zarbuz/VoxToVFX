@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -59,18 +60,13 @@ namespace VoxToVFXFramework.Scripts.UI
 			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
 				GenericTogglePanel(CanvasPlayerPCState.Pause);
-				if (CanvasPlayerPcState == CanvasPlayerPCState.Pause)
-				{
-					Cursor.visible = true;
-					Cursor.lockState = CursorLockMode.None;
-				}
-				else
-				{
-					Cursor.visible = false;
-					Cursor.lockState = CursorLockMode.Locked;
-				}
+				RefreshCursorState();
 			}
-		}	
+			else if (CanvasPlayerPcState != CanvasPlayerPCState.Closed && !Cursor.visible)
+			{
+				RefreshCursorState();
+			}
+		}
 
 		#endregion
 
@@ -99,6 +95,24 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		#endregion
 
-		
+		#region PrivateMethods
+
+		private void RefreshCursorState()
+		{
+			if (CanvasPlayerPcState != CanvasPlayerPCState.Closed)
+			{
+				Cursor.visible = true;
+				Cursor.lockState = CursorLockMode.None;
+				Time.timeScale = 0;
+			}
+			else
+			{
+				Cursor.visible = false;
+				Cursor.lockState = CursorLockMode.Locked;
+				Time.timeScale = 1;
+			}
+		}
+
+		#endregion
 	}
 }

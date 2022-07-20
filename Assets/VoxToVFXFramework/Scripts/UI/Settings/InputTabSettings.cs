@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
-using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.UI.Settings
 {
@@ -13,153 +11,42 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Transform ListParent;
-		[SerializeField] private InputTabSettingsItem ItemPrefab;
-		[SerializeField] private Button ResetSettingsButton;
+		[SerializeField] private List<RebindActionKey> RebindActionKeys;
+		[SerializeField] private Button ResetAllButton;
 
 		#endregion
 
-		#region Fields
-
-		private bool mIsWaitingKey;
-		private Event mKeyEvent;
-		private KeyCode mNewKey;
-		private InputTabSettingsItem mSelectedItem;
-		private readonly List<InputTabSettingsItem> mItems = new List<InputTabSettingsItem>();
-		private InputTabSettingsItem mItemWithWarning;
-		#endregion
+		
 
 		#region UnityMethods
 
 		private void OnEnable()
 		{
-			ResetSettingsButton.onClick.AddListener(OnResetSettingsClicked);
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
+			ResetAllButton.onClick.AddListener(OnResetAllClicked);
 		}
+
 
 		private void OnDisable()
 		{
-			HidePreviousWarning();
-			ResetSettingsButton.onClick.RemoveListener(OnResetSettingsClicked);
 			CanvasPlayerPCManager.Instance.PauseLockedState = false;
-		}
-
-		private void Start()
-		{
-			//string previousCategory = string.Empty;
-
-			foreach (InputInfo inputInfo in InputManager.Instance.InputSettings.Settings)
-			{
-				//if (previousCategory != inputInfo.KeyCategory.ToString())
-				//{
-				//	TextMeshProUGUI subTitle = Instantiate(SubCategoryTitle, ListParent, false);
-				//	subTitle.gameObject.SetActive(true);
-				//	subTitle.text = ("[SETTINGS_KEY_SUBTITLE_" + inputInfo.KeyCategory.ToString().ToUpperInvariant() + "]").Translate();
-				//	previousCategory = inputInfo.KeyCategory.ToString();
-				//}
-				InputTabSettingsItem item = Instantiate(ItemPrefab, ListParent, false);
-				item.Initialize(inputInfo, OnButtonClicked);
-				mItems.Add(item);
-			}
-		}
-
-
-		private void OnGUI()
-		{
-			mKeyEvent = Event.current;
-			if ((mKeyEvent.isKey || mKeyEvent.isMouse) && mIsWaitingKey)
-			{
-				mNewKey = mKeyEvent.isKey
-					? mKeyEvent.keyCode
-					: (KeyCode)Enum.Parse(typeof(KeyCode), "Mouse" + mKeyEvent.button);
-				mIsWaitingKey = false;
-			}
-		}
-
-		#endregion
-
-		#region PublicMethods
-
-		public void StartAssignment(string keyName)
-		{
-			if (!mIsWaitingKey)
-			{
-				StartCoroutine(AssignKey(keyName));
-			}
+			ResetAllButton.onClick.RemoveListener(OnResetAllClicked);
 		}
 
 		#endregion
 
 		#region PrivateMethods
 
-		private void RefreshAllKeys()
+		private void OnResetAllClicked()
 		{
-			foreach (InputTabSettingsItem item in mItems)
+			MessagePopup.ShowConfirmWithBlocking(LocalizationKeys.SETTINGS_CONFIRM_RESET_ALL.Translate(), () =>
 			{
-				item.RefreshKey();
-			}
-		}
-
-		private void OnResetSettingsClicked()
-		{
-			InputManager.Instance.ResetSettings();
-			RefreshAllKeys();
-		}
-
-		private void OnButtonClicked(InputTabSettingsItem item)
-		{
-			if (!mIsWaitingKey)
-			{
-				mSelectedItem = item;
-				StartAssignment(item.InputInfo.KeyName);
-			}
-		}
-
-		private IEnumerator WaitForKey()
-		{
-			while (mIsWaitingKey)
-			{
-				yield return null;
-			}
-		}
-
-		private IEnumerator AssignKey(string keyName)
-		{
-			mIsWaitingKey = true;
-			HidePreviousWarning();
-			yield return WaitForKey();
-
-			if (InputManager.Instance.ConfigKeys[keyName].Key != mNewKey && mNewKey != KeyCode.Escape)
-			{
-				if (InputManager.Instance.SetKey(keyName,/* mSelectedItem.InputInfo.KeyCategory,*/ mNewKey))
+				foreach (RebindActionKey rebindActionKey in RebindActionKeys)
 				{
-					mSelectedItem.RefreshKey();
+					rebindActionKey.ResetToDefault();
 				}
-				else
-				{
-					DisplayWarning();
-				}
-			}
-			else
-			{
-				mSelectedItem.RefreshKey();
-			}
+			});
 		}
-
-		private void HidePreviousWarning()
-		{
-			if (mItemWithWarning == null) return;
-
-			mItemWithWarning.HideWarningIcon();
-			mItemWithWarning = null;
-		}
-
-		private void DisplayWarning()
-		{
-			mSelectedItem.DisplayWarningIcon(mNewKey);
-			mItemWithWarning = mSelectedItem;
-		}
-
 		#endregion
 	}
 }
