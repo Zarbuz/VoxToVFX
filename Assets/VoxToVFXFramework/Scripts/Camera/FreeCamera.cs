@@ -54,7 +54,7 @@ namespace VoxToVFXFramework.Scripts.Camera
 		private float mInputRotateAxisX, mInputRotateAxisY;
 		private float mInputChangeSpeed;
 		private float mInputVertical, mInputHorizontal, mInputYAxis;
-		private bool mLeftShiftBoost, mLeftShift, mFire1;
+		private bool mLeftShift;
 
 		#endregion
 
@@ -96,7 +96,7 @@ namespace VoxToVFXFramework.Scripts.Camera
 				transform.localRotation = Quaternion.Euler(newRotationX, newRotationY, transform.localEulerAngles.z);
 
 				float moveSpeed = Time.deltaTime * MoveSpeed;
-				if (mFire1 || mLeftShiftBoost && mLeftShift)
+				if (mLeftShift)
 					moveSpeed *= Turbo;
 				transform.position += transform.forward * moveSpeed * mInputVertical;
 				transform.position += transform.right * moveSpeed * mInputHorizontal;
@@ -148,16 +148,12 @@ namespace VoxToVFXFramework.Scripts.Camera
 		{
 			mInputRotateAxisX = 0.0f;
 			mInputRotateAxisY = 0.0f;
-			mLeftShiftBoost = false;
-			mFire1 = false;
 
 			Vector2 lookDelta = mLookAction.ReadValue<Vector2>();
 			mInputRotateAxisX = lookDelta.x * LookSpeedMouse * MOUSE_SENSITIVITY_MULTIPLIER;
 			mInputRotateAxisY = lookDelta.y * LookSpeedMouse * MOUSE_SENSITIVITY_MULTIPLIER;
 
 			mLeftShift = Keyboard.current.leftShiftKey.isPressed;
-			mFire1 = Mouse.current?.leftButton?.isPressed == true || Gamepad.current?.xButton?.isPressed == true;
-
 			mInputChangeSpeed = mSpeedAction.ReadValue<Vector2>().y;
 
 			Vector2 moveDelta = mOveAction.ReadValue<Vector2>();

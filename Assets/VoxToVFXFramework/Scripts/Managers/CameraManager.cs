@@ -15,8 +15,8 @@ public class CameraManager : ModuleSingleton<CameraManager>
 {
 	#region ScriptParameters
 
-	[SerializeField] private CinemachineVirtualCamera FirstPersonCamera;
-	[SerializeField] private CinemachineVirtualCamera FreeCamera;
+	public CinemachineVirtualCamera FirstPersonCamera;
+	public CinemachineVirtualCamera FreeCamera;
 
 	#endregion
 
@@ -84,7 +84,7 @@ public class CameraManager : ModuleSingleton<CameraManager>
 	public void SetSpeedCamera(int value)
 	{
 		mFreeCamera.MoveSpeed = value;
-		mFreeCamera.Turbo = value * 2;
+		mFreeCamera.Turbo = value * 1.2f;
 		PlayerPrefs.SetInt(SPEED_CAMERA_KEY, value);
 	}
 
