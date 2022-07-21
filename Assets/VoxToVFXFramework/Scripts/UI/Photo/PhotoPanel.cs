@@ -4,6 +4,7 @@ using System.IO;
 using SFB;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Photo
@@ -14,7 +15,10 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 
 		[SerializeField] private CanvasGroup BackgroundImage;
 		[SerializeField] private Image PanelBackground;
+
 		[SerializeField] private Slider SpeedCameraSlider;
+		[SerializeField] private Slider ExposureSlider;
+
 		[SerializeField] private Button SaveButton;
 		[SerializeField] private Button CloseButton;
 
@@ -31,22 +35,28 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 		private void OnEnable()
 		{
 			SpeedCameraSlider.onValueChanged.AddListener(OnSpeedCameraValueChanged);
+			ExposureSlider.onValueChanged.AddListener(OnExposureValueChanged);
 			SaveButton.onClick.AddListener(OnSaveClicked);
 			CloseButton.onClick.AddListener(OnCloseClicked);
+
 			CameraManager.Instance.SetCameraState(eCameraState.FREE);
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
-			SpeedCameraSlider.SetValueWithoutNotify(CameraManager.Instance.SpeedCamera);
 
+			SpeedCameraSlider.SetValueWithoutNotify(CameraManager.Instance.SpeedCamera);
+			ExposureSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ExposureWeight.Value);
 			mMainCamera = UnityEngine.Camera.main;
 		}
 
 		private void OnDisable()
 		{
 			SpeedCameraSlider.onValueChanged.RemoveListener(OnSpeedCameraValueChanged);
+			ExposureSlider.onValueChanged.RemoveListener(OnExposureValueChanged);
 
 			SaveButton.onClick.RemoveListener(OnSaveClicked);
 			CloseButton.onClick.RemoveListener(OnCloseClicked);
 		}
+
+
 
 		#endregion
 
@@ -55,6 +65,11 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 		private void OnSpeedCameraValueChanged(float value)
 		{
 			CameraManager.Instance.SetSpeedCamera((int)value);
+		}
+
+		private void OnExposureValueChanged(float value)
+		{
+			RuntimeVoxManager.Instance.ExposureWeight.Value = (int)-value;
 		}
 
 		private void OnSaveClicked()

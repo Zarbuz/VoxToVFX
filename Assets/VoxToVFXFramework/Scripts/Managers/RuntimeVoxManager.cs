@@ -32,7 +32,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private VFXListAsset VFXListAsset;
 		[SerializeField] private bool ShowOnlyActiveChunkGizmos;
 		[SerializeField] private GameObject PlayerPosition;
-		[SerializeField] private float ExposureWeight;
 
 		#endregion
 
@@ -68,6 +67,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Wrapped<float> ColliderDistance = new Wrapped<float>(10);
 		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
 		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
+		public Wrapped<int> ExposureWeight = new Wrapped<int>(-15);
 
 		[HideInInspector] public NativeArray<ChunkVFX> Chunks;
 
@@ -110,7 +110,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Debug.Log("FileToVoxCore version: " + runtimeVersion.Version);
 
 
-			//ExposureWeight.OnValueChanged += RefreshExposureWeight;
+			ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;
 
 			LodDistanceLod0.OnValueChanged += RefreshChunksToRender;
@@ -121,7 +121,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDestroy()
 		{
-			//ExposureWeight.OnValueChanged -= RefreshExposureWeight;
+			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
 			DebugLod.OnValueChanged -= RefreshDebugLod;
 			LodDistanceLod0.OnValueChanged -= RefreshChunksToRender;
 			LodDistanceLod1.OnValueChanged -= RefreshChunksToRender;
@@ -134,12 +134,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (!IsReady)
 			{
 				return;
-			}
-
-			if (mPreviousExposureWeight != ExposureWeight)
-			{
-				mPreviousExposureWeight = ExposureWeight;
-				RefreshExposureWeight();
 			}
 
 			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
@@ -424,7 +418,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mVisualEffect.Reinit();
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.Play();
 		}
 
@@ -452,7 +446,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod.Value);
 
 			mVisualEffect.Play();
