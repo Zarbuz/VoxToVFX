@@ -1,8 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 
@@ -16,6 +14,7 @@ public class PausePanel : MonoBehaviour
 	[SerializeField] private Button OpenSettingsButton;
 	[SerializeField] private Button QuitSceneButton;
 	[SerializeField] private Button ChangeWeatherButton;
+	[SerializeField] private Button PhotoModeButton;
 
 	#endregion
 
@@ -29,7 +28,10 @@ public class PausePanel : MonoBehaviour
 		OpenSettingsButton.onClick.AddListener(OnOpenSettingsClicked);
 		QuitSceneButton.onClick.AddListener(OnQuitSceneClicked);
 		ChangeWeatherButton.onClick.AddListener(OnChangeWeatherClicked);
+		PhotoModeButton.onClick.AddListener(OnPhotoModeClicked);
+		Refresh();
 	}
+
 
 	private void OnDisable()
 	{
@@ -39,11 +41,20 @@ public class PausePanel : MonoBehaviour
 		OpenSettingsButton.onClick.RemoveListener(OnOpenSettingsClicked);
 		QuitSceneButton.onClick.RemoveListener(OnQuitSceneClicked);
 		ChangeWeatherButton.onClick.RemoveListener(OnChangeWeatherClicked);
+		PhotoModeButton.onClick.RemoveListener(OnPhotoModeClicked);
 	}
 
 	#endregion
 
 	#region PrivateMethods
+
+	private void Refresh()
+	{
+		ImportSceneButton.gameObject.SetActive(!RuntimeVoxManager.Instance.IsReady);
+		QuitSceneButton.gameObject.SetActive(RuntimeVoxManager.Instance.IsReady);
+		PhotoModeButton.gameObject.SetActive(RuntimeVoxManager.Instance.IsReady);
+		ChangeWeatherButton.gameObject.SetActive(RuntimeVoxManager.Instance.IsReady);
+	}
 
 	private void OnContinueClicked()
 	{
@@ -72,10 +83,15 @@ public class PausePanel : MonoBehaviour
 
 	private void OnQuitSceneClicked()
 	{
-		throw new NotImplementedException();
+		RuntimeVoxManager.Instance.Release();
+		Refresh();
 	}
 
-	
+	private void OnPhotoModeClicked()
+	{
+		CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Photo);
+	}
+
 
 	#endregion
 }

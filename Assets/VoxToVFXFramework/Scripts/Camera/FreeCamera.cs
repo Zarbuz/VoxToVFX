@@ -1,150 +1,178 @@
+using UnityEngine.InputSystem;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.UI;
 
 namespace VoxToVFXFramework.Scripts.Camera
 {
-    public class FreeCamera : MonoBehaviour
-    {
-        #region Fields
+	/// <summary>
+	/// Utility Free Camera component.
+	/// </summary>
+	[CoreRPHelpURL("Free-Camera")]
+	public class FreeCamera : MonoBehaviour
+	{
+		#region ConstStatic
 
-        /// <summary>
-        /// Normal speed of camera movement.
-        /// </summary>
-        public float MovementSpeed = 10f;
+		private const float MOUSE_SENSITIVITY_MULTIPLIER = 0.01f;
 
-        /// <summary>
-        /// Speed of camera movement when shift is held down,
-        /// </summary>
-        public float FastMovementSpeed = 100f;
+		#endregion
 
-        /// <summary>
-        /// Sensitivity for free look.
-        /// </summary>
-        public float FreeLookSensitivity = 3f;
+		#region ScriptParameterss
 
-        /// <summary>
-        /// Amount to zoom the camera when using the mouse wheel.
-        /// </summary>
-        public float ZoomSensitivity = 10f;
+		/// <summary>
+		/// Rotation speed when using a controller.
+		/// </summary>
+		public float LookSpeedController = 120f;
+		/// <summary>
+		/// Rotation speed when using the mouse.
+		/// </summary>
+		public float LookSpeedMouse = 4.0f;
+		/// <summary>
+		/// Movement speed.
+		/// </summary>
+		public float MoveSpeed = 10.0f;
+		/// <summary>
+		/// Value added to the speed when incrementing.
+		/// </summary>
+		public float MoveSpeedIncrement = 2.5f;
+		/// <summary>
+		/// Scale factor of the turbo mode.
+		/// </summary>
+		public float Turbo = 10.0f;
 
-        /// <summary>
-        /// Amount to zoom the camera when using the mouse wheel (fast mode).
-        /// </summary>
-        public float FastZoomSensitivity = 50f;
+		#endregion
 
-        /// <summary>
-        /// Set to true when free looking (on right mouse button).
-        /// </summary>
-        private bool mLooking;
+		#region Fields
 
-        #endregion
+		private InputAction mLookAction;
+		private InputAction mOveAction;
+		private InputAction mSpeedAction;
+		private InputAction mYMoveAction;
 
-        #region UnityMethods
+		private float mInputRotateAxisX, mInputRotateAxisY;
+		private float mInputChangeSpeed;
+		private float mInputVertical, mInputHorizontal, mInputYAxis;
+		private bool mLeftShiftBoost, mLeftShift, mFire1;
 
-        private void Update()
-        {
-			if (CanvasPlayerPCManager.Instance.CanvasPlayerPcState == CanvasPlayerPCState.Pause)
+		#endregion
+
+		#region UnityMethods
+
+		private void OnEnable()
+		{
+			RegisterInputs();
+		}
+
+		private void Update()
+		{
+			// If the debug menu is running, we don't want to conflict with its inputs.
+			if (CanvasPlayerPCManager.Instance.CanvasPlayerPcState != CanvasPlayerPCState.Closed)
 			{
 				return;
 			}
 
-            bool fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            float movementSpeed = fastMode ? this.FastMovementSpeed : this.MovementSpeed;
+			if (!RuntimeVoxManager.Instance.IsReady)
+			{
+				return;
+			}
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_LEFT")) || Input.GetKey(KeyCode.LeftArrow))
-            {
-                transform.position = -transform.right * (movementSpeed * Time.deltaTime) + transform.position;
-            }
+			UpdateInputs();
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_RIGHT")) || Input.GetKey(KeyCode.RightArrow))
-            {
-                transform.position += transform.right * (movementSpeed * Time.deltaTime);
-            }
+			if (mInputChangeSpeed != 0.0f)
+			{
+				MoveSpeed += mInputChangeSpeed * MoveSpeedIncrement;
+				if (MoveSpeed < MoveSpeedIncrement) MoveSpeed = MoveSpeedIncrement;
+			}
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_FORWARD")) || Input.GetKey(KeyCode.UpArrow))
-            {
-                transform.position += transform.forward * (movementSpeed * Time.deltaTime);
-            }
+			bool moved = mInputRotateAxisX != 0.0f || mInputRotateAxisY != 0.0f || mInputVertical != 0.0f || mInputHorizontal != 0.0f || mInputYAxis != 0.0f;
+			if (moved)
+			{
+				float rotationX = transform.localEulerAngles.x;
+				float newRotationY = transform.localEulerAngles.y + mInputRotateAxisX;
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_BACKWARD")) || Input.GetKey(KeyCode.DownArrow))
-            {
-                transform.position += -transform.forward * (movementSpeed * Time.deltaTime);
-            }
+				// Weird clamping code due to weird Euler angle mapping...
+				float newRotationX = (rotationX - mInputRotateAxisY);
+				if (rotationX <= 90.0f && newRotationX >= 0.0f)
+					newRotationX = Mathf.Clamp(newRotationX, 0.0f, 90.0f);
+				if (rotationX >= 270.0f)
+					newRotationX = Mathf.Clamp(newRotationX, 270.0f, 360.0f);
 
-            //if (Input.GetKey(KeyCode.Q))
-            //{
-            //    transform.position += transform.up * (movementSpeed * Time.deltaTime);
-            //}
+				transform.localRotation = Quaternion.Euler(newRotationX, newRotationY, transform.localEulerAngles.z);
 
-            //if (Input.GetKey(KeyCode.E))
-            //{
-            //    transform.position += -transform.up * (movementSpeed * Time.deltaTime);
-            //}
+				float moveSpeed = Time.deltaTime * MoveSpeed;
+				if (mFire1 || mLeftShiftBoost && mLeftShift)
+					moveSpeed *= Turbo;
+				transform.position += transform.forward * moveSpeed * mInputVertical;
+				transform.position += transform.right * moveSpeed * mInputHorizontal;
+				transform.position += Vector3.up * moveSpeed * mInputYAxis;
+			}
+		}
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_UP")) || Input.GetKey(KeyCode.PageUp))
-            {
-                transform.position += Vector3.up * (movementSpeed * Time.deltaTime);
-            }
+		#endregion
 
-            if (Input.GetKey(InputManager.Instance.GetKey("INPUT_DOWN")) || Input.GetKey(KeyCode.PageDown))
-            {
-                transform.position += -Vector3.up * (movementSpeed * Time.deltaTime);
-            }
+		#region PrivateMethods
 
-            if (mLooking)
-            {
-                float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * FreeLookSensitivity;
-                float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * FreeLookSensitivity;
-                transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
-            }
+		private void RegisterInputs()
+		{
+			InputActionMap map = new InputActionMap("Free Camera");
 
-            float axis = Input.GetAxis("Mouse ScrollWheel");
-            if (axis != 0)
-            {
-                float zoomSensitivity = fastMode ? this.FastZoomSensitivity : this.ZoomSensitivity;
-                transform.position += transform.forward * (axis * zoomSensitivity);
-            }
+			mLookAction = map.AddAction("look", binding: "<Mouse>/delta");
+			mOveAction = map.AddAction("move", binding: "<Gamepad>/leftStick");
+			mSpeedAction = map.AddAction("speed", binding: "<Gamepad>/dpad");
+			mYMoveAction = map.AddAction("yMove");
 
-            if (Input.GetKeyDown(InputManager.Instance.GetKey("INPUT_ORIENT_CAMERA")))
-            {
-                StartLooking();
-            }
-            else if (Input.GetKeyUp(InputManager.Instance.GetKey("INPUT_ORIENT_CAMERA")))
-            {
-                StopLooking();
-            }
-        }
+			mLookAction.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=15, y=15)");
+			mOveAction.AddCompositeBinding("Dpad")
+				.With("Up", "<Keyboard>/w")
+				.With("Up", "<Keyboard>/upArrow")
+				.With("Down", "<Keyboard>/s")
+				.With("Down", "<Keyboard>/downArrow")
+				.With("Left", "<Keyboard>/a")
+				.With("Left", "<Keyboard>/leftArrow")
+				.With("Right", "<Keyboard>/d")
+				.With("Right", "<Keyboard>/rightArrow");
+			mSpeedAction.AddCompositeBinding("Dpad")
+				.With("Up", "<Keyboard>/home")
+				.With("Down", "<Keyboard>/end");
+			mYMoveAction.AddCompositeBinding("Dpad")
+				.With("Up", "<Keyboard>/pageUp")
+				.With("Down", "<Keyboard>/pageDown")
+				.With("Up", "<Keyboard>/e")
+				.With("Down", "<Keyboard>/q")
+				.With("Up", "<Gamepad>/rightshoulder")
+				.With("Down", "<Gamepad>/leftshoulder");
 
-        private void OnDisable()
-        {
-            StopLooking();
-        }
+			mOveAction.Enable();
+			mLookAction.Enable();
+			mSpeedAction.Enable();
+			mYMoveAction.Enable();
+		}
 
-        #endregion
+		private void UpdateInputs()
+		{
+			mInputRotateAxisX = 0.0f;
+			mInputRotateAxisY = 0.0f;
+			mLeftShiftBoost = false;
+			mFire1 = false;
 
-        #region PublicMethods
+			Vector2 lookDelta = mLookAction.ReadValue<Vector2>();
+			mInputRotateAxisX = lookDelta.x * LookSpeedMouse * MOUSE_SENSITIVITY_MULTIPLIER;
+			mInputRotateAxisY = lookDelta.y * LookSpeedMouse * MOUSE_SENSITIVITY_MULTIPLIER;
 
-        /// <summary>
-        /// Enable free looking.
-        /// </summary>
-        public void StartLooking()
-        {
-            mLooking = true;
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+			mLeftShift = Keyboard.current.leftShiftKey.isPressed;
+			mFire1 = Mouse.current?.leftButton?.isPressed == true || Gamepad.current?.xButton?.isPressed == true;
 
-        /// <summary>
-        /// Disable free looking.
-        /// </summary>
-        public void StopLooking()
-        {
-            mLooking = false;
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
+			mInputChangeSpeed = mSpeedAction.ReadValue<Vector2>().y;
 
-        #endregion
-    }
+			Vector2 moveDelta = mOveAction.ReadValue<Vector2>();
+			mInputVertical = moveDelta.y;
+			mInputHorizontal = moveDelta.x;
+			mInputYAxis = mYMoveAction.ReadValue<Vector2>().y;
+		}
+
+		#endregion
+
+	}
 }
