@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5641337363054811512}
   - component: {fileID: 2994983734046870751}
   - component: {fileID: 1821815817845815069}
+  - component: {fileID: 8574360877705997328}
   m_Layer: 5
   m_Name: ShadowQualityText
   m_TagString: Untagged
@@ -150,6 +151,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_SHADOW_QUALITY]'
+--- !u!114 &8574360877705997328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 86393090625798208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_SHADOW_QUALITY_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &152886238435092312
 GameObject:
   m_ObjectHideFlags: 0
@@ -480,6 +497,7 @@ GameObject:
   - component: {fileID: 1037583588895744563}
   - component: {fileID: 6709146511410820192}
   - component: {fileID: 609472197962993900}
+  - component: {fileID: 3508281804395651881}
   m_Layer: 5
   m_Name: QualityText
   m_TagString: Untagged
@@ -618,6 +636,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_QUALITY]'
+--- !u!114 &3508281804395651881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636066204865106524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_QUALITY_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &2646783945699718979
 GameObject:
   m_ObjectHideFlags: 0
@@ -758,6 +792,7 @@ GameObject:
   - component: {fileID: 6382280870820161129}
   - component: {fileID: 8017923151141345977}
   - component: {fileID: 5126696087657671310}
+  - component: {fileID: 1934272654895816431}
   m_Layer: 5
   m_Name: DistanceLod0Text
   m_TagString: Untagged
@@ -896,6 +931,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_LOD0]'
+--- !u!114 &1934272654895816431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2714804639267462902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTING_LOD0_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &2996644198258152838
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,6 +1109,7 @@ GameObject:
   - component: {fileID: 4567791634743175673}
   - component: {fileID: 8486180289460862632}
   - component: {fileID: 7653067240349189445}
+  - component: {fileID: 7009210077992789453}
   m_Layer: 5
   m_Name: VSyncText
   m_TagString: Untagged
@@ -1196,6 +1248,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_VSYNC]'
+--- !u!114 &7009210077992789453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128157641825399198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_VSYNC_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &3219024023834095285
 GameObject:
   m_ObjectHideFlags: 0
@@ -1411,6 +1479,7 @@ GameObject:
   - component: {fileID: 5409417944777732323}
   - component: {fileID: 8060871885203491002}
   - component: {fileID: 3085678039428871365}
+  - component: {fileID: 8773596219096712982}
   m_Layer: 5
   m_Name: DLSSText
   m_TagString: Untagged
@@ -1549,6 +1618,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_DLSS]'
+--- !u!114 &8773596219096712982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4632267782355918305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_DLSS_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &5090907019536092870
 GameObject:
   m_ObjectHideFlags: 0
@@ -1660,6 +1745,7 @@ GameObject:
   - component: {fileID: 8511572059309692481}
   - component: {fileID: 505282976157629219}
   - component: {fileID: 2274526903012428487}
+  - component: {fileID: 4077004643344452017}
   m_Layer: 5
   m_Name: FOVText
   m_TagString: Untagged
@@ -1798,6 +1884,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_FOV]'
+--- !u!114 &4077004643344452017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6726177253762723047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_FOV_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &7252522843621148036
 GameObject:
   m_ObjectHideFlags: 0
@@ -1848,6 +1950,7 @@ GameObject:
   - component: {fileID: 4885796142555647424}
   - component: {fileID: 1037497273456069918}
   - component: {fileID: 6486316127873838699}
+  - component: {fileID: 2787283815193876793}
   m_Layer: 5
   m_Name: DistanceLod1Text
   m_TagString: Untagged
@@ -1986,6 +2089,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_LOD1]'
+--- !u!114 &2787283815193876793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7431818127627363489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTING_LOD1_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &7804381440969345661
 GameObject:
   m_ObjectHideFlags: 0
@@ -2112,6 +2231,7 @@ GameObject:
   - component: {fileID: 5387483105764071416}
   - component: {fileID: 1887223133098364045}
   - component: {fileID: 2841627101037997128}
+  - component: {fileID: 1834159299109547405}
   m_Layer: 5
   m_Name: DepthOfFieldText
   m_TagString: Untagged
@@ -2250,6 +2370,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_DOF]'
+--- !u!114 &1834159299109547405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7923289499904017364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_DOF_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &7980313569401606628
 GameObject:
   m_ObjectHideFlags: 0
@@ -2378,6 +2514,7 @@ GameObject:
   - component: {fileID: 3029863141300392702}
   - component: {fileID: 5570776459343215014}
   - component: {fileID: 5520598558760124411}
+  - component: {fileID: 2750441942749062491}
   m_Layer: 5
   m_Name: RenderScaleText
   m_TagString: Untagged
@@ -2516,6 +2653,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_GRAPHICS_RENDER_SCALE]'
+--- !u!114 &2750441942749062491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8321418884486296187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_RENDER_SCALE_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1 &8764049703584260103
 GameObject:
   m_ObjectHideFlags: 0
@@ -2566,8 +2719,9 @@ GameObject:
   - component: {fileID: 199717175575630484}
   - component: {fileID: 8384938199937947830}
   - component: {fileID: 4053569403888889867}
+  - component: {fileID: 6634232745345353288}
   m_Layer: 5
-  m_Name: FOVText
+  m_Name: RenderDistanceText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2704,6 +2858,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   key: '[SETTINGS_RENDER_DISTANCE]'
+--- !u!114 &6634232745345353288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8902596055783835605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7924da4194a6b42aed56e7d21884c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LocalizationKey: '[SETTINGS_RENDER_DISTANCE_TOOLTIP]'
+  TooltipPrefab: {fileID: 2313063128336247187, guid: 63ebb4391c64134448d9e3bbee598cbc,
+    type: 3}
+  OptionalPanel: {fileID: 0}
 --- !u!1001 &19904804560839681
 PrefabInstance:
   m_ObjectHideFlags: 0
