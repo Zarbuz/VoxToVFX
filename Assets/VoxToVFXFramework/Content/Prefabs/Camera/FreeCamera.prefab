@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4106976841130745215}
-  - component: {fileID: 4106976841130745214}
   - component: {fileID: 4106976841130745200}
+  - component: {fileID: 4616274306796213314}
   m_Layer: 0
   m_Name: FreeCamera
   m_TagString: Untagged
@@ -34,23 +34,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4106976841130745214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4106976841130745213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 618b0e3f6c65dd247a4a016150006c57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_LookSpeedController: 120
-  m_LookSpeedMouse: 4
-  m_MoveSpeed: 10
-  m_MoveSpeedIncrement: 2.5
-  m_Turbo: 10
 --- !u!114 &4106976841130745200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,6 +79,23 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 4106976841375891287}
+--- !u!114 &4616274306796213314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4106976841130745213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05e6bfe14af74fd4dbd804336fb620fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LookSpeedController: 120
+  LookSpeedMouse: 4
+  MoveSpeed: 10
+  MoveSpeedIncrement: 2.5
+  Turbo: 10
 --- !u!1 &4106976841375891286
 GameObject:
   m_ObjectHideFlags: 0

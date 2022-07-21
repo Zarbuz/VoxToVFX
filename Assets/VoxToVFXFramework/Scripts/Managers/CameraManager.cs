@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Camera;
 using VoxToVFXFramework.Scripts.Singleton;
 
 public enum eCameraState
@@ -22,6 +23,7 @@ public class CameraManager : ModuleSingleton<CameraManager>
 	#region Fields
 
 	private eCameraState mCameraState;
+	private FreeCamera mFreeCamera;
 
 	public eCameraState CameraState
 	{
@@ -34,6 +36,14 @@ public class CameraManager : ModuleSingleton<CameraManager>
 		}
 	}
 
+
+	public int SpeedCamera { get; private set; }
+	#endregion
+
+	#region ConstStatic
+
+	private const string SPEED_CAMERA_KEY = "SpeedCamera";
+
 	#endregion
 
 	#region UnityMethods
@@ -41,6 +51,9 @@ public class CameraManager : ModuleSingleton<CameraManager>
 	protected override void OnStart()
 	{
 		CameraState = eCameraState.FIRST_PERSON;
+		mFreeCamera = FreeCamera.GetComponent<FreeCamera>();
+		SpeedCamera = PlayerPrefs.GetInt(SPEED_CAMERA_KEY, 10);
+		SetSpeedCamera(SpeedCamera);
 	}
 
 	#endregion
@@ -66,6 +79,13 @@ public class CameraManager : ModuleSingleton<CameraManager>
 	{
 		FreeCamera.m_Lens.FarClipPlane = distance;
 		FirstPersonCamera.m_Lens.FarClipPlane = distance;
+	}
+
+	public void SetSpeedCamera(int value)
+	{
+		mFreeCamera.MoveSpeed = value;
+		mFreeCamera.Turbo = value * 2;
+		PlayerPrefs.SetInt(SPEED_CAMERA_KEY, value);
 	}
 
 	#endregion

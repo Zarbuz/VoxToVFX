@@ -67,12 +67,6 @@ namespace VoxToVFXFramework.Scripts.Camera
 
 		private void Update()
 		{
-			// If the debug menu is running, we don't want to conflict with its inputs.
-			if (CanvasPlayerPCManager.Instance.CanvasPlayerPcState != CanvasPlayerPCState.Closed)
-			{
-				return;
-			}
-
 			if (!RuntimeVoxManager.Instance.IsReady)
 			{
 				return;
