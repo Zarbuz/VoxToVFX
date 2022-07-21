@@ -20,6 +20,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private const string LOD_0_DISTANCE_KEY = "Lod0";
 		private const string LOD_1_DISTANCE_KEY = "Lod1";
 		private const string DEPTH_OF_FIELD_KEY = "DepthOfField";
+		private const string RENDER_DISTANCE_KEY = "RenderDistance";
 		#endregion
 
 		#region Fields
@@ -33,6 +34,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public int Lod0Distance { get; protected set; }
 		public int Lod1Distance { get; protected set; }
 		public bool IsDepthOfFieldActive { get; protected set; }
+		public int RenderDistance { get; protected set; }
 
 		private CinemachineVirtualCamera mVirtualCamera;
 		private HDAdditionalLightData mDirectionalLight;
@@ -71,7 +73,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			IsDepthOfFieldActive = PlayerPrefs.GetInt(DEPTH_OF_FIELD_KEY, 0) == 1;
 			SetDepthOfField(IsDepthOfFieldActive);
+
+			RenderDistance = PlayerPrefs.GetInt(RENDER_DISTANCE_KEY, 2500);
+			SetRenderDistance(RenderDistance);
 		}
+
+
 
 
 		public void SetDynamicResolution(float resolution)
@@ -149,6 +156,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			IsDepthOfFieldActive = active;
 			PlayerPrefs.SetInt(DEPTH_OF_FIELD_KEY, active ? 1 : 0);
+		}
+
+		public void SetRenderDistance(int distance)
+		{
+			RenderDistance = distance;
+			PlayerPrefs.SetInt(RENDER_DISTANCE_KEY, distance);
+			mVirtualCamera.m_Lens.FarClipPlane = distance;
+			RuntimeVoxManager.Instance.RefreshChunksToRender();
 		}
 
 		#endregion

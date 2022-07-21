@@ -15,6 +15,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		[SerializeField] private TMP_Dropdown RenderScaleDropdown;
 		[SerializeField] private TMP_Dropdown QualityDropdown;
 		[SerializeField] private TMP_Dropdown ShadowQualityDropdown;
+		[SerializeField] private Slider RenderDistanceSlider;
 		[SerializeField] private Slider FieldOfViewSlider;
 		[SerializeField] private Slider MaxDistanceLod0Slider;
 		[SerializeField] private Slider MaxDistanceLod1Slider;
@@ -37,6 +38,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.AddListener(OnRenderScaleValueChanged);
 			ShadowQualityDropdown.onValueChanged.AddListener(OnShadowQualityValueChanged);
+			RenderDistanceSlider.onValueChanged.AddListener(OnRenderDistanceValueChanged);
 			DepthOfFieldToggle.AddListenerToggle(OnDepthOfFieldValueChanged);
 			DLSSToggle.AddListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.AddListener(OnQualityValueChanged);
@@ -53,6 +55,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		{
 			RenderScaleDropdown.onValueChanged.RemoveListener(OnRenderScaleValueChanged);
 			ShadowQualityDropdown.onValueChanged.RemoveListener(OnShadowQualityValueChanged);
+			RenderDistanceSlider.onValueChanged.RemoveListener(OnRenderDistanceValueChanged);
 			DepthOfFieldToggle.RemoteListenerToggle(OnDepthOfFieldValueChanged);
 			DLSSToggle.RemoteListenerToggle(OnDLSSValueChanged);
 			QualityDropdown.onValueChanged.RemoveListener(OnQualityValueChanged);
@@ -62,6 +65,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			MaxDistanceLod1Slider.onValueChanged.RemoveListener(OnMaxDistanceLod1ValueChanged);
 			DebugLodToggle.RemoteListenerToggle(OnDebugLodValueChanged);
 		}
+
 
 		#endregion
 
@@ -93,6 +97,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 			MaxDistanceLod1Slider.SetValueWithoutNotify(QualityManager.Instance.Lod1Distance);
 			MaxDistanceLod1Slider.minValue = QualityManager.Instance.Lod0Distance + MIN_MARGIN_LOD;
 			DepthOfFieldToggle.SetIsOn(QualityManager.Instance.IsDepthOfFieldActive, false);
+			RenderDistanceSlider.SetValueWithoutNotify(QualityManager.Instance.RenderDistance);
 		}
 
 		private void OnRenderScaleValueChanged(int index)
@@ -160,6 +165,12 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		private void OnDepthOfFieldValueChanged(bool value)
 		{
 			QualityManager.Instance.SetDepthOfField(value);
+		}
+
+
+		private void OnRenderDistanceValueChanged(float distance)
+		{
+			QualityManager.Instance.SetRenderDistance((int)distance);
 		}
 		#endregion
 	}
