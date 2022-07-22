@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
@@ -23,6 +26,9 @@ namespace VoxToVFXFramework.Scripts.UI
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
 	{
 		#region ScriptParameters
+
+		[SerializeField] private Material BlurMat;
+		[SerializeField] private Image BackgroundBlurImage;
 
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
@@ -47,12 +53,18 @@ namespace VoxToVFXFramework.Scripts.UI
 				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
 				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
 
-				//TODO: Add support for UI Blur
-				PostProcessingManager.Instance.SetDepthOfFieldActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
+
+				CheckBlurImage();
 			}
 		}
 
+
+
 		public bool PauseLockedState { get; set; }
+
+		private RenderTexture mRenderTexture;
+		private UnityEngine.Camera mNewCamera;
+		private static readonly int mAltTexture = Shader.PropertyToID("_AltTexture");
 
 		#endregion
 
@@ -60,6 +72,7 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		protected override void OnStart()
 		{
+			CreateCameraRenderTexture();
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
@@ -113,6 +126,40 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		#region PrivateMethods
 
+		private void CreateCameraRenderTexture()
+		{
+			UnityEngine.Camera mainCamera = UnityEngine.Camera.main;
+			Transform transform1 = mainCamera!.transform;
+			mNewCamera = Instantiate(mainCamera, transform1.parent, true);
+
+			mNewCamera.transform.localPosition = transform1.localPosition;
+			mNewCamera.transform.localRotation = transform1.localRotation;
+			mNewCamera.transform.localScale = transform1.localScale;
+
+			mRenderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+			mNewCamera.targetTexture = mRenderTexture;
+			mNewCamera.name = "Camera_RenderTexture";
+			BlurMat.SetTexture(mAltTexture, mRenderTexture);
+		}
+
+		private void CheckBlurImage()
+		{
+			mNewCamera.gameObject.SetActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
+			BackgroundBlurImage.gameObject.SetActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
+
+			if (mNewCamera.gameObject.activeSelf)
+			{
+				//Just enable the camera one frame
+				StartCoroutine(DisableBlurCameraCo());
+			}
+		}
+
+		private IEnumerator DisableBlurCameraCo()
+		{
+			yield return new WaitForEndOfFrame();
+			mNewCamera.gameObject.SetActive(false);
+		}
+
 		private void RefreshCursorState()
 		{
 			switch (CanvasPlayerPcState)
@@ -133,7 +180,7 @@ namespace VoxToVFXFramework.Scripts.UI
 					Time.timeScale = 0;
 					break;
 			}
-		
+
 		}
 
 		#endregion
