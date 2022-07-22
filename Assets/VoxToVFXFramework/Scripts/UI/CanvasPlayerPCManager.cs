@@ -47,7 +47,8 @@ namespace VoxToVFXFramework.Scripts.UI
 				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
 				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
 
-				PostProcessingManager.Instance.SetDepthOfField(mCanvasPlayerPcState != CanvasPlayerPCState.Closed);
+				//TODO: Add support for UI Blur
+				PostProcessingManager.Instance.SetDepthOfFieldActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
 			}
 		}
 
@@ -67,7 +68,13 @@ namespace VoxToVFXFramework.Scripts.UI
 			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
 				GenericTogglePanel(CanvasPlayerPCState.Pause);
-				RefreshCursorState();
+			}
+			else if (Keyboard.current.tabKey.wasPressedThisFrame && (CanvasPlayerPcState == CanvasPlayerPCState.Photo || CanvasPlayerPcState == CanvasPlayerPCState.Closed))
+			{
+				if (RuntimeVoxManager.Instance.IsReady)
+				{
+					GenericTogglePanel(CanvasPlayerPCState.Photo);
+				}
 			}
 			else if (CanvasPlayerPcState != CanvasPlayerPCState.Closed && !Cursor.visible)
 			{

@@ -151,6 +151,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			IsDepthOfFieldActive = active;
 			PlayerPrefs.SetInt(DEPTH_OF_FIELD_KEY, active ? 1 : 0);
+			PostProcessingManager.Instance.SetDepthOfFieldActive(active);
 		}
 
 		public void SetRenderDistance(int distance)

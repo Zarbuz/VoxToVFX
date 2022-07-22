@@ -40,7 +40,6 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 			CloseButton.onClick.AddListener(OnCloseClicked);
 
 			CameraManager.Instance.SetCameraState(eCameraState.FREE);
-			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 
 			SpeedCameraSlider.SetValueWithoutNotify(CameraManager.Instance.SpeedCamera);
 			ExposureSlider.SetValueWithoutNotify(RuntimeVoxManager.Instance.ExposureWeight.Value);
@@ -54,9 +53,12 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 
 			SaveButton.onClick.RemoveListener(OnSaveClicked);
 			CloseButton.onClick.RemoveListener(OnCloseClicked);
+
+			if (CameraManager.Instance != null)
+			{
+				CameraManager.Instance.SetCameraState(eCameraState.FIRST_PERSON);
+			}
 		}
-
-
 
 		#endregion
 
@@ -79,9 +81,7 @@ namespace VoxToVFXFramework.Scripts.UI.Photo
 
 		private void OnCloseClicked()
 		{
-			CameraManager.Instance.SetCameraState(eCameraState.FIRST_PERSON);
 			CanvasPlayerPCManager.Instance.GenericClosePanel();
-			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 		}
 
 		private IEnumerator TakeCaptureCo()
