@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
+using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Settings;
 using VoxToVFXFramework.Scripts.UI.Weather;
 
@@ -15,7 +16,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Pause,
 		ImportScene,
 		Settings,
-		Weather
+		Weather,
+		Photo
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -26,6 +28,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private ImportScenePanel ImportScenePanel;
 		[SerializeField] private SettingsPanel SettingsPanel;
 		[SerializeField] private WeatherPanel WeatherPanel;
+		[SerializeField] private PhotoPanel PhotoPanel;
 		#endregion
 
 		#region Fields
@@ -42,8 +45,10 @@ namespace VoxToVFXFramework.Scripts.UI
 				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
 				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
 				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
+				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
 
-				PostProcessingManager.Instance.SetDepthOfField(mCanvasPlayerPcState != CanvasPlayerPCState.Closed);
+				//TODO: Add support for UI Blur
+				PostProcessingManager.Instance.SetDepthOfFieldActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
 			}
 		}
 
@@ -63,7 +68,13 @@ namespace VoxToVFXFramework.Scripts.UI
 			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
 				GenericTogglePanel(CanvasPlayerPCState.Pause);
-				RefreshCursorState();
+			}
+			else if (Keyboard.current.tabKey.wasPressedThisFrame && (CanvasPlayerPcState == CanvasPlayerPCState.Photo || CanvasPlayerPcState == CanvasPlayerPCState.Closed))
+			{
+				if (RuntimeVoxManager.Instance.IsReady)
+				{
+					GenericTogglePanel(CanvasPlayerPCState.Photo);
+				}
 			}
 			else if (CanvasPlayerPcState != CanvasPlayerPCState.Closed && !Cursor.visible)
 			{
@@ -83,6 +94,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		public void GenericTogglePanel(CanvasPlayerPCState state)
 		{
 			CanvasPlayerPcState = CanvasPlayerPcState == state ? CanvasPlayerPCState.Closed : state;
+			RefreshCursorState();
 		}
 
 		public void GenericClosePanel()
@@ -103,18 +115,25 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void RefreshCursorState()
 		{
-			if (CanvasPlayerPcState != CanvasPlayerPCState.Closed)
+			switch (CanvasPlayerPcState)
 			{
-				Cursor.visible = true;
-				Cursor.lockState = CursorLockMode.None;
-				Time.timeScale = 0;
+				case CanvasPlayerPCState.Closed:
+					Cursor.visible = false;
+					Cursor.lockState = CursorLockMode.Locked;
+					Time.timeScale = 1;
+					break;
+				case CanvasPlayerPCState.Photo:
+					Cursor.visible = true;
+					Cursor.lockState = CursorLockMode.None;
+					Time.timeScale = 1;
+					break;
+				default:
+					Cursor.visible = true;
+					Cursor.lockState = CursorLockMode.None;
+					Time.timeScale = 0;
+					break;
 			}
-			else
-			{
-				Cursor.visible = false;
-				Cursor.lockState = CursorLockMode.Locked;
-				Time.timeScale = 1;
-			}
+		
 		}
 
 		#endregion

@@ -117,7 +117,7 @@ namespace VoxToVFXFramework.Scripts.FirstPersonController
 
 		private void Update()
 		{
-			if (!RuntimeVoxManager.Instance.IsReady)
+			if (!RuntimeVoxManager.Instance.IsReady ||CameraManager.Instance.CameraState != eCameraState.FIRST_PERSON)
 			{
 				return;
 			}
@@ -129,7 +129,7 @@ namespace VoxToVFXFramework.Scripts.FirstPersonController
 
 		private void LateUpdate()
 		{
-			if (!RuntimeVoxManager.Instance.IsReady)
+			if (!RuntimeVoxManager.Instance.IsReady || CameraManager.Instance.CameraState != eCameraState.FIRST_PERSON)
 			{
 				return;
 			}

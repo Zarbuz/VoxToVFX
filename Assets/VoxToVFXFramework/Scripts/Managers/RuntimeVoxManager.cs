@@ -31,8 +31,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private VisualEffect VisualEffectItemPrefab;
 		[SerializeField] private VFXListAsset VFXListAsset;
 		[SerializeField] private bool ShowOnlyActiveChunkGizmos;
-		[SerializeField] private GameObject PlayerPosition;
-		[SerializeField] private float ExposureWeight;
+		[SerializeField] private Transform FirstPersonTransform;
+		[SerializeField] private Transform FreeCameraTransform;
 
 		#endregion
 
@@ -57,6 +57,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region Fields
 
+		private Transform PlayerPosition
+		{
+			get
+			{
+				if (CameraManager.Instance.CameraState == eCameraState.FIRST_PERSON)
+				{
+					return FirstPersonTransform;
+				}
+
+				return FreeCameraTransform;
+			}
+		}
+
 		public event Action LoadFinishedCallback;
 		public Vector2 MinMaxX { get; set; }
 		public Vector2 MinMaxY { get; set; }
@@ -68,6 +81,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Wrapped<float> ColliderDistance = new Wrapped<float>(10);
 		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
 		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
+		public Wrapped<int> ExposureWeight = new Wrapped<int>(-15);
 
 		[HideInInspector] public NativeArray<ChunkVFX> Chunks;
 
@@ -91,7 +105,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private Quaternion mPreviousRotation;
 		private Vector3 mPreviousPosition;
 		private float mPreviousCheckTimer;
-		private float mPreviousExposureWeight;
 		#endregion
 
 		#region UnityMethods
@@ -110,7 +123,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Debug.Log("FileToVoxCore version: " + runtimeVersion.Version);
 
 
-			//ExposureWeight.OnValueChanged += RefreshExposureWeight;
+			ExposureWeight.OnValueChanged += RefreshExposureWeight;
 			DebugLod.OnValueChanged += RefreshDebugLod;
 
 			LodDistanceLod0.OnValueChanged += RefreshChunksToRender;
@@ -121,7 +134,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDestroy()
 		{
-			//ExposureWeight.OnValueChanged -= RefreshExposureWeight;
+			ExposureWeight.OnValueChanged -= RefreshExposureWeight;
 			DebugLod.OnValueChanged -= RefreshDebugLod;
 			LodDistanceLod0.OnValueChanged -= RefreshChunksToRender;
 			LodDistanceLod1.OnValueChanged -= RefreshChunksToRender;
@@ -136,13 +149,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			if (mPreviousExposureWeight != ExposureWeight)
-			{
-				mPreviousExposureWeight = ExposureWeight;
-				RefreshExposureWeight();
-			}
-
-			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
+			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.position);
 			float angle = Quaternion.Angle(mCamera.transform.rotation, mPreviousRotation);
 			mPreviousCheckTimer += Time.unscaledDeltaTime;
 			bool isAnotherChunk = mPreviousPlayerChunkIndex != mCurrentChunkWorldIndex;
@@ -160,9 +167,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 				RefreshChunksToRender();
 			}
 
-			if (Vector3.Distance(PlayerPosition.transform.position, mPreviousPosition) > 1.5f || isAnotherChunk)
+			if (Vector3.Distance(PlayerPosition.position, mPreviousPosition) > 1.5f || isAnotherChunk)
 			{
-				mPreviousPosition = PlayerPosition.transform.position;
+				mPreviousPosition = PlayerPosition.position;
 				RefreshColliders();
 			}
 		}
@@ -174,7 +181,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 
-			Vector3 position = PlayerPosition.transform.position;
+			Vector3 position = PlayerPosition.position;
 			if (ShowOnlyActiveChunkGizmos)
 			{
 				Gizmos.color = Color.green;
@@ -305,7 +312,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				LodDistanceLod0 = LodDistanceLod0.Value,
 				LodDistanceLod1 = LodDistanceLod1.Value,
-				PlayerPosition = PlayerPosition.transform.position,
+				PlayerPosition = PlayerPosition.position,
 				Data = mChunksLoaded,
 				Chunks = activeChunks,
 				Buffer = buffer.AsParallelWriter(),
@@ -326,23 +333,23 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public void SetPlayerToWorldCenter()
 		{
 			float distance = 10;
-			PlayerPosition.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, 2000, (MinMaxZ.y + MinMaxZ.x) / 2);
-			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
+			FirstPersonTransform.transform.position = new Vector3((MinMaxX.y + MinMaxX.x) / 2, 2000, (MinMaxZ.y + MinMaxZ.x) / 2);
+			mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(FirstPersonTransform.position);
 			RefreshColliders();
 			bool foundCollisions;
 			do
 			{
-				foundCollisions = Physics.Raycast(PlayerPosition.transform.position, Vector3.down, out RaycastHit hit, distance);
+				foundCollisions = Physics.Raycast(FirstPersonTransform.transform.position, Vector3.down, out RaycastHit hit, distance);
 				if (!foundCollisions)
 				{
 					//TODO: Add more verification if there is a hole in the center of the map
-					PlayerPosition.transform.Translate(Vector3.down * distance);
-					mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(PlayerPosition.transform.position);
+					FirstPersonTransform.transform.Translate(Vector3.down * distance);
+					mCurrentChunkWorldIndex = GetPlayerCurrentChunkIndex(FirstPersonTransform.position);
 					RefreshColliders();
 				}
 				else
 				{
-					PlayerPosition.transform.position = hit.point + Vector3.up * 0.1f;
+					FirstPersonTransform.transform.position = hit.point + Vector3.up * 0.1f;
 				}
 
 			} while (!foundCollisions);
@@ -379,7 +386,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			UnsafeList<VoxelVFX> data = mChunksLoaded[mCurrentChunkIndex];
 			NativeList<int> buffer = new NativeList<int>(data.Length, Allocator.TempJob);
-			Vector3 position = PlayerPosition.transform.position;
+			Vector3 position = PlayerPosition.position;
 			Vector3 worldPosition = Chunks[mCurrentChunkIndex].WorldPosition;
 
 			JobHandle computeVoxelNearPlayer = new ComputeVoxelNearPlayer()
@@ -424,7 +431,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return;
 			}
 			mVisualEffect.Reinit();
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.Play();
 		}
 
@@ -452,7 +459,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mVisualEffect.SetGraphicsBuffer(VFX_BUFFER_KEY, mGraphicsBuffer);
 			mVisualEffect.SetGraphicsBuffer(MATERIAL_VFX_BUFFER_KEY, mPaletteBuffer);
 			mVisualEffect.SetGraphicsBuffer(CHUNK_VFX_BUFFER_KEY, mChunkBuffer);
-			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight);
+			mVisualEffect.SetFloat(EXPOSURE_WEIGHT_KEY, ExposureWeight.Value);
 			mVisualEffect.SetBool(DEBUG_LOD_KEY, DebugLod.Value);
 
 			mVisualEffect.Play();

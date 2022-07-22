@@ -38,7 +38,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public void SetDepthOfField(bool active)
+		public void SetDepthOfFieldActive(bool active)
 		{
 			DepthOfField.active = active;
 		}
