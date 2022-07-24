@@ -10,11 +10,10 @@ using Unity.Mathematics;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Jobs;
-using Color = FileToVoxCore.Drawing.Color;
 
 namespace VoxToVFXFramework.Scripts.Importer
 {
-	public static class VoxImporter
+	public class VoxImporter
 	{
 		private class ShapeModelCount
 		{
@@ -23,18 +22,16 @@ namespace VoxToVFXFramework.Scripts.Importer
 		}
 
 		#region Fields
+		public WorldData WorldData { get; private set; }
 
-		public static VoxelMaterialVFX[] Materials { get; set; }
-
-		private static VoxModelCustom mVoxModel;
-		private static readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
-		private static readonly Dictionary<int, ShapeModelCount> mShapeModelCounts = new Dictionary<int, ShapeModelCount>();
-		private static WorldData mWorldData;
+		private VoxModelCustom mVoxModel;
+		private readonly Dictionary<int, Matrix4x4> mModelMatrix = new Dictionary<int, Matrix4x4>();
+		private readonly Dictionary<int, ShapeModelCount> mShapeModelCounts = new Dictionary<int, ShapeModelCount>();
 		#endregion
 
 		#region PublicMethods
 
-		public static IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<WorldData> onFinishedCallback)
+		public IEnumerator LoadVoxModelAsync(string path, Action<float> onProgressCallback, Action<WorldData> onFinishedCallback)
 		{
 			CustomVoxReader voxReader = new CustomVoxReader();
 			mVoxModel = voxReader.LoadModel(path) as VoxModelCustom;
@@ -45,7 +42,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 			else
 			{
 				InitShapeModelCounts();
-				mWorldData = new WorldData();
+				WorldData = new WorldData(mVoxModel);
+
 				for (int i = 0; i < mVoxModel.TransformNodeChunks.Count; i++)
 				{
 					TransformNodeChunk transformNodeChunk = mVoxModel.TransformNodeChunks[i];
@@ -95,9 +93,12 @@ namespace VoxToVFXFramework.Scripts.Importer
 					yield return new WaitForEndOfFrame();
 				}
 
-				Materials = WriteMaterialData();
-				onFinishedCallback?.Invoke(mWorldData);
-				Dispose();
+				foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
+				{
+					voxelDataCustom.VoxelNativeArray.Dispose();
+				}
+
+				onFinishedCallback?.Invoke(WorldData);
 			}
 
 			yield return null;
@@ -119,9 +120,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 
 		#region PrivateMethods
 
-		private static void InitShapeModelCounts()
+		private void InitShapeModelCounts()
 		{
-
 			foreach (ShapeModel shapeModel in mVoxModel.ShapeNodeChunks.SelectMany(shapeNodeChunk => shapeNodeChunk.Models))
 			{
 				if (!mShapeModelCounts.ContainsKey(shapeModel.ModelId))
@@ -133,40 +133,17 @@ namespace VoxToVFXFramework.Scripts.Importer
 			}
 		}
 
-		private static void Dispose()
+		public void Dispose()
 		{
-			foreach (VoxelDataCustom voxelDataCustom in mVoxModel.VoxelFramesCustom.Where(voxelDataCustom => voxelDataCustom.VoxelNativeArray.IsCreated))
-			{
-				voxelDataCustom.VoxelNativeArray.Dispose();
-			}
-
 			mShapeModelCounts.Clear();
 			mModelMatrix.Clear();
 			mVoxModel = null;
+			WorldData?.Dispose();
+			WorldData = null;
 			GC.Collect();
 		}
 
-		private static VoxelMaterialVFX[] WriteMaterialData()
-		{
-			VoxelMaterialVFX[] materials = new VoxelMaterialVFX[256];
-			for (int i = 0; i < mVoxModel.Palette.Length; i++)
-			{
-				Color c = mVoxModel.Palette[i];
-				materials[i].color = new UnityEngine.Vector3(c.R / (float)255, c.G / (float)255, c.B / (float)255);
-			}
-
-			for (int i = 0; i < mVoxModel.MaterialChunks.Count; i++)
-			{
-				MaterialChunk materialChunk = mVoxModel.MaterialChunks[i];
-				materials[i].emission = materialChunk.Emission == 0 ? 1 : materialChunk.Emission * 10;
-				materials[i].smoothness = materialChunk.Rough;
-				materials[i].metallic = materialChunk.Metallic;
-			}
-
-			return materials;
-		}
-
-		private static void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data)
+		private void WriteVoxelFrameData(int transformChunkId, VoxelDataCustom data)
 		{
 			int3 initialVolumeSize = new int3(data.VoxelsWide, data.VoxelsTall, data.VoxelsDeep);
 			int3 originSize = new int3(initialVolumeSize.x, initialVolumeSize.y, initialVolumeSize.z);
@@ -177,7 +154,7 @@ namespace VoxToVFXFramework.Scripts.Importer
 			Vector3 fpivot = new Vector3(originSize.x / 2f, originSize.y / 2f, originSize.z / 2f);
 
 			int maxCapacity = initialVolumeSize.x * initialVolumeSize.y * initialVolumeSize.z;
-			
+
 			if (data.VoxelNativeArray.Length == 0)
 			{
 				return;
@@ -188,7 +165,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 			{
 				Data = data.VoxelNativeArray,
 				VolumeSize = initialVolumeSize,
-				Result = initialDataClean
+				Result = initialDataClean,
+				Materials = WorldData.Materials
 			}.Schedule(initialVolumeSize.z, 64);
 			removeInvisibleVoxelJob.Complete();
 
@@ -206,8 +184,8 @@ namespace VoxToVFXFramework.Scripts.Importer
 			job.Complete();
 			initialDataClean.Dispose();
 
-			
-			mWorldData. AddVoxels(resultLod0);
+
+			WorldData.AddVoxels(resultLod0);
 			resultLod0.Dispose();
 		}
 

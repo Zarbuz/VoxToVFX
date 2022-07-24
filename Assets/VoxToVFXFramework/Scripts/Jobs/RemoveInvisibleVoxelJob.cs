@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Data;
 using VoxToVFXFramework.Scripts.Importer;
 
 namespace VoxToVFXFramework.Scripts.Jobs
@@ -12,6 +13,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 	{
 		[ReadOnly] public int3 VolumeSize;
 		[ReadOnly] public NativeArray<byte> Data;
+		[ReadOnly] public NativeArray<VoxelMaterialVFX> Materials;
 		[NativeDisableParallelForRestriction]
 		[WriteOnly] public NativeArray<byte> Result;
 
@@ -36,6 +38,10 @@ namespace VoxToVFXFramework.Scripts.Jobs
 						{
 							Result[index] = color;
 						}
+						else if (IsTransparent(right) || IsTransparent(left) || IsTransparent(bottom) || IsTransparent(top) || IsTransparent(front) || IsTransparent(back))
+						{
+							Result[index] = color;
+						}
 						else
 						{
 							Result[index] = 0;
@@ -43,6 +49,11 @@ namespace VoxToVFXFramework.Scripts.Jobs
 					}
 				}
 			}
+		}
+
+		private bool IsTransparent(byte colorIndex)
+		{
+			return Materials[colorIndex - 1].alpha < 1;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Data;
 
@@ -7,14 +8,14 @@ namespace VoxToVFXFramework.Scripts.Extensions
 {
 	public static class VoxelVFXExtensions
 	{
-		public static string DecodePosition(this VoxelVFX voxel)
+		public static float3 DecodePosition(this VoxelVFX voxel)
 		{
 			uint x = voxel.position >> 24;
 			uint y = (voxel.position & 0xff0000) >> 16;
 			uint z = (voxel.position & 0xff00) >> 8;
 			uint colorIndex = (voxel.position & 0xff);
 
-			return $"x:{x} y:{y} z:{z} colorIndex: {colorIndex}";
+			return new float3(x, y, z);
 		}
 
 		public static string DecodeAdditionalData(this VoxelVFX voxel)
