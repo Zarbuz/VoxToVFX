@@ -35,8 +35,6 @@ Change 16 to 32
 
 ## TODO
 
-- Add collisions with the camera
-- Add support for transparency material
 - Add support for cloud material
 - Add support for realtime raytracing (will need Unity 2022.2 in the future)
 
