@@ -6,9 +6,12 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
+using VoxToVFXFramework.Scripts.UI.Login;
 using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Settings;
+using VoxToVFXFramework.Scripts.UI.Topbar;
 using VoxToVFXFramework.Scripts.UI.Weather;
 
 namespace VoxToVFXFramework.Scripts.UI
@@ -20,7 +23,9 @@ namespace VoxToVFXFramework.Scripts.UI
 		ImportScene,
 		Settings,
 		Weather,
-		Photo
+		Photo,
+		Login,
+		EditProfile
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -30,11 +35,14 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private Material BlurMat;
 		[SerializeField] private Image BackgroundBlurImage;
 
+		[SerializeField] private TopbarPanel TopbarPanel;
+		[SerializeField] private LoginPanel LoginPanel;
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
 		[SerializeField] private SettingsPanel SettingsPanel;
 		[SerializeField] private WeatherPanel WeatherPanel;
 		[SerializeField] private PhotoPanel PhotoPanel;
+		[SerializeField] private EditProfilePanel EditProfilePanel;
 		#endregion
 
 		#region Fields
@@ -52,9 +60,11 @@ namespace VoxToVFXFramework.Scripts.UI
 				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
 				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
 				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
-
+				LoginPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
+				EditProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
 
 				CheckBlurImage();
+				RefreshCursorState();
 			}
 		}
 
@@ -89,10 +99,6 @@ namespace VoxToVFXFramework.Scripts.UI
 					GenericTogglePanel(CanvasPlayerPCState.Photo);
 				}
 			}
-			else if (CanvasPlayerPcState != CanvasPlayerPCState.Closed && !Cursor.visible)
-			{
-				RefreshCursorState();
-			}
 		}
 
 		#endregion
@@ -107,13 +113,12 @@ namespace VoxToVFXFramework.Scripts.UI
 		public void GenericTogglePanel(CanvasPlayerPCState state)
 		{
 			CanvasPlayerPcState = CanvasPlayerPcState == state ? CanvasPlayerPCState.Closed : state;
-			RefreshCursorState();
 		}
 
 		public void GenericClosePanel()
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
-			RefreshCursorState();
+			PauseLockedState = false;
 		}
 
 		public void OpenImportScenePanel(ImportScenePanel.EDataImportType dataImportType)
@@ -162,21 +167,16 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void RefreshCursorState()
 		{
+			Cursor.visible = !RuntimeVoxManager.Instance.IsReady || mCanvasPlayerPcState == CanvasPlayerPCState.Photo;
+			Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
 			switch (CanvasPlayerPcState)
 			{
 				case CanvasPlayerPCState.Closed:
-					Cursor.visible = false;
-					Cursor.lockState = CursorLockMode.Locked;
-					Time.timeScale = 1;
-					break;
 				case CanvasPlayerPCState.Photo:
-					Cursor.visible = true;
-					Cursor.lockState = CursorLockMode.None;
+				case CanvasPlayerPCState.Login:
 					Time.timeScale = 1;
 					break;
 				default:
-					Cursor.visible = true;
-					Cursor.lockState = CursorLockMode.None;
 					Time.timeScale = 0;
 					break;
 			}

@@ -151,7 +151,6 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		private void OnLoadCustomFinished()
 		{
 			CanvasPlayerPCManager.Instance.GenericClosePanel();
-			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 		}
 		#endregion
 	}
