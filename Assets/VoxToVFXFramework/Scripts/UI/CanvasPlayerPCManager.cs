@@ -160,8 +160,11 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void CheckBlurImage()
 		{
-			mNewCamera.gameObject.SetActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
-			BackgroundBlurImage.gameObject.SetActive(mCanvasPlayerPcState != CanvasPlayerPCState.Closed && mCanvasPlayerPcState != CanvasPlayerPCState.Photo);
+			bool active = mCanvasPlayerPcState != CanvasPlayerPCState.Closed &&
+			              mCanvasPlayerPcState != CanvasPlayerPCState.Photo &&
+			              mCanvasPlayerPcState != CanvasPlayerPCState.Weather;
+			mNewCamera.gameObject.SetActive(active);
+			BackgroundBlurImage.gameObject.SetActive(active);
 
 			if (mNewCamera.gameObject.activeSelf)
 			{
@@ -178,16 +181,16 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void RefreshCursorState()
 		{
-			bool wasVisible = Cursor.visible;
-			Cursor.visible = !RuntimeVoxManager.Instance.IsReady || mCanvasPlayerPcState == CanvasPlayerPCState.Photo;
+			Cursor.visible = !RuntimeVoxManager.Instance.IsReady || mCanvasPlayerPcState != CanvasPlayerPCState.Closed;
 			Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
 
-			switch (CanvasPlayerPcState)
+			switch (mCanvasPlayerPcState)
 			{
 				case CanvasPlayerPCState.Closed:
 				case CanvasPlayerPCState.Photo:
 				case CanvasPlayerPCState.Login:
 				case CanvasPlayerPCState.EditProfile:
+				case CanvasPlayerPCState.Weather:
 					Time.timeScale = 1;
 					break;
 				default:
