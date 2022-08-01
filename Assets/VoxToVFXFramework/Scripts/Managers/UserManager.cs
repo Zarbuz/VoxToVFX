@@ -4,11 +4,18 @@ using MoralisUnity.Platform.Objects;
 using MoralisUnity.Platform.Queries;
 using System;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
+	public class MoralisError
+	{
+		public string Error { get; set; }
+	}
+
 	public class UserManager : SimpleSingleton<UserManager>
 	{
 		#region Fields
@@ -93,12 +100,35 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return null;
 		}
 
-		public async UniTask<bool> UpdateUserInfo(CustomUser customUser)
+		public async UniTask<MoralisError> UpdateUserInfo(CustomUser customUser)
 		{
-			await SaveUserInfo(customUser);
-			CurrentUser = customUser;
-			OnUserInfoUpdated?.Invoke(customUser);
-			return true;
+			MoralisQuery<CustomUser> q = await Moralis.Query<CustomUser>();
+			q = q.WhereNotEqualTo("UserId", customUser.UserId);
+			q = q.WhereEqualTo("UserName", customUser.UserName);
+			CustomUser found = await q.FirstOrDefaultAsync();
+
+			if (found != null)
+			{
+				return new MoralisError()
+				{
+					Error = LocalizationKeys.EDIT_PROFILE_USERNAME_NOT_AVAILABLE.Translate()
+				};
+			}
+
+			try
+			{
+				await SaveUserInfo(customUser);
+				CurrentUser = customUser;
+				OnUserInfoUpdated?.Invoke(customUser);
+				return null;
+			}
+			catch (Exception e)
+			{
+				return new MoralisError()
+				{
+					Error = e.Message
+				};
+			}
 
 		}
 

@@ -165,16 +165,15 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			currentUser.Bio = BiographyInputField.text;
 			currentUser.UserName = UserNameInputField.text;
 			currentUser.Name = NameInputField.text;
-			bool success = await UserManager.Instance.UpdateUserInfo(currentUser);
-			if (success)
+			MoralisError error = await UserManager.Instance.UpdateUserInfo(currentUser);
+			if (error == null)
 			{
 				Debug.Log("Successfully updated user info");
 				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_UPDATE_SUCCESS.Translate());
 			}
 			else
 			{
-				Debug.LogError("Failed to update user infos");
-				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_UPDATE_FAILED.Translate(), LogType.Error);
+				MessagePopup.Show(error.Error, LogType.Error);
 			}
 		}
 

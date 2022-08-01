@@ -22,6 +22,8 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[SerializeField] private Button OpenProfileButton;
 		[SerializeField] private Button ConnectWalletButton;
 		[SerializeField] private Button CreateItemButton;
+		[SerializeField] private Image NoAvatarImageTopbar;
+		[SerializeField] private Image AvatarImageTopbar;
 
 		[Header("ProfilePopup")]
 		[SerializeField] private GameObject ProfilePopup;
@@ -36,6 +38,8 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[SerializeField] private TextMeshProUGUI WalletBalanceText;
 		[SerializeField] private TextMeshProUGUI MarketplaceBalanceText;
 		[SerializeField] private TextMeshProUGUI WalletAddressText;
+
+
 
 		#endregion
 
@@ -95,11 +99,30 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 			if (user != null)
 			{
-				NoAvatarImage.gameObject.SetActive(string.IsNullOrEmpty(user.PictureUrl));
-				AvatarImage.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(user.PictureUrl));
+				NoAvatarImage.gameObject.SetActive(true);
+				NoAvatarImageTopbar.gameObject.SetActive(true);
+
 				if (!string.IsNullOrEmpty(user.PictureUrl))
 				{
 					bool success = await ImageUtils.DownloadAndApplyImage(user.PictureUrl, AvatarImage, 128, true, true, true);
+					if (success)
+					{
+						AvatarImageTopbar.sprite = AvatarImage.sprite;
+
+						AvatarImage.transform.parent.gameObject.SetActive(true);
+						AvatarImageTopbar.transform.parent.gameObject.SetActive(true);
+
+						NoAvatarImage.gameObject.SetActive(true);
+						NoAvatarImageTopbar.gameObject.SetActive(true);
+					}
+					else
+					{
+						AvatarImage.transform.parent.gameObject.SetActive(false);
+						AvatarImageTopbar.transform.parent.gameObject.SetActive(false);
+
+						NoAvatarImage.gameObject.SetActive(true);
+						NoAvatarImageTopbar.gameObject.SetActive(true);
+					}
 				}
 
 				MoralisUser moralisUser = await Moralis.GetUserAsync();
