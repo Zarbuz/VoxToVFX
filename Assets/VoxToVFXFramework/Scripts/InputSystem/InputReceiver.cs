@@ -22,15 +22,6 @@ namespace VoxToVFXFramework.Scripts.InputSystem
 
 		#endregion
 
-		#region UnityMethods
-
-		private void OnApplicationFocus(bool hasFocus)
-		{
-			SetCursorState(CursorLocked);
-		}
-
-		#endregion
-
 		#region PublicMethods
 
 		public void OnMove(InputValue value)
@@ -77,14 +68,6 @@ namespace VoxToVFXFramework.Scripts.InputSystem
 
 		#endregion
 
-		#region PrivateMethods
-
-		private void SetCursorState(bool newState)
-		{
-			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-		}
-
-		#endregion
 	}
 	
 }

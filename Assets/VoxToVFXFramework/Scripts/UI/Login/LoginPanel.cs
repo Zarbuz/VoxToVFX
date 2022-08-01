@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using MoralisUnity;
 using MoralisUnity.Kits.AuthenticationKit;
 using MoralisUnity.Platform.Objects;
+using TMPro;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using WalletConnectSharp.Core.Models;
+using WalletConnectSharp.Unity;
 
 namespace VoxToVFXFramework.Scripts.UI.Login
 {
@@ -16,6 +19,9 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 		#region ScriptParameters
 
 		[SerializeField] private AuthenticationKit AuthenticationKit;
+		[SerializeField] private GameObject WalletConnectPlatform;
+		[SerializeField] private GameObject Spinner;
+		[SerializeField] private TextMeshProUGUI StatusText;
 		#endregion
 
 		#region Fields
@@ -30,12 +36,11 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 		{
 			AuthenticationKit.OnStateChanged.AddListener(OnStateChanged);
 			AuthenticationKit.OnConnected.AddListener(OnConnected);
-			OnStateChanged(AuthenticationKit.State);
 		}
-
 
 		private void OnEnable()
 		{
+			OnStateChanged(AuthenticationKit.State);
 			StartCoroutine(ConnectCo());
 		}
 
@@ -68,6 +73,7 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 
 		private void OnStateChanged(AuthenticationKitState authenticationKitState)
 		{
+			Debug.Log("LoginPanel: OnStateChanged -> " + authenticationKitState);
 			switch (authenticationKitState)
 			{
 				case AuthenticationKitState.None:
@@ -75,16 +81,30 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 				case AuthenticationKitState.PreInitialized:
 					break;
 				case AuthenticationKitState.Initializing:
+					WalletConnectPlatform.gameObject.SetActive(false);
+					StatusText.gameObject.SetActive(false);
+					Spinner.gameObject.SetActive(false);
 					break;
 				case AuthenticationKitState.Initialized:
 					break;
 				case AuthenticationKitState.WalletConnecting:
+					WalletConnectPlatform.gameObject.SetActive(true);
+					StatusText.gameObject.SetActive(false);
+					Spinner.gameObject.SetActive(false);
+
 					break;
 				case AuthenticationKitState.WalletConnected:
+					StatusText.gameObject.SetActive(false);
+
 					break;
 				case AuthenticationKitState.WalletSigning:
+					Spinner.gameObject.SetActive(true);
+					WalletConnectPlatform.gameObject.SetActive(false);
+					StatusText.gameObject.SetActive(true);
+					StatusText.text = LocalizationKeys.WALLET_SIGNING.Translate();
 					break;
 				case AuthenticationKitState.WalletSigned:
+					Spinner.gameObject.SetActive(false);
 					break;
 				case AuthenticationKitState.MoralisLoggingIn:
 					break;

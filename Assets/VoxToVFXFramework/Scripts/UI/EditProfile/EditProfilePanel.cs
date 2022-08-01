@@ -21,12 +21,15 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 	{
 		#region ScriptParameters
 
+		[SerializeField] private Button CloseButton;
 		[SerializeField] private TMP_InputField NameInputField;
 		[SerializeField] private TMP_InputField UserNameInputField;
 		[SerializeField] private TMP_InputField BiographyInputField;
 		[SerializeField] private Button SelectFileButton;
 		[SerializeField] private Image PictureProfileImage;
+		[SerializeField] private Image NoAvatarImage;
 		[SerializeField] private Button DeletePictureButton;
+		[SerializeField] private Image SpinnerImage;
 
 		[SerializeField] private Button SaveButton;
 
@@ -43,9 +46,11 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		private async void OnEnable()
 		{
+			SpinnerImage.gameObject.SetActive(false);
 			SelectFileButton.onClick.AddListener(OnSelectFileClicked);
 			DeletePictureButton.onClick.AddListener(OnDeletePictureClicked);
 			SaveButton.onClick.AddListener(OnSaveClicked);
+			CloseButton.onClick.AddListener(OnCloseClicked);
 			await Refresh();
 		}
 
@@ -54,6 +59,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			SelectFileButton.onClick.RemoveListener(OnSelectFileClicked);
 			DeletePictureButton.onClick.RemoveListener(OnDeletePictureClicked);
 			SaveButton.onClick.RemoveListener(OnSaveClicked);
+			CloseButton.onClick.RemoveListener(OnCloseClicked);
 		}
 
 		#endregion
@@ -66,10 +72,12 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			CustomUser customUser = await UserManager.Instance.LoadFromUser(moralisUser);
 			if (customUser != null)
 			{
+				CloseButton.gameObject.SetActive(true);
 				NameInputField.SetTextWithoutNotify(customUser.Name);
 				UserNameInputField.SetTextWithoutNotify(customUser.UserName);
 				BiographyInputField.SetTextWithoutNotify(customUser.Bio);
 
+				NoAvatarImage.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
 				DeletePictureButton.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
 				SelectFileButton.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
 				PictureProfileImage.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
@@ -79,6 +87,15 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 					await ImageUtils.DownloadAndApplyImage(customUser.PictureUrl, PictureProfileImage, 512, true, true, true);
 				}
 			}
+			else
+			{
+				CloseButton.gameObject.SetActive(false);
+			}
+		}
+
+		private void OnCloseClicked()
+		{
+			CanvasPlayerPCManager.Instance.GenericClosePanel();
 		}
 
 		private async void OnSelectFileClicked()
@@ -93,9 +110,11 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		private async UniTask UploadSelectedFile(string path)
 		{
+			SpinnerImage.gameObject.SetActive(true);
 			mProfilePictureUrl = await FileManager.Instance.UploadFile(path);
 			if (!string.IsNullOrEmpty(mProfilePictureUrl))
 			{
+				SpinnerImage.gameObject.SetActive(false);
 				byte[] data = await File.ReadAllBytesAsync(path);
 				Texture2D texture = new Texture2D(2, 2);
 				texture.LoadImage(data);
@@ -105,6 +124,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				PictureProfileImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
 				PictureProfileImage.preserveAspect = true;
 
+				NoAvatarImage.gameObject.SetActive(false);
 				SelectFileButton.gameObject.SetActive(false);
 				DeletePictureButton.gameObject.SetActive(true);
 			}
@@ -116,6 +136,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			SelectFileButton.gameObject.SetActive(true);
 			PictureProfileImage.gameObject.SetActive(false);
 			DeletePictureButton.gameObject.SetActive(false);
+			NoAvatarImage.gameObject.SetActive(true);
 		}
 
 		private async void OnSaveClicked()
@@ -148,10 +169,12 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			if (success)
 			{
 				Debug.Log("Successfully updated user info");
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_UPDATE_SUCCESS.Translate());
 			}
 			else
 			{
 				Debug.LogError("Failed to update user infos");
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_UPDATE_FAILED.Translate(), LogType.Error);
 			}
 		}
 

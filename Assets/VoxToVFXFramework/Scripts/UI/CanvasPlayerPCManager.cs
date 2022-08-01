@@ -13,6 +13,7 @@ using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Settings;
 using VoxToVFXFramework.Scripts.UI.Topbar;
 using VoxToVFXFramework.Scripts.UI.Weather;
+using Cursor = UnityEngine.Cursor;
 
 namespace VoxToVFXFramework.Scripts.UI
 {
@@ -177,13 +178,16 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		private void RefreshCursorState()
 		{
+			bool wasVisible = Cursor.visible;
 			Cursor.visible = !RuntimeVoxManager.Instance.IsReady || mCanvasPlayerPcState == CanvasPlayerPCState.Photo;
 			Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
+
 			switch (CanvasPlayerPcState)
 			{
 				case CanvasPlayerPCState.Closed:
 				case CanvasPlayerPCState.Photo:
 				case CanvasPlayerPCState.Login:
+				case CanvasPlayerPCState.EditProfile:
 					Time.timeScale = 1;
 					break;
 				default:

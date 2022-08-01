@@ -51,6 +51,9 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 
 			SetMessage(descriptor.Message, descriptor.LogType);
 
+
+			OkButton.gameObject.SetActive(descriptor.OnConfirm != null);
+			CancelButton.gameObject.SetActive(descriptor.OnCancel != null);
 			if (descriptor.OnConfirm != null || descriptor.OnCancel != null)
 			{
 				SetConfirm(descriptor.Ok, descriptor.Cancel, descriptor.SetOffsetMessage, descriptor.OnConfirm, descriptor.OnCancel, descriptor.OnDurationOver);

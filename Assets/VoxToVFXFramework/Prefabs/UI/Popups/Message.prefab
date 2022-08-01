@@ -134,7 +134,7 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 3
   m_Spacing: 30
-  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 0
@@ -253,8 +253,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 56.754997, y: 0}
-  m_SizeDelta: {x: 53.51, y: 0}
+  m_AnchoredPosition: {x: 319.83667, y: 0}
+  m_SizeDelta: {x: 579.67334, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1400426507354595973
 CanvasRenderer:
@@ -407,7 +407,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 28}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &9201687939328155695
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -458,7 +458,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 51a101c363b494c4791070eb9a76e9af, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -810,7 +810,12 @@ PrefabInstance:
     - target: {fileID: 3501105881489797868, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}
       propertyPath: m_text
-      value: 
+      value: '[OK]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 5378947531639966616, guid: b0379d1495e4c8a459df6bdd50f2fd04,
+        type: 3}
+      propertyPath: key
+      value: '[OK]'
       objectReference: {fileID: 0}
     - target: {fileID: 8520747033427221135, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}
