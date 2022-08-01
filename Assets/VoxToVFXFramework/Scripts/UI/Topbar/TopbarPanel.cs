@@ -25,6 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[SerializeField] private Button CreateItemButton;
 		[SerializeField] private Image NoAvatarImageTopbar;
 		[SerializeField] private Image AvatarImageTopbar;
+		[SerializeField] private GameObject Spinner;
 
 		[Header("ProfilePopup")]
 		[SerializeField] private GameObject ProfilePopup;
@@ -39,8 +40,6 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[SerializeField] private TextMeshProUGUI WalletBalanceText;
 		[SerializeField] private TextMeshProUGUI MarketplaceBalanceText;
 		[SerializeField] private TextMeshProUGUI WalletAddressText;
-
-
 
 		#endregion
 
@@ -100,6 +99,8 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 			if (user != null)
 			{
+				LockOpenProfileButton(true);
+
 				NoAvatarImage.gameObject.SetActive(true);
 				NoAvatarImageTopbar.gameObject.SetActive(true);
 
@@ -146,6 +147,9 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 				// NOTE: May be better to link this to chain since some tokens may have
 				// more than 18 sigjnificant figures.
 				WalletBalanceText.text = $"{(balance / (double)Mathf.Pow(10.0f, decimals)):0.####} {sym}";
+
+				LockOpenProfileButton(false);
+
 			}
 		}
 
@@ -156,6 +160,12 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 			NoAvatarImage.gameObject.SetActive(!imageAvatarFound);
 			NoAvatarImageTopbar.gameObject.SetActive(!imageAvatarFound);
+		}
+
+		private void LockOpenProfileButton(bool isLocked)
+		{
+			Spinner.gameObject.SetActive(isLocked);
+			OpenProfileButton.gameObject.SetActive(!isLocked);
 		}
 
 		private void OnUserInfoRefresh(CustomUser customUser)

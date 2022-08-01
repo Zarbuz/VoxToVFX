@@ -110,7 +110,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		private async UniTask UploadSelectedFile(string path)
 		{
-			SpinnerImage.gameObject.SetActive(true);
+			ShowSpinnerImage(true);
 			mProfilePictureUrl = await FileManager.Instance.UploadFile(path);
 			if (!string.IsNullOrEmpty(mProfilePictureUrl))
 			{
@@ -128,6 +128,16 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				SelectFileButton.gameObject.SetActive(false);
 				DeletePictureButton.gameObject.SetActive(true);
 			}
+			else
+			{
+				ShowSpinnerImage(false);
+			}
+		}
+
+		private void ShowSpinnerImage(bool showSpinner)
+		{
+			SpinnerImage.gameObject.SetActive(showSpinner);
+			NoAvatarImage.gameObject.SetActive(!showSpinner);
 		}
 
 		private void OnDeletePictureClicked()
