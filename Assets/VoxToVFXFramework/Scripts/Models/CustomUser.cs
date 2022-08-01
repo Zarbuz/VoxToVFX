@@ -11,10 +11,20 @@ namespace VoxToVFXFramework.Scripts.Models
 		public string Bio { get; set; }
 		public string PictureUrl { get; set; }
 
+		public string WebsiteUrl { get; set; }
+		public string Discord { get; set; }
+		public string YoutubeUrl { get; set; }
+		public string FacebookUrl { get; set; }
+		public string TwitchUsername { get; set; }
+		public string TikTokUsername { get; set; }
+		public string SnapchatUsername { get; set; }
+
 		public CustomUser()
 		{
 			ClassName = "CustomUser";
 		}
+
+		
 	}
 
 }

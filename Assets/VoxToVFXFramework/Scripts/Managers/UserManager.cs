@@ -38,23 +38,32 @@ namespace VoxToVFXFramework.Scripts.Managers
 				MoralisUser moralisUser = await Moralis.GetUserAsync();
 
 				CustomUser newUserInfo = Moralis.Create<CustomUser>();
-				newUserInfo.PictureUrl = customUser.PictureUrl;
-				newUserInfo.Name = customUser.Name;
-				newUserInfo.Bio = customUser.Bio;
-				newUserInfo.UserId = customUser.UserId;
-				newUserInfo.UserName = customUser.UserName;
 				newUserInfo.ACL = new MoralisAcl(moralisUser);
+				newUserInfo = UpdateFields(newUserInfo, customUser);
 				await newUserInfo.SaveAsync();
 			}
 			else
 			{
-				result.PictureUrl = customUser.PictureUrl;
-				result.Name = customUser.Name;
-				result.Bio = customUser.Bio;
-				result.UserId = customUser.UserId;
-				result.UserName = customUser.UserName;
+				result = UpdateFields(result, customUser);
 				await result.SaveAsync();
 			}
+		}
+
+		private CustomUser UpdateFields(CustomUser input, CustomUser fromUser)
+		{
+			input.PictureUrl = fromUser.PictureUrl;
+			input.Name = fromUser.Name;
+			input.Bio = fromUser.Bio;
+			input.UserId = fromUser.UserId;
+			input.UserName = fromUser.UserName;
+			input.FacebookUrl = fromUser.FacebookUrl;
+			input.Discord = fromUser.Discord;
+			input.WebsiteUrl = fromUser.WebsiteUrl;
+			input.YoutubeUrl = fromUser.YoutubeUrl;
+			input.SnapchatUsername = fromUser.SnapchatUsername;
+			input.TikTokUsername = fromUser.TikTokUsername;
+			input.TwitchUsername = fromUser.TwitchUsername;
+			return input;
 		}
 
 		public async UniTask Logout()

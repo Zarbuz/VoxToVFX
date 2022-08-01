@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
@@ -31,6 +32,17 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 		[SerializeField] private Button DeletePictureButton;
 		[SerializeField] private Image SpinnerImage;
 
+		[Header("Social Links")]
+		[SerializeField] private TMP_InputField WebsiteInputField;
+
+		[SerializeField] private TMP_InputField DiscordInputField;
+		[SerializeField] private TMP_InputField YoutubeInputField;
+		[SerializeField] private TMP_InputField FacebookInputField;
+		[SerializeField] private TMP_InputField TwitchInputField;
+		[SerializeField] private TMP_InputField TikTokInputField;
+		[SerializeField] private TMP_InputField SnapchatInputField;
+
+
 		[SerializeField] private Button SaveButton;
 
 
@@ -51,6 +63,8 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			DeletePictureButton.onClick.AddListener(OnDeletePictureClicked);
 			SaveButton.onClick.AddListener(OnSaveClicked);
 			CloseButton.onClick.AddListener(OnCloseClicked);
+
+			UserManager.Instance.OnUserInfoUpdated += OnUserInfoUpdated;
 			await Refresh();
 		}
 
@@ -60,6 +74,12 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			DeletePictureButton.onClick.RemoveListener(OnDeletePictureClicked);
 			SaveButton.onClick.RemoveListener(OnSaveClicked);
 			CloseButton.onClick.RemoveListener(OnCloseClicked);
+
+			if (UserManager.Instance != null)
+			{
+				UserManager.Instance.OnUserInfoUpdated -= OnUserInfoUpdated;
+			}
+
 		}
 
 		#endregion
@@ -73,15 +93,23 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			if (customUser != null)
 			{
 				CloseButton.gameObject.SetActive(true);
-				NameInputField.SetTextWithoutNotify(customUser.Name);
-				UserNameInputField.SetTextWithoutNotify(customUser.UserName);
-				BiographyInputField.SetTextWithoutNotify(customUser.Bio);
+				NameInputField.text = customUser.Name;
+				UserNameInputField.text = customUser.UserName;
+				BiographyInputField.text = customUser.Bio;
 
 				NoAvatarImage.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
 				DeletePictureButton.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
 				SelectFileButton.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
 				PictureProfileImage.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
 
+				WebsiteInputField.text = customUser.WebsiteUrl;
+				DiscordInputField.text = customUser.Discord;
+				YoutubeInputField.text = customUser.YoutubeUrl;
+				FacebookInputField.text = customUser.FacebookUrl;
+				TwitchInputField.text = customUser.TwitchUsername;
+				TikTokInputField.text = customUser.TikTokUsername;
+				SnapchatInputField.text = customUser.SnapchatUsername;
+				mProfilePictureUrl = customUser.PictureUrl;
 				if (!string.IsNullOrEmpty(customUser.PictureUrl))
 				{
 					await ImageUtils.DownloadAndApplyImage(customUser.PictureUrl, PictureProfileImage, 512, true, true, true);
@@ -91,6 +119,11 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			{
 				CloseButton.gameObject.SetActive(false);
 			}
+		}
+
+		private async void OnUserInfoUpdated(CustomUser customUser)
+		{
+			await Refresh();
 		}
 
 		private void OnCloseClicked()
@@ -163,18 +196,78 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				return;
 			}
 
+			if (!string.IsNullOrEmpty(DiscordInputField.text) && !Regex.IsMatch(DiscordInputField.text, "^.{3,32}#[0-9]{4}$"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_DISCORD.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(WebsiteInputField.text) && !IsValidUrl(WebsiteInputField.text, "https://"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_WEBSITE_URL.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(FacebookInputField.text) && !IsValidUrl(FacebookInputField.text, "https://www.facebook.com/"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_FACEBOOK_URL.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(YoutubeInputField.text) && !IsValidUrl(YoutubeInputField.text, "https://www.youtube.com/channel/"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_YOUTUBE_URL.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(TwitchInputField.text) && !IsValidUrl(TwitchInputField.text, "https://www.twitch.tv/"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_TWITCH_URL.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(TikTokInputField.text) && !IsValidUrl(TikTokInputField.text, "https://www.tiktok.com/"))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_TIKTOK_URL.Translate());
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(SnapchatInputField.text) && !IsValidUrl(SnapchatInputField.text))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_INVALID_SNAPCHAT_URL.Translate());
+				return;
+			}
+
 			await UpdateUserInfo();
 		}
 
 		private async UniTask UpdateUserInfo()
 		{
-			CustomUser currentUser = new CustomUser();
 			MoralisUser moralisUser = await Moralis.GetUserAsync();
-			currentUser.UserId = moralisUser.objectId;
-			currentUser.PictureUrl = mProfilePictureUrl;
-			currentUser.Bio = BiographyInputField.text;
-			currentUser.UserName = UserNameInputField.text;
-			currentUser.Name = NameInputField.text;
+
+			string cleanWebsiteUrl = CleanUrl(WebsiteInputField.text, "https://");
+			cleanWebsiteUrl = CleanUrl(cleanWebsiteUrl, "http://");
+
+			string cleanFacebookUrl = CleanUrl(FacebookInputField.text, "https://www.facebook.com/");
+			string cleanYoutubeUrl = CleanUrl(YoutubeInputField.text, "https://www.youtube.com/channel/");
+			string cleanTwitchUrl = CleanUrl(TwitchInputField.text, "https://www.twitch.tv/");
+			string cleanTikTokUrl = CleanUrl(TikTokInputField.text, "https://www.tiktok.com/");
+
+			CustomUser currentUser = new CustomUser
+			{
+				UserId = moralisUser.objectId,
+				PictureUrl = mProfilePictureUrl,
+				Bio = BiographyInputField.text,
+				UserName = UserNameInputField.text,
+				Name = NameInputField.text,
+				WebsiteUrl = cleanWebsiteUrl,
+				Discord = DiscordInputField.text,
+				YoutubeUrl = cleanYoutubeUrl,
+				FacebookUrl = cleanFacebookUrl,
+				TwitchUsername = cleanTwitchUrl,
+				TikTokUsername = cleanTikTokUrl,
+				SnapchatUsername = SnapchatInputField.text
+			};
 			MoralisError error = await UserManager.Instance.UpdateUserInfo(currentUser);
 			if (error == null)
 			{
@@ -185,6 +278,24 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			{
 				MessagePopup.Show(error.Error, LogType.Error);
 			}
+		}
+
+		private bool IsValidUrl(string url, string mustContains = "")
+		{
+			if (!url.Contains(mustContains))
+			{
+				url = mustContains + url;
+			}
+
+			bool result = Uri.TryCreate(url, UriKind.Absolute, out Uri uriResult)
+						  && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+			return result;
+		}
+
+		private string CleanUrl(string url, string oldValue)
+		{
+			return url.Replace(oldValue, string.Empty);
 		}
 
 		private bool HasSpecialChars(string yourString)
