@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MoralisUnity.Platform.Objects;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -102,6 +103,9 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 				NoAvatarImage.gameObject.SetActive(true);
 				NoAvatarImageTopbar.gameObject.SetActive(true);
 
+				UserNameText.text = "@" + user.UserName;
+				NameText.text = user.Name;
+
 				if (!string.IsNullOrEmpty(user.PictureUrl))
 				{
 					bool success = await ImageUtils.DownloadAndApplyImage(user.PictureUrl, AvatarImage, 128, true, true, true);
@@ -109,28 +113,49 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 					{
 						AvatarImageTopbar.sprite = AvatarImage.sprite;
 
-						AvatarImage.transform.parent.gameObject.SetActive(true);
-						AvatarImageTopbar.transform.parent.gameObject.SetActive(true);
-
-						NoAvatarImage.gameObject.SetActive(true);
-						NoAvatarImageTopbar.gameObject.SetActive(true);
+						UpdateAvatarDisplay(true);
 					}
 					else
 					{
-						AvatarImage.transform.parent.gameObject.SetActive(false);
-						AvatarImageTopbar.transform.parent.gameObject.SetActive(false);
-
-						NoAvatarImage.gameObject.SetActive(true);
-						NoAvatarImageTopbar.gameObject.SetActive(true);
+						UpdateAvatarDisplay(false);
 					}
+				}
+				else
+				{
+					UpdateAvatarDisplay(false);
 				}
 
 				MoralisUser moralisUser = await Moralis.GetUserAsync();
-
-				UserNameText.text = "@" + user.UserName;
-				NameText.text = user.Name;
 				WalletAddressText.text = moralisUser.ethAddress.Substring(0, 4) + "..." + moralisUser.ethAddress.Substring(moralisUser.ethAddress.Length - 4);
+
+				// Retrienve the user's native balance;
+				NativeBalance balanceResponse = await Moralis.Web3Api.Account.GetNativeBalance(moralisUser.ethAddress, Moralis.CurrentChain.EnumValue);
+
+				double balance = 0.0;
+				float decimals = Moralis.CurrentChain.Decimals * 1.0f;
+				string sym = Moralis.CurrentChain.Symbol;
+
+				// Make sure a response to the balanace request weas received. The 
+				// IsNullOrWhitespace check may not be necessary ...
+				if (balanceResponse != null && !string.IsNullOrWhiteSpace(balanceResponse.Balance))
+				{
+					double.TryParse(balanceResponse.Balance, out balance);
+				}
+
+				// Display native token amount token in fractions of token.
+				// NOTE: May be better to link this to chain since some tokens may have
+				// more than 18 sigjnificant figures.
+				WalletBalanceText.text = $"{(balance / (double)Mathf.Pow(10.0f, decimals)):0.####} {sym}";
 			}
+		}
+
+		private void UpdateAvatarDisplay(bool imageAvatarFound)
+		{
+			AvatarImage.transform.parent.gameObject.SetActive(imageAvatarFound);
+			AvatarImageTopbar.transform.parent.gameObject.SetActive(imageAvatarFound);
+
+			NoAvatarImage.gameObject.SetActive(!imageAvatarFound);
+			NoAvatarImageTopbar.gameObject.SetActive(!imageAvatarFound);
 		}
 
 		private void OnUserInfoRefresh(CustomUser customUser)
