@@ -171,6 +171,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ForceLanguage: 0
+  BlockchainType: 0
+  TestNetSmartContractAddressConfig: {fileID: 11400000, guid: 2dc1329bc2793ae4c92540a5f72488a6,
+    type: 2}
+  MainNetSmartContractAddressConfig: {fileID: 11400000, guid: 03589dcf1abdeaa4f8e63c29d84af58d,
+    type: 2}
 --- !u!1 &3489935422147596897
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,5 +441,5 @@ MonoBehaviour:
     type: 3}
   VFXListAsset: {fileID: 11400000, guid: 2ed9ae466d0ee4a46836973e8589c716, type: 2}
   ShowOnlyActiveChunkGizmos: 0
-  PlayerPosition: {fileID: 0}
-  ExposureWeight: -15
+  FirstPersonTransform: {fileID: 0}
+  FreeCameraTransform: {fileID: 0}
