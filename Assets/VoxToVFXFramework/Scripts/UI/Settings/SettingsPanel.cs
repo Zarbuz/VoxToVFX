@@ -19,6 +19,8 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		#region ScriptParamaters
 
+		[SerializeField] private Button CloseButton;
+
 		[Header("Tabs")]
 		[SerializeField] private Button DisplayButton;
 		[SerializeField] private Button GraphicsButton;
@@ -56,6 +58,7 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		private void OnEnable()
 		{
+			CloseButton.onClick.AddListener(OnCloseClicked);
 			DisplayButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.DISPLAY));
 			GraphicsButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.GRAPHICS));
 			InputButton.onClick.AddListener(() => OnSettingsTabChanged(ESettingsState.INPUT));
@@ -66,6 +69,8 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		private void OnDisable()
 		{
+			CloseButton.onClick.RemoveListener(OnCloseClicked);
+
 			DisplayButton.onClick.RemoveAllListeners();
 			GraphicsButton.onClick.RemoveAllListeners();
 			InputButton.onClick.RemoveAllListeners();
@@ -75,6 +80,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 		#endregion
 
 		#region PrivateMethods
+
+		private void OnCloseClicked()
+		{
+			CanvasPlayerPCManager.Instance.GenericClosePanel();
+		}
 
 		private void OnSettingsTabChanged(ESettingsState settingsState)
 		{

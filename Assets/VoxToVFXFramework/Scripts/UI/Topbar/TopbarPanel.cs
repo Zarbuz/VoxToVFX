@@ -96,7 +96,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			if (user != null)
 			{
 				NoAvatarImage.gameObject.SetActive(string.IsNullOrEmpty(user.PictureUrl));
-				AvatarImage.gameObject.SetActive(!string.IsNullOrEmpty(user.PictureUrl));
+				AvatarImage.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(user.PictureUrl));
 				if (!string.IsNullOrEmpty(user.PictureUrl))
 				{
 					bool success = await ImageUtils.DownloadAndApplyImage(user.PictureUrl, AvatarImage, 128, true, true, true);
@@ -106,7 +106,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 				UserNameText.text = "@" + user.UserName;
 				NameText.text = user.Name;
-				WalletAddressText.text = moralisUser.ethAddress.Take(4) + "..." + moralisUser.ethAddress.TakeLast(4);
+				WalletAddressText.text = moralisUser.ethAddress.Substring(0, 4) + "..." + moralisUser.ethAddress.Substring(moralisUser.ethAddress.Length - 4);
 			}
 		}
 
