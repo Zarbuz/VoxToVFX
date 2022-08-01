@@ -99,6 +99,16 @@ namespace VoxToVFXFramework.Scripts.UI
 					GenericTogglePanel(CanvasPlayerPCState.Photo);
 				}
 			}
+			else if (Mouse.current.leftButton.wasPressedThisFrame)
+			{
+				RefreshCursorState();
+			}
+		}
+
+
+		private void OnApplicationFocus(bool hasFocus)
+		{
+			RefreshCursorState();
 		}
 
 		#endregion

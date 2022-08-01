@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
@@ -62,11 +63,11 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 		private async UniTask Refresh()
 		{
 			MoralisUser moralisUser = await Moralis.GetUserAsync();
-			CustomUserDTO customUser = await UserManager.Instance.LoadFromUser(moralisUser);
+			CustomUser customUser = await UserManager.Instance.LoadFromUser(moralisUser);
 			if (customUser != null)
 			{
 				NameInputField.SetTextWithoutNotify(customUser.Name);
-				UserNameInputField.SetTextWithoutNotify(customUser.username);
+				UserNameInputField.SetTextWithoutNotify(customUser.UserName);
 				BiographyInputField.SetTextWithoutNotify(customUser.Bio);
 
 				DeletePictureButton.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
@@ -83,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 		private async void OnSelectFileClicked()
 		{
 			ExtensionFilter extensionFilters = new ExtensionFilter("Images", new[] { "png", "jpg", "jpeg", "gif" });
-			string[] paths = StandaloneFileBrowser.OpenFilePanel("Select image", "", new []{extensionFilters}, false);
+			string[] paths = StandaloneFileBrowser.OpenFilePanel("Select image", "", new[] { extensionFilters }, false);
 			if (paths.Length > 0)
 			{
 				await UploadSelectedFile(paths[0]);
@@ -97,7 +98,8 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			{
 				byte[] data = await File.ReadAllBytesAsync(path);
 				Texture2D texture = new Texture2D(2, 2);
-				texture.SetPixelData(data, 0);
+				texture.LoadImage(data);
+				texture.Apply(updateMipmaps: true);
 				texture = texture.ResampleAndCrop(256, 256);
 				PictureProfileImage.gameObject.SetActive(true);
 				PictureProfileImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
@@ -116,7 +118,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			DeletePictureButton.gameObject.SetActive(false);
 		}
 
-		private void OnSaveClicked()
+		private async void OnSaveClicked()
 		{
 			if (string.IsNullOrEmpty(UserNameInputField.text) || UserNameInputField.text.Length < 3)
 			{
@@ -124,7 +126,38 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				return;
 			}
 
+			if (UserNameInputField.text.Contains(" ") || HasSpecialChars(UserNameInputField.text))
+			{
+				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_USERNAME_NO_SPACE.Translate());
+				return;
+			}
 
+			await UpdateUserInfo();
+		}
+
+		private async UniTask UpdateUserInfo()
+		{
+			CustomUser currentUser = new CustomUser();
+			MoralisUser moralisUser = await Moralis.GetUserAsync();
+			currentUser.UserId = moralisUser.objectId;
+			currentUser.PictureUrl = mProfilePictureUrl;
+			currentUser.Bio = BiographyInputField.text;
+			currentUser.UserName = UserNameInputField.text;
+			currentUser.Name = NameInputField.text;
+			bool success = await UserManager.Instance.UpdateUserInfo(currentUser);
+			if (success)
+			{
+				Debug.Log("Successfully updated user info");
+			}
+			else
+			{
+				Debug.LogError("Failed to update user infos");
+			}
+		}
+
+		private bool HasSpecialChars(string yourString)
+		{
+			return yourString.Any(ch => !char.IsLetterOrDigit(ch));
 		}
 
 		#endregion

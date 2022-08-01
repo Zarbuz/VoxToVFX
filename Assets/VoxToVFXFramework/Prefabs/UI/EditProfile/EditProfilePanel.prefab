@@ -142,7 +142,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[NAME]'
+  m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -292,7 +292,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[OPTIONAL]'
+  m_text: Optional
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -689,7 +689,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[OPTIONAL]'
+  m_text: Optional
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -976,8 +976,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Taille recommand\xE9e: \n1000x1000px.\nJPG, PNG, or GIF.\n10MB taille
-    max.\"\n"
+  m_text: "Recommended size: \n1000x1000px.\nJPG, PNG, or GIF.\n10MB max size."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8135f3e4da79753469170979c030df6b, type: 2}
   m_sharedMaterial: {fileID: 21770018417678880, guid: 8135f3e4da79753469170979c030df6b,
@@ -1127,7 +1126,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[EDIT_PROFILE_ENTER_DETAILS]'
+  m_text: Enter your details
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -1354,7 +1353,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[EDIT_PROFILE_ENTER_BIO]'
+  m_text: Enter a short bio
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -1572,7 +1571,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[EDIT_PROFILE_TITLE]'
+  m_text: Edit your profile
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -1722,7 +1721,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[USERNAME]'
+  m_text: Username
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -1872,7 +1871,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[EDIT_PROFILE_ADD_BIO]'
+  m_text: Add a short bio
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -2022,7 +2021,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[EDIT_PROFILE_ADD_BIO]'
+  m_text: Upload profile image
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d8df6c5c53a756442b22bf81f419f464, type: 2}
   m_sharedMaterial: {fileID: 5871235119439401394, guid: d8df6c5c53a756442b22bf81f419f464,
@@ -2291,6 +2290,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_ContentType
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_CharacterLimit
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_CharacterValidation
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8131485039326353314, guid: 72b57354c0a21f14fa031ef86f383b51,
         type: 3}
@@ -2617,6 +2631,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_ContentType
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_CharacterLimit
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_CharacterValidation
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8131485039326353314, guid: 72b57354c0a21f14fa031ef86f383b51,
         type: 3}
@@ -2964,6 +2993,11 @@ PrefabInstance:
       propertyPath: m_LineLimit
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7474326424325685942, guid: 72b57354c0a21f14fa031ef86f383b51,
+        type: 3}
+      propertyPath: m_CharacterLimit
+      value: 200
+      objectReference: {fileID: 0}
     - target: {fileID: 8131485039326353314, guid: 72b57354c0a21f14fa031ef86f383b51,
         type: 3}
       propertyPath: PlaceholderKey
@@ -3105,7 +3139,7 @@ PrefabInstance:
     - target: {fileID: 3501105881489797868, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}
       propertyPath: m_text
-      value: '[EDIT_PROFILE_SELECT_PICTURE]'
+      value: Delete picture
       objectReference: {fileID: 0}
     - target: {fileID: 5378947531639966616, guid: b0379d1495e4c8a459df6bdd50f2fd04,
         type: 3}

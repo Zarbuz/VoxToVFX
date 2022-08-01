@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using MoralisUnity;
 using MoralisUnity.Kits.AuthenticationKit;
 using MoralisUnity.Platform.Objects;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
+using WalletConnectSharp.Core.Models;
 
 namespace VoxToVFXFramework.Scripts.UI.Login
 {
@@ -51,9 +53,9 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 		private async void OnConnected()
 		{
 			Debug.Log("LoginPanel: OnConnected");
-			CustomUserDTO user = await UserManager.Instance.LoadCurrentUser();
+			CustomUser user = await UserManager.Instance.LoadCurrentUser();
 
-			if (string.IsNullOrEmpty(user.username))
+			if (user == null || string.IsNullOrEmpty(user.UserName))
 			{
 				CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.EditProfile);
 			}
