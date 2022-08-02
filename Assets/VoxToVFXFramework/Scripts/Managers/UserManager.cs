@@ -30,7 +30,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public async UniTask SaveUserInfo(CustomUser customUser)
 		{
 			MoralisQuery<CustomUser> q = await Moralis.Query<CustomUser>();
-			q.WhereEqualTo("UserId", customUser.UserId);
+			q = q.WhereEqualTo("UserId", customUser.UserId);
 
 			CustomUser result = await q.FirstOrDefaultAsync();
 			if (result == null)

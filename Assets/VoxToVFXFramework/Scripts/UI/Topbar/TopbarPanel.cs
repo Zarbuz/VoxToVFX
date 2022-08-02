@@ -1,5 +1,6 @@
 using MoralisUnity;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using MoralisUnity.Platform.Objects;
@@ -52,7 +53,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private async void Start()
 		{
-			var user = await UserManager.Instance.LoadCurrentUser();
+			CustomUser user = await UserManager.Instance.LoadCurrentUser();
 		}
 
 		private async void OnEnable()
@@ -211,7 +212,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private void OnCreateItemClicked()
 		{
-			throw new NotImplementedException();
+			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Collection);
 		}
 
 		#endregion

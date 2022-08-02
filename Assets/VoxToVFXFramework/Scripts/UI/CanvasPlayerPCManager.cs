@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.Collection;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Login;
@@ -26,7 +27,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Weather,
 		Photo,
 		Login,
-		EditProfile
+		EditProfile,
+		Collection
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -44,6 +46,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private WeatherPanel WeatherPanel;
 		[SerializeField] private PhotoPanel PhotoPanel;
 		[SerializeField] private EditProfilePanel EditProfilePanel;
+		[SerializeField] private CollectionPanel CollectionPanel;
 		#endregion
 
 		#region Fields
@@ -63,6 +66,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
 				LoginPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
 				EditProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
+				CollectionPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
 
 				CheckBlurImage();
 				RefreshCursorState();
