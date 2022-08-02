@@ -22,6 +22,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return result.ToList();
 		}
 
+		public async UniTask<List<UserContract>> GetUserLoggedListContract()
+		{
+			return await GetUserListContract(UserManager.Instance.CurrentUser.UserId);
+		}
+
 		public async UniTask AddUserContract(string contract, string userId)
 		{
 			UserContract userContract = Moralis.Create<UserContract>();

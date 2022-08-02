@@ -190,7 +190,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				return;
 			}
 
-			if (UserNameInputField.text.Contains(" ") || HasSpecialChars(UserNameInputField.text))
+			if (UserNameInputField.text.Contains(" ") || UserNameInputField.text.HasSpecialChars())
 			{
 				MessagePopup.Show(LocalizationKeys.EDIT_PROFILE_USERNAME_NO_SPACE.Translate());
 				return;
@@ -298,10 +298,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			return url.Replace(oldValue, string.Empty);
 		}
 
-		private bool HasSpecialChars(string yourString)
-		{
-			return yourString.Any(ch => !char.IsLetterOrDigit(ch));
-		}
+	
 
 		#endregion
 	}
