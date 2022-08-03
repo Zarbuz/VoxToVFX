@@ -195,6 +195,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				case CanvasPlayerPCState.Login:
 				case CanvasPlayerPCState.EditProfile:
 				case CanvasPlayerPCState.Weather:
+				case CanvasPlayerPCState.Collection:
 					Time.timeScale = 1;
 					break;
 				default:

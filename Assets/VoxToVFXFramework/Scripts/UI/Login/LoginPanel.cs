@@ -54,7 +54,6 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 			AuthenticationKit.Connect();
 		}
 
-
 		private async void OnConnected()
 		{
 			Debug.Log("LoginPanel: OnConnected");

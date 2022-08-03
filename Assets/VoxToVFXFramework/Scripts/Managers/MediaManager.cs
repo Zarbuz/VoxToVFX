@@ -134,11 +134,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 				textRes = textRes.ResampleAndCrop(maxWidth, maxWidth);
 			}
 
-			mCachedTexture.Add(imageUrl, new RefTexture()
+			if (!mCachedTexture.ContainsKey(imageUrl))
 			{
-				Texture = textRes,
-				DoNotGC = keepPermanent,
-			});
+				mCachedTexture.Add(imageUrl, new RefTexture()
+				{
+					Texture = textRes,
+					DoNotGC = keepPermanent,
+				});
+			}
+		
 
 			return textRes;
 		}

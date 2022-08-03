@@ -46,16 +46,6 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		#region UnityMethods
 
-		private void Awake()
-		{
-			Moralis.Start();
-		}
-
-		private async void Start()
-		{
-			CustomUser user = await UserManager.Instance.LoadCurrentUser();
-		}
-
 		private async void OnEnable()
 		{
 			OpenProfileButton.onClick.AddListener(OnOpenProfileClicked);
@@ -150,7 +140,10 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 				WalletBalanceText.text = $"{(balance / (double)Mathf.Pow(10.0f, decimals)):0.####} {sym}";
 
 				LockOpenProfileButton(false);
-
+			}
+			else
+			{
+				Spinner.gameObject.SetActive(false);
 			}
 		}
 

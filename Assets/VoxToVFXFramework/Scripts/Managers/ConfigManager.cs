@@ -54,6 +54,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
+		public string EtherScanBaseUrl
+		{
+			get
+			{
+				if (BlockchainType == BlockchainType.MainNet)
+				{
+					return "https://etherscan.io/";
+				}
+
+				return "https://goerli.etherscan.io/";
+			}
+		}
+
 		#endregion
 
 		#region PrivateMethods
