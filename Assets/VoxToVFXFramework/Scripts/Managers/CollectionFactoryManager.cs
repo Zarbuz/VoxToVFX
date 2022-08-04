@@ -68,7 +68,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
 			MoralisUser moralisUser = await Moralis.GetUserAsync();
-			q = q.WhereEqualTo("address", moralisUser.ethAddress);
+			q = q.WhereEqualTo("creator", moralisUser.ethAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
 			return result.ToList();
 		}

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -65,7 +67,6 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		[SerializeField] private TextMeshProUGUI CollectionSymbolText;
 		[SerializeField] private TMP_InputField CollectionNameInputField;
 		[SerializeField] private TMP_InputField CollectionSymbolInputField;
-		[SerializeField] private Image EmptyLine;
 		[SerializeField] private TextMeshProUGUI SubTitleCreateCollection;
 		[SerializeField] private Image CreateSpinner;
 		[SerializeField] private Button RetryButton;
@@ -108,13 +109,11 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 				mCollectionLeftPartState = value;
 				LeftCreationPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CREATION);
 				LeftConfirmationPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CONFIRMATION_WALLET);
-				EmptyLine.gameObject.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CREATION);
 				SubTitleCreateCollection.gameObject.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CREATION);
 				LeftWaitingBlockchainPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CONFIRMATION_BLOCKCHAIN);
 			}
 		}
 
-		private readonly List<CollectionPanelItem> mCollectionPanelItems = new List<CollectionPanelItem>();
 		private string mTransactionId;
 
 		#endregion
@@ -184,14 +183,24 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		{
 			ShowSpinnerImage(true);
 			List<CollectionCreatedEvent> userContracts = await CollectionFactoryManager.Instance.GetUserListContract();
-			//TODO
-			mCollectionPanelItems.Clear();
 			for (int i = 1; i < ListCollectionParent.childCount; i++)
 			{
 				Destroy(ListCollectionParent.GetChild(i).gameObject);
 			}
 
+			foreach (CollectionCreatedEvent collection in userContracts.Take(1).OrderByDescending(c => c.createdAt)) //Take 1 ->  Temporary just to limit the number of requests
+			{
+				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
+				NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
+				item.Initialize(collection, nftOwnerCollection, OnCollectionSelected);
+			}
+
 			ShowSpinnerImage(false);
+		}
+
+		private void OnCollectionSelected(CollectionCreatedEvent collectionCreated)
+		{
+
 		}
 
 		private void OnHelpInfoClicked()
