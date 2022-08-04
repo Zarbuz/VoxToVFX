@@ -1,8 +1,5 @@
-using MoralisUnity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Threading.Tasks;
+using MoralisUnity;
 using MoralisUnity.Platform.Objects;
 using MoralisUnity.Web3Api.Models;
 using TMPro;
@@ -13,7 +10,6 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Login;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
-using WalletConnectSharp.Unity;
 
 namespace VoxToVFXFramework.Scripts.UI.Topbar
 {
@@ -33,6 +29,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[Header("ProfilePopup")]
 		[SerializeField] private GameObject ProfilePopup;
 
+		[SerializeField] private Image CircleImage;
 		[SerializeField] private Image NoAvatarImage;
 		[SerializeField] private Image AvatarImage;
 		[SerializeField] private TextMeshProUGUI NameText;
@@ -123,7 +120,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 				}
 
 				MoralisUser moralisUser = await Moralis.GetUserAsync();
-				WalletAddressText.text = moralisUser.ethAddress.Substring(0, 4) + "..." + moralisUser.ethAddress.Substring(moralisUser.ethAddress.Length - 4);
+				WalletAddressText.text = moralisUser.ethAddress.FormatEthAddress(4);
 
 				// Retrienve the user's native balance;
 				NativeBalance balanceResponse = await Moralis.Web3Api.Account.GetNativeBalance(moralisUser.ethAddress, Moralis.CurrentChain.EnumValue);
@@ -180,11 +177,13 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		private void OnOpenPopupProfileClicked()
 		{
 			ProfilePopup.SetActiveSafe(!ProfilePopup.activeSelf);
+			RefreshCircle();
 		}
 
 		private void OnOpenProfileClicked()
 		{
 			ProfilePopup.gameObject.SetActive(false);
+			RefreshCircle();
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 			CanvasPlayerPCManager.Instance.OpenProfilePanel(UserManager.Instance.CurrentUser);
 		}
@@ -206,6 +205,11 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			await UserManager.Instance.Logout();
 			CanvasPlayerPCManager.Instance.GenericClosePanel();
 			ProfilePopup.gameObject.SetActive(false);
+		}
+
+		private void RefreshCircle()
+		{
+			CircleImage.color = ProfilePopup.activeSelf ? Color.black : new Color(242 / 255f, 242 / 255f, 242 / 255f);
 		}
 
 		private void OnWalletConnected()

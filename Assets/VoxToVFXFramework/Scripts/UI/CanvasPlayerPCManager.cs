@@ -168,6 +168,8 @@ namespace VoxToVFXFramework.Scripts.UI
 			mNewCamera.transform.localRotation = transform1.localRotation;
 			mNewCamera.transform.localScale = transform1.localScale;
 
+			Destroy(mNewCamera.GetComponent<AudioListener>());
+
 			mRenderTexture = new RenderTexture(Screen.width, Screen.height, 24);
 			mNewCamera.targetTexture = mRenderTexture;
 			mNewCamera.name = "Camera_RenderTexture";

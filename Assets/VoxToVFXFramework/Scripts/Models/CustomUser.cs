@@ -19,6 +19,8 @@ namespace VoxToVFXFramework.Scripts.Models
 		public string TikTokUsername { get; set; }
 		public string SnapchatUsername { get; set; }
 
+		public string EthAddress { get; set; }
+
 		public CustomUser()
 		{
 			ClassName = "CustomUser";

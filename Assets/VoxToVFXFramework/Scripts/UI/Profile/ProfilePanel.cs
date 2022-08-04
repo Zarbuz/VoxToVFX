@@ -1,4 +1,5 @@
 using System;
+using MoralisUnity.Platform.Objects;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +17,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private Image BannerImage;
 		[SerializeField] private Image ProfileImage;
 		[SerializeField] private Image NoAvatarImage;
+		[SerializeField] private TextMeshProUGUI AddressText;
 		[SerializeField] private TextMeshProUGUI NameText;
 		[SerializeField] private TextMeshProUGUI UserNameText;
 		[SerializeField] private TextMeshProUGUI BioText;
@@ -58,6 +60,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			UserNameText.text = "@" + user.UserName;
 			NameText.text = user.Name;
+
+			AddressText.text = user.EthAddress.FormatEthAddress(7);
 
 			BioLabel.gameObject.SetActive(!string.IsNullOrEmpty(user.Bio));
 			BioText.gameObject.SetActive(!string.IsNullOrEmpty(user.Bio));

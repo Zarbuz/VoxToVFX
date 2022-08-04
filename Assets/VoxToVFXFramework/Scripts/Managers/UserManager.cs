@@ -63,6 +63,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			input.SnapchatUsername = fromUser.SnapchatUsername;
 			input.TikTokUsername = fromUser.TikTokUsername;
 			input.TwitchUsername = fromUser.TwitchUsername;
+			input.EthAddress = fromUser.EthAddress;
 			return input;
 		}
 

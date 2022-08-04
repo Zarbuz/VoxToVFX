@@ -8,5 +8,10 @@ namespace VoxToVFXFramework.Scripts.Utils.Extensions
 		{
 			return yourString.Any(ch => !char.IsLetterOrDigit(ch));
 		}
+
+		public static string FormatEthAddress(this string address, int count)
+		{
+			return address.Substring(0, count) + "..." + address.Substring(address.Length - count);
+		}
 	}
 }

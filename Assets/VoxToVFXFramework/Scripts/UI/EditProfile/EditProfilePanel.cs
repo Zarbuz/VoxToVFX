@@ -341,6 +341,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				FacebookUrl = cleanFacebookUrl,
 				TwitchUsername = cleanTwitchUrl,
 				TikTokUsername = cleanTikTokUrl,
+				EthAddress =moralisUser.ethAddress
 			};
 			MoralisError error = await UserManager.Instance.UpdateUserInfo(currentUser);
 			if (error == null)
