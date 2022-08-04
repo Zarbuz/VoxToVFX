@@ -26,15 +26,21 @@ namespace VoxToVFXFramework.Scripts.Managers
 		[SerializeField] private BlockchainType BlockchainType = BlockchainType.TestNet;
 		[SerializeField] private SmartContractAddressConfig TestNetSmartContractAddressConfig;
 		[SerializeField] private SmartContractAddressConfig MainNetSmartContractAddressConfig;
+		[SerializeField] private bool SkipFullReconnectEditor = true;
 
 		#endregion
 
 		#region UnityMethods
 
-		protected override void OnStart()
+		protected override async void OnStart()
 		{
 			SetConfig();
 			QualityManager.Instance.Initialize();
+
+			if (SkipFullReconnectEditor)
+			{
+				await UserManager.Instance.LoadCurrentUser();
+			}
 		}
 
 		#endregion

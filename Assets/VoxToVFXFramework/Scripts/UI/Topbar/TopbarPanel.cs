@@ -21,7 +21,9 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Button OpenProfileButton;
+		[SerializeField] private Button HomeButton;
+
+		[SerializeField] private Button OpenProfilePopupButton;
 		[SerializeField] private Button ConnectWalletButton;
 		[SerializeField] private Button CreateItemButton;
 		[SerializeField] private Image NoAvatarImageTopbar;
@@ -35,7 +37,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		[SerializeField] private Image AvatarImage;
 		[SerializeField] private TextMeshProUGUI NameText;
 		[SerializeField] private TextMeshProUGUI UserNameText;
-		[SerializeField] private Button EditProfileButton;
+		[SerializeField] private Button OpenProfileButton;
 		[SerializeField] private Button SettingsButton;
 		[SerializeField] private Button LogoutButton;
 		[SerializeField] private TextMeshProUGUI WalletBalanceText;
@@ -48,10 +50,11 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private async void OnEnable()
 		{
-			OpenProfileButton.onClick.AddListener(OnOpenProfileClicked);
+			HomeButton.onClick.AddListener(OnHomeClicked);
+			OpenProfilePopupButton.onClick.AddListener(OnOpenPopupProfileClicked);
 			ConnectWalletButton.onClick.AddListener(OnConnectWalletClicked);
 			CreateItemButton.onClick.AddListener(OnCreateItemClicked);
-			EditProfileButton.onClick.AddListener(OnEditProfileClicked);
+			OpenProfileButton.onClick.AddListener(OnOpenProfileClicked);
 			SettingsButton.onClick.AddListener(OnSettingsClicked);
 			LogoutButton.onClick.AddListener(OnLogoutClicked);
 			LoginPanel.OnWalletConnected += OnWalletConnected;
@@ -63,10 +66,12 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private void OnDisable()
 		{
-			OpenProfileButton.onClick.RemoveListener(OnOpenProfileClicked);
+			HomeButton.onClick.RemoveListener(OnHomeClicked);
+
+			OpenProfilePopupButton.onClick.RemoveListener(OnOpenPopupProfileClicked);
 			ConnectWalletButton.onClick.RemoveListener(OnConnectWalletClicked);
 			CreateItemButton.onClick.RemoveListener(OnCreateItemClicked);
-			EditProfileButton.onClick.RemoveListener(OnEditProfileClicked);
+			OpenProfileButton.onClick.RemoveListener(OnOpenProfileClicked);
 			SettingsButton.onClick.RemoveListener(OnSettingsClicked);
 			LogoutButton.onClick.RemoveListener(OnLogoutClicked);
 			LoginPanel.OnWalletConnected -= OnWalletConnected;
@@ -85,7 +90,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		{
 			CustomUser user = UserManager.Instance.CurrentUser;
 			ConnectWalletButton.gameObject.SetActive(user == null);
-			OpenProfileButton.gameObject.SetActive(user != null);
+			OpenProfilePopupButton.gameObject.SetActive(user != null);
 			CreateItemButton.gameObject.SetActive(user != null);
 
 			if (user != null)
@@ -147,6 +152,11 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			}
 		}
 
+		private void OnHomeClicked()
+		{
+			CanvasPlayerPCManager.Instance.GenericClosePanel();
+		}
+
 		private void UpdateAvatarDisplay(bool imageAvatarFound)
 		{
 			AvatarImage.transform.parent.gameObject.SetActive(imageAvatarFound);
@@ -159,7 +169,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		private void LockOpenProfileButton(bool isLocked)
 		{
 			Spinner.gameObject.SetActive(isLocked);
-			OpenProfileButton.gameObject.SetActive(!isLocked);
+			OpenProfilePopupButton.gameObject.SetActive(!isLocked);
 		}
 
 		private void OnUserInfoRefresh(CustomUser customUser)
@@ -167,16 +177,16 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			RefreshToolbar();
 		}
 
-		private void OnOpenProfileClicked()
+		private void OnOpenPopupProfileClicked()
 		{
 			ProfilePopup.SetActiveSafe(!ProfilePopup.activeSelf);
 		}
 
-		private void OnEditProfileClicked()
+		private void OnOpenProfileClicked()
 		{
 			ProfilePopup.gameObject.SetActive(false);
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.EditProfile);
+			CanvasPlayerPCManager.Instance.OpenProfilePanel(UserManager.Instance.CurrentUser);
 		}
 
 		private void OnConnectWalletClicked()

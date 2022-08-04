@@ -10,7 +10,7 @@ namespace VoxToVFXFramework.Scripts.Models
 		public string Name { get; set; }
 		public string Bio { get; set; }
 		public string PictureUrl { get; set; }
-
+		public string BannerUrl { get; set; }
 		public string WebsiteUrl { get; set; }
 		public string Discord { get; set; }
 		public string YoutubeUrl { get; set; }
@@ -23,8 +23,6 @@ namespace VoxToVFXFramework.Scripts.Models
 		{
 			ClassName = "CustomUser";
 		}
-
-		
 	}
 
 }

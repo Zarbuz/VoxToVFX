@@ -7,7 +7,6 @@ using UnityEngine;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
-using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -52,6 +51,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private CustomUser UpdateFields(CustomUser input, CustomUser fromUser)
 		{
 			input.PictureUrl = fromUser.PictureUrl;
+			input.BannerUrl = fromUser.BannerUrl;
 			input.Name = fromUser.Name;
 			input.Bio = fromUser.Bio;
 			input.UserId = fromUser.UserId;

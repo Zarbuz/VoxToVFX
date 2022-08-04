@@ -5,12 +5,14 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.Collection;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Login;
 using VoxToVFXFramework.Scripts.UI.Photo;
+using VoxToVFXFramework.Scripts.UI.Profile;
 using VoxToVFXFramework.Scripts.UI.Settings;
 using VoxToVFXFramework.Scripts.UI.Topbar;
 using VoxToVFXFramework.Scripts.UI.Weather;
@@ -28,7 +30,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Photo,
 		Login,
 		EditProfile,
-		Collection
+		Collection,
+		Profile
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -47,6 +50,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private PhotoPanel PhotoPanel;
 		[SerializeField] private EditProfilePanel EditProfilePanel;
 		[SerializeField] private CollectionPanel CollectionPanel;
+		[SerializeField] private ProfilePanel ProfilePanel;
+
 		#endregion
 
 		#region Fields
@@ -67,6 +72,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				LoginPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
 				EditProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
 				CollectionPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
+				ProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -142,6 +148,12 @@ namespace VoxToVFXFramework.Scripts.UI
 			GenericTogglePanel(CanvasPlayerPCState.ImportScene);
 		}
 
+		public void OpenProfilePanel(CustomUser user)
+		{
+			GenericTogglePanel(CanvasPlayerPCState.Profile);
+			ProfilePanel.Initialize(user);
+		}
+
 		#endregion
 
 		#region PrivateMethods
@@ -196,6 +208,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				case CanvasPlayerPCState.EditProfile:
 				case CanvasPlayerPCState.Weather:
 				case CanvasPlayerPCState.Collection:
+				case CanvasPlayerPCState.Profile:
 					Time.timeScale = 1;
 					break;
 				default:
