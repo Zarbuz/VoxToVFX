@@ -33,16 +33,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return ipfsImagePath;
 		}
 
-		#endregion
-
-		#region PrivateMethods
-
-		private async UniTask<string> SaveImageToIpfs(string name, byte[] imageData)
+		public async UniTask<string> SaveImageToIpfs(string name, byte[] imageData)
 		{
 			return await SaveToIpfs(name, Convert.ToBase64String(imageData));
 		}
 
-		private async UniTask<string> SaveToIpfs(string name, string data)
+		public async UniTask<string> SaveToIpfs(string name, string data)
 		{
 			string pinPath = null;
 
@@ -58,7 +54,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 				List<IpfsFile> resp = await Moralis.GetClient().Web3Api.Storage.UploadFolder(requests);
 
 				IpfsFile ipfs = resp.FirstOrDefault<IpfsFile>();
-
 				if (ipfs != null)
 				{
 					pinPath = ipfs.Path;

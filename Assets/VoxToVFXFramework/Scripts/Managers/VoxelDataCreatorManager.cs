@@ -27,7 +27,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	#region Fields
 
 	public event Action<int, float> LoadProgressCallback;
-	public event Action LoadFinishedCallback;
+	public event Action<string> LoadFinishedCallback;
 
 	private string mOutputPath;
 	private string mInputFileName;
@@ -38,6 +38,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private readonly ConcurrentBag<ChunkDataFile> mChunksWritten = new ConcurrentBag<ChunkDataFile>();
 	private readonly List<Task> mTaskList = new List<Task>();
 	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
+	private const string IMPORT_TMP_FOLDER_NAME = "import_tmp";
+
 	private int mReadCompleted;
 
 	private int mMinX = int.MaxValue;
@@ -46,6 +48,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private int mMaxY = int.MinValue;
 	private int mMinZ = int.MaxValue;
 	private int mMaxZ = int.MinValue;
+	#endregion
+
+	#region ConstStatic
+
+	public const int MAX_STEPS_ON_IMPORT = 2;
+
 	#endregion
 
 	#region UnityMethods
@@ -63,6 +71,20 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	#endregion
 
 	#region PublicMethods
+
+	public void CreateZipFile(string inputPath)
+	{
+		string fileName = Path.GetFileNameWithoutExtension(inputPath);
+		string outputDirectory = Path.Combine(mAppPersistantPath, IMPORT_TMP_FOLDER_NAME);
+
+		if (!Directory.Exists(outputDirectory))
+		{
+			Directory.CreateDirectory(outputDirectory);
+		}
+	
+		string outputPath = Path.Combine(outputDirectory, fileName + ".zip");
+		CreateZipFile(inputPath, outputPath);
+	}
 
 	public void CreateZipFile(string inputPath, string outputPath)
 	{
@@ -242,11 +264,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		if (worldData == null)
 		{
-			Debug.LogError("[RuntimeVoxManager] Failed to load vox model");
+			Debug.LogError("[VoxelDataCreatorManager] Failed to load vox model");
 			return;
 		}
 
-		Debug.Log("[RuntimeVoxController] OnVoxLoadFinished");
+		Debug.Log("[VoxelDataCreatorManager] OnVoxLoadFinished");
 		string tmpPath = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
 		if (!Directory.Exists(tmpPath))
 		{
@@ -263,7 +285,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private IEnumerator ComputeLodCo(WorldData worldData)
 	{
-		Task task = Task.Run(() => worldData.ComputeLodsChunks(OnChunkLoadResult, OnProgressChunkLoadResult, OnChunkLoadedFinished));
+		Task task = Task.Run(() => worldData.ComputeLodsChunks(OnComputeLodResult, OnComputeLodProgress, OnComputeLodFinished));
 
 		while (!task.IsCompleted)
 		{
@@ -290,7 +312,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 	}
 
-	private void OnChunkLoadResult(VoxelResult voxelResult)
+	private void OnComputeLodResult(VoxelResult voxelResult)
 	{
 		if (voxelResult.Data.Length == 0)
 		{
@@ -336,7 +358,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		mChunksWritten.Add(chunk);
 	}
 
-	private void OnProgressChunkLoadResult(float progress)
+	private void OnComputeLodProgress(float progress)
 	{
 		UnityMainThreadManager.Instance.Enqueue(() =>
 		{
@@ -395,8 +417,9 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		binaryWriter.Write(Convert.ToSingle(width, CultureInfo.InvariantCulture));
 	}
 
-	private void OnChunkLoadedFinished()
+	private void OnComputeLodFinished()
 	{
+		Debug.Log("[VoxelDataCreatorManager] OnComputeLodFinished");
 		WriteStructureFile();
 		mImporter.Dispose();
 		mImporter = null;
@@ -415,11 +438,11 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 		Directory.CreateDirectory(outputFolder);
 		MoveFilesFromFolder(inputFolder, outputFolder);
-		Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
+		//Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
 
 		UnityMainThreadManager.Instance.Enqueue(() =>
 		{
-			LoadFinishedCallback?.Invoke();
+			LoadFinishedCallback?.Invoke(mOutputPath);
 		});
 	}
 

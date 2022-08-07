@@ -25,16 +25,8 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 		[SerializeField] private TMP_InputField NameInputField;
 		[SerializeField] private TMP_InputField UserNameInputField;
 		[SerializeField] private TMP_InputField BiographyInputField;
-		[SerializeField] private Button SelectFileButton;
-		[SerializeField] private Image PictureProfileImage;
-		[SerializeField] private Image NoAvatarImage;
-		[SerializeField] private Button DeletePictureButton;
-		[SerializeField] private Image SpinnerImage;
-
-		[SerializeField] private Image BannerImage;
-		[SerializeField] private Button DeleteBannerButton;
-		[SerializeField] private Image SpinnerBannerImage;
-		[SerializeField] private Button SelectImageBannerButton;
+		[SerializeField] private SelectImage ProfileSelectImage;
+		[SerializeField] private SelectImage BannerSelectImage;
 
 		[Header("Social Links")]
 		[SerializeField] private TMP_InputField WebsiteInputField;
@@ -53,41 +45,24 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		#region Fields
 
-		private string mProfilePictureUrl;
-		private string mBannerPictureUrl;
+		
 
 		#endregion
 
-		#region ConstStatic
-
-		private const int MAX_SIZE_IN_MB = 10;
-
-		#endregion
+		
 
 		#region UnityMethods
 
 		private async void OnEnable()
 		{
-			SpinnerImage.gameObject.SetActive(false);
-			SpinnerBannerImage.gameObject.SetActive(false);
-			SelectFileButton.onClick.AddListener(OnSelectFileClicked);
-			DeletePictureButton.onClick.AddListener(OnDeletePictureClicked);
 			SaveButton.onClick.AddListener(OnSaveClicked);
-
-			SelectImageBannerButton.onClick.AddListener(OnSelectBannerClicked);
-			DeleteBannerButton.onClick.AddListener(OnDeleteBannerClicked);
-
 			UserManager.Instance.OnUserInfoUpdated += OnUserInfoUpdated;
 			await Refresh();
 		}
 
 		private void OnDisable()
 		{
-			SelectFileButton.onClick.RemoveListener(OnSelectFileClicked);
-			DeletePictureButton.onClick.RemoveListener(OnDeletePictureClicked);
 			SaveButton.onClick.RemoveListener(OnSaveClicked);
-			SelectImageBannerButton.onClick.RemoveListener(OnSelectBannerClicked);
-			DeleteBannerButton.onClick.RemoveListener(OnDeleteBannerClicked);
 
 			if (UserManager.Instance != null)
 			{
@@ -111,14 +86,8 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				UserNameInputField.text = customUser.UserName;
 				BiographyInputField.text = customUser.Bio;
 
-				NoAvatarImage.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
-				DeletePictureButton.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
-				SelectFileButton.gameObject.SetActive(string.IsNullOrEmpty(customUser.PictureUrl));
-				PictureProfileImage.gameObject.SetActive(!string.IsNullOrEmpty(customUser.PictureUrl));
-
-				DeleteBannerButton.gameObject.SetActive(!string.IsNullOrEmpty(customUser.BannerUrl));
-				SelectImageBannerButton.gameObject.SetActive(string.IsNullOrEmpty(customUser.BannerUrl));
-				BannerImage.gameObject.SetActive(!string.IsNullOrEmpty(customUser.BannerUrl));
+				ProfileSelectImage.Initialize(customUser.PictureUrl);
+				BannerSelectImage.Initialize(customUser.BannerUrl);
 
 				WebsiteInputField.text = customUser.WebsiteUrl;
 				DiscordInputField.text = customUser.Discord;
@@ -126,140 +95,17 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 				FacebookInputField.text = customUser.FacebookUrl;
 				TwitchInputField.text = customUser.TwitchUsername;
 				TikTokInputField.text = customUser.TikTokUsername;
-				mProfilePictureUrl = customUser.PictureUrl;
-				mBannerPictureUrl = customUser.BannerUrl;
-				if (!string.IsNullOrEmpty(customUser.PictureUrl))
-				{
-					await ImageUtils.DownloadAndApplyImage(customUser.PictureUrl, PictureProfileImage, 512, true, true, true);
-				}
-
-				if (!string.IsNullOrEmpty(customUser.BannerUrl))
-				{
-					await ImageUtils.DownloadAndApplyImage(customUser.BannerUrl, BannerImage, 512, true, true, true);
-				}
+			}
+			else
+			{
+				ProfileSelectImage.Initialize(string.Empty);
+				BannerSelectImage.Initialize(string.Empty);
 			}
 		}
 
 		private async void OnUserInfoUpdated(CustomUser customUser)
 		{
 			await Refresh();
-		}
-
-		private async void OnSelectFileClicked()
-		{
-			ExtensionFilter extensionFilters = new ExtensionFilter("Images", new[] { "png", "jpg", "jpeg", "gif" });
-			string[] paths = StandaloneFileBrowser.OpenFilePanel("Select image", "", new[] { extensionFilters }, false);
-			if (paths.Length > 0)
-			{
-				FileInfo fi = new FileInfo(paths[0]);
-				double megaBytes = (fi.Length / 1024f) / 1024f;
-
-				if (megaBytes > MAX_SIZE_IN_MB)
-				{
-					MessagePopup.Show(string.Format(LocalizationKeys.EDIT_PROFILE_FILE_TOO_BIG.Translate(), MAX_SIZE_IN_MB));
-				}
-				else
-				{
-					await UploadSelectedFile(paths[0]);
-				}
-			}
-		}
-
-		private async void OnSelectBannerClicked()
-		{
-			ExtensionFilter extensionFilters = new ExtensionFilter("Images", new[] { "png", "jpg", "jpeg", "gif" });
-			string[] paths = StandaloneFileBrowser.OpenFilePanel("Select image", "", new[] { extensionFilters }, false);
-			if (paths.Length > 0)
-			{
-				FileInfo fi = new FileInfo(paths[0]);
-				double megaBytes = (fi.Length / 1024f) / 1024f;
-
-				if (megaBytes > MAX_SIZE_IN_MB)
-				{
-					MessagePopup.Show(string.Format(LocalizationKeys.EDIT_PROFILE_FILE_TOO_BIG.Translate(), MAX_SIZE_IN_MB));
-				}
-				else
-				{
-					await UploadSelectedBanner(paths[0]);
-				}
-			}
-		}
-
-		private void OnDeleteBannerClicked()
-		{
-			mBannerPictureUrl = string.Empty;
-			SelectImageBannerButton.gameObject.SetActive(true);
-			BannerImage.gameObject.SetActive(false);
-			DeleteBannerButton.gameObject.SetActive(false);
-		}
-
-
-		private async UniTask UploadSelectedFile(string path)
-		{
-			ShowSpinnerImage(true);
-			mProfilePictureUrl = await FileManager.Instance.UploadFile(path);
-			if (!string.IsNullOrEmpty(mProfilePictureUrl))
-			{
-				SpinnerImage.gameObject.SetActive(false);
-				byte[] data = await File.ReadAllBytesAsync(path);
-				Texture2D texture = new Texture2D(2, 2);
-				texture.LoadImage(data);
-				texture.Apply(updateMipmaps: true);
-
-				texture = texture.ResampleAndCrop(256, 256);
-				PictureProfileImage.gameObject.SetActive(true);
-				PictureProfileImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
-				PictureProfileImage.preserveAspect = true;
-
-				NoAvatarImage.gameObject.SetActive(false);
-				SelectFileButton.gameObject.SetActive(false);
-				DeletePictureButton.gameObject.SetActive(true);
-			}
-			else
-			{
-				ShowSpinnerImage(false);
-			}
-		}
-
-		private async UniTask UploadSelectedBanner(string path)
-		{
-			SpinnerBannerImage.gameObject.SetActive(true);
-			mBannerPictureUrl = await FileManager.Instance.UploadFile(path);
-			if (!string.IsNullOrEmpty(mBannerPictureUrl))
-			{
-				SpinnerBannerImage.gameObject.SetActive(false);
-				byte[] data = await File.ReadAllBytesAsync(path);
-				Texture2D texture = new Texture2D(2, 2);
-				texture.LoadImage(data);
-				texture.Apply(updateMipmaps: true);
-
-				texture = texture.ResampleAndCrop(256, 256);
-				BannerImage.gameObject.SetActive(true);
-				BannerImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
-				BannerImage.preserveAspect = true;
-
-				SelectImageBannerButton.gameObject.SetActive(false);
-				DeleteBannerButton.gameObject.SetActive(true);
-			}
-			else
-			{
-				SpinnerBannerImage.gameObject.SetActive(false);
-			}
-		}
-
-		private void ShowSpinnerImage(bool showSpinner)
-		{
-			SpinnerImage.gameObject.SetActive(showSpinner);
-			NoAvatarImage.gameObject.SetActive(!showSpinner);
-		}
-
-		private void OnDeletePictureClicked()
-		{
-			mProfilePictureUrl = string.Empty;
-			SelectFileButton.gameObject.SetActive(true);
-			PictureProfileImage.gameObject.SetActive(false);
-			DeletePictureButton.gameObject.SetActive(false);
-			NoAvatarImage.gameObject.SetActive(true);
 		}
 
 		private async void OnSaveClicked()
@@ -330,8 +176,8 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			CustomUser currentUser = new CustomUser
 			{
 				UserId = moralisUser.objectId,
-				PictureUrl = mProfilePictureUrl,
-				BannerUrl = mBannerPictureUrl,
+				PictureUrl = ProfileSelectImage.ImageUrl,
+				BannerUrl = BannerSelectImage.ImageUrl,
 				Bio = BiographyInputField.text,
 				UserName = UserNameInputField.text,
 				Name = NameInputField.text,

@@ -8,6 +8,7 @@ using VoxToVFXFramework.Scripts.Managers;
 
 namespace VoxToVFXFramework.Scripts.UI.ImportScene
 {
+	//For internal usage only, should not be used anymore
 	public class ImportScenePanel : MonoBehaviour
 	{
 		public enum EDataImportType
@@ -53,12 +54,6 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		}
 
 		private EDataImportType DataImportTypeState { get; set; }
-
-		#endregion
-
-		#region ConstStatic
-
-		private const int MAX_STEPS_ON_IMPORT = 2;
 
 		#endregion
 
@@ -137,12 +132,12 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		{
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 			ImportState = EImportState.IMPORT_IN_PROGRESS;
-			ProgressStepText.text = $"Step: {step}/{MAX_STEPS_ON_IMPORT}";
+			ProgressStepText.text = $"Step: {step}/{VoxelDataCreatorManager.MAX_STEPS_ON_IMPORT}";
 			ProgressText.text = $"{progress.ToString("P", CultureInfo.InvariantCulture)}";
 			ProgressBarFilled.fillAmount = progress;
 		}
 
-		private void OnLoadVoxFinished()
+		private void OnLoadVoxFinished(string outputPath)
 		{
 			ImportState = EImportState.NORMAL;
 			CanvasPlayerPCManager.Instance.PauseLockedState = false;

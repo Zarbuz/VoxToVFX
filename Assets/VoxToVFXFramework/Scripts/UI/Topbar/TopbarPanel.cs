@@ -198,6 +198,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		{
 			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Settings);
 			ProfilePopup.gameObject.SetActive(false);
+			RefreshCircle();
 		}
 
 		private async void OnLogoutClicked()

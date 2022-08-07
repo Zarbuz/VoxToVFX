@@ -8,6 +8,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.Collection;
+using VoxToVFXFramework.Scripts.UI.Creation;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Login;
@@ -31,7 +32,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Login,
 		EditProfile,
 		Collection,
-		Profile
+		Profile,
+		Creation
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -51,6 +53,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private EditProfilePanel EditProfilePanel;
 		[SerializeField] private CollectionPanel CollectionPanel;
 		[SerializeField] private ProfilePanel ProfilePanel;
+		[SerializeField] private CreationPanel CreationPanel;
 
 		#endregion
 
@@ -73,6 +76,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				EditProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
 				CollectionPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
 				ProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
+				CreationPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -154,6 +158,11 @@ namespace VoxToVFXFramework.Scripts.UI
 			ProfilePanel.Initialize(user);
 		}
 
+		public void OpenCreationPanel(CollectionCreatedEvent collectionCreated)
+		{
+			CreationPanel.Initialize(collectionCreated);
+		}
+
 		#endregion
 
 		#region PrivateMethods
@@ -211,6 +220,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				case CanvasPlayerPCState.Weather:
 				case CanvasPlayerPCState.Collection:
 				case CanvasPlayerPCState.Profile:
+				case CanvasPlayerPCState.Creation:
 					Time.timeScale = 1;
 					break;
 				default:

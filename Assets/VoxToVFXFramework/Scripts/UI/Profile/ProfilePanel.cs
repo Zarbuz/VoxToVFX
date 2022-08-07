@@ -12,8 +12,21 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 {
 	public class ProfilePanel : MonoBehaviour
 	{
+
+		#region Enum
+
+		private enum eProfileState
+		{
+			CREATED,
+			COLLECTION,
+			OWNED
+		}
+
+		#endregion
+
 		#region ScriptParameters
 
+		[Header("UserInfo")]
 		[SerializeField] private Image BannerImage;
 		[SerializeField] private Image ProfileImage;
 		[SerializeField] private Image NoAvatarImage;
@@ -34,19 +47,52 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private TextMeshProUGUI FollowersCountText;
 		[SerializeField] private Button EditProfileButton;
 
+		[Header("MainContent")]
+		[SerializeField] private Button CreatedTabButton;
+		[SerializeField] private Button CollectionTabButton;
+		[SerializeField] private Button OwnedTabButton;
+
+		[SerializeField] private TextMeshProUGUI CreatedCountText;
+		[SerializeField] private TextMeshProUGUI CollectionCountText;
+		[SerializeField] private TextMeshProUGUI OwnedCountText;
+
 		#endregion
 
+
+		#region Fields
+
+		private eProfileState mProfileState;
+
+		private eProfileState ProfileState
+		{
+			get => mProfileState;
+			set
+			{
+				mProfileState = value;
+				CreatedTabButton.transform.GetChild(0).gameObject.SetActive(mProfileState == eProfileState.CREATED);
+				CollectionTabButton.transform.GetChild(0).gameObject.SetActive(mProfileState == eProfileState.COLLECTION);
+				OwnedTabButton.transform.GetChild(0).gameObject.SetActive(mProfileState == eProfileState.OWNED);
+			}
+		}
+
+		#endregion
 
 		#region UnityMethods
 
 		private void OnEnable()
 		{
 			EditProfileButton.onClick.AddListener(OnEditProfileClicked);
+			CreatedTabButton.onClick.AddListener(() => OnSwitchMainTab(eProfileState.CREATED));
+			CollectionTabButton.onClick.AddListener(() => OnSwitchMainTab(eProfileState.COLLECTION));
+			OwnedTabButton.onClick.AddListener(() => OnSwitchMainTab(eProfileState.OWNED));
 		}
 
 		private void OnDisable()
 		{
 			EditProfileButton.onClick.RemoveListener(OnEditProfileClicked);
+			CreatedTabButton.onClick.RemoveAllListeners();
+			CollectionTabButton.onClick.RemoveAllListeners();
+			OwnedTabButton.onClick.RemoveAllListeners();
 		}
 
 		#endregion
@@ -128,6 +174,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private void OnEditProfileClicked()
 		{
 			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.EditProfile);
+		}
+
+		private void OnSwitchMainTab(eProfileState profileState)
+		{
+			ProfileState = profileState;
 		}
 
 		#endregion

@@ -188,7 +188,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 				Destroy(ListCollectionParent.GetChild(i).gameObject);
 			}
 
-			foreach (CollectionCreatedEvent collection in userContracts.Take(1).OrderByDescending(c => c.createdAt)) //Take 1 ->  Temporary just to limit the number of requests
+			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt).Take(1)) //Take 1 ->  Temporary just to limit the number of requests
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
 				NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
@@ -200,7 +200,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 
 		private void OnCollectionSelected(CollectionCreatedEvent collectionCreated)
 		{
-
+			CanvasPlayerPCManager.Instance.OpenCreationPanel(collectionCreated);
 		}
 
 		private void OnHelpInfoClicked()
@@ -297,6 +297,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		private void OnBackCongratulationsClicked()
 		{
 			CollectionPanelState = eCollectionPanelState.LIST;
+			RefreshCollectionList();
 		}
 
 		#endregion
