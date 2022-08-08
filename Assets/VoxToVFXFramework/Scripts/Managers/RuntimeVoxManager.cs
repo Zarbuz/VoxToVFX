@@ -71,6 +71,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		}
 
 		public event Action LoadFinishedCallback;
+		public event Action UnloadFinishedCallback; 
 		public Vector2 MinMaxX { get; set; }
 		public Vector2 MinMaxY { get; set; }
 		public Vector2 MinMaxZ { get; set; }
@@ -248,6 +249,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 				}
 				mChunksLoaded.Dispose();
 			}
+
+			UnloadFinishedCallback?.Invoke();
 		}
 
 		public void SetMaterials(VoxelMaterialVFX[] materials)

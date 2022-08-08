@@ -166,6 +166,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 	private IEnumerator RefreshLoadProgressCo()
 	{
+		CanvasPlayerPCManager.Instance.PauseLockedState = true;
 		LoadProgressCallback?.Invoke(1, mReadCompleted / (float)RuntimeVoxManager.Instance.Chunks.Length);
 		yield return new WaitForEndOfFrame();
 	}
@@ -426,6 +427,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 
 		UnityMainThreadManager.Instance.Enqueue(() =>
 		{
+			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 			LoadFinishedCallback?.Invoke(mOutputPath);
 		});
 	}

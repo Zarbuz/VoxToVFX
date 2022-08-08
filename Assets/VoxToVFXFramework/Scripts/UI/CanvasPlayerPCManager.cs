@@ -11,8 +11,10 @@ using VoxToVFXFramework.Scripts.UI.Collection;
 using VoxToVFXFramework.Scripts.UI.Creation;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
+using VoxToVFXFramework.Scripts.UI.Loading;
 using VoxToVFXFramework.Scripts.UI.Login;
 using VoxToVFXFramework.Scripts.UI.Photo;
+using VoxToVFXFramework.Scripts.UI.Preview;
 using VoxToVFXFramework.Scripts.UI.Profile;
 using VoxToVFXFramework.Scripts.UI.Settings;
 using VoxToVFXFramework.Scripts.UI.Topbar;
@@ -33,7 +35,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		EditProfile,
 		Collection,
 		Profile,
-		Creation
+		Creation,
+		Loading
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -54,6 +57,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private CollectionPanel CollectionPanel;
 		[SerializeField] private ProfilePanel ProfilePanel;
 		[SerializeField] private CreationPanel CreationPanel;
+		[SerializeField] private LoadingPanel LoadingPanel;
+		[SerializeField] private PreviewPanel PreviewPanel;
 
 		#endregion
 
@@ -77,6 +82,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				CollectionPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
 				ProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
 				CreationPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
+				LoadingPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -163,6 +169,16 @@ namespace VoxToVFXFramework.Scripts.UI
 			CreationPanel.Initialize(collectionCreated);
 		}
 
+		public void OpenLoadingPanel(Action onLoadFinished)
+		{
+			LoadingPanel.Initialize(onLoadFinished);
+		}
+
+		public void OpenPreviewPanel(string title, string description, Action onBackCallback)
+		{
+			PreviewPanel.Initialize(title, description, onBackCallback);
+		}
+
 		#endregion
 
 		#region PrivateMethods
@@ -210,24 +226,6 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			Cursor.visible = !RuntimeVoxManager.Instance.IsReady || mCanvasPlayerPcState != CanvasPlayerPCState.Closed;
 			Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
-
-			switch (mCanvasPlayerPcState)
-			{
-				case CanvasPlayerPCState.Closed:
-				case CanvasPlayerPCState.Photo:
-				case CanvasPlayerPCState.Login:
-				case CanvasPlayerPCState.EditProfile:
-				case CanvasPlayerPCState.Weather:
-				case CanvasPlayerPCState.Collection:
-				case CanvasPlayerPCState.Profile:
-				case CanvasPlayerPCState.Creation:
-					Time.timeScale = 1;
-					break;
-				default:
-					Time.timeScale = 0;
-					break;
-			}
-
 		}
 
 		#endregion

@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections;
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using SFB;
+using System;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Atomic;
-using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.UI.Creation
@@ -65,6 +61,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private TextMeshProUGUI CollectionSymbolText;
 		[SerializeField] private SelectImage ImageSelectImage;
 		[SerializeField] private SwitchController CreateSplitToggle;
+		[SerializeField] private Button PreviewButton;
 		[SerializeField] private Button MintButton;
 
 		[Header("MintInProgress")]
@@ -82,6 +79,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private CollectionCreatedEvent mCollectionCreated;
 		private string mVoxUrl;
+		private string mZipLocalPath;
 		private string mTransactionId;
 		private eCreationState mCreationState;
 		private string mIpfsMetadataPath;
@@ -115,6 +113,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			RetryButton.onClick.AddListener(OnRetryClicked);
 			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
 			SetBuyPriceButton.onClick.AddListener(OnSetBuyPriceClicked);
+			PreviewButton.onClick.AddListener(OnPreviewClicked);
 			CreationState = eCreationState.SELECT;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
@@ -129,6 +128,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			RetryButton.onClick.RemoveListener(OnRetryClicked);
 			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
 			SetBuyPriceButton.onClick.RemoveListener(OnSetBuyPriceClicked);
+			PreviewButton.onClick.RemoveListener(OnPreviewClicked);
 
 			if (VoxelDataCreatorManager.Instance != null)
 			{
@@ -165,7 +165,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnLoadProgressUpdate(int step, float progress)
 		{
-			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 			ProgressStepText.text = $"Step: {step}/{VoxelDataCreatorManager.MAX_STEPS_ON_IMPORT}";
 			ProgressText.text = $"{progress.ToString("P", CultureInfo.InvariantCulture)}";
 			ProgressBarImage.fillAmount = progress;
@@ -174,6 +173,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		private async void OnLoadVoxFinished(string outputPath)
 		{
 			CreationState = eCreationState.UPLOAD;
+			mZipLocalPath = outputPath;
 			string fileUrl = await FileManager.Instance.UploadFile(outputPath);
 			if (fileUrl == null)
 			{
@@ -196,6 +196,21 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		private void OnDescriptionValueChanged(string value)
 		{
 			DescriptionCounter.text = value.Length + " / 1000";
+		}
+
+		private void OnPreviewClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenLoadingPanel(() =>
+			{
+				CanvasPlayerPCManager.Instance.GenericClosePanel();
+				CanvasPlayerPCManager.Instance.OpenPreviewPanel(NameInputField.text, DescriptionInputField.text, () =>
+				{
+					RuntimeVoxManager.Instance.Release();
+					CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Creation);
+					CreationState = eCreationState.DETAILS;
+				});
+			});
+			VoxelDataCreatorManager.Instance.ReadZipFile(mZipLocalPath);
 		}
 
 		private async void OnMintClicked()

@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using FileToVoxCore.Vox;
+﻿using FileToVoxCore.Vox;
 using FileToVoxCore.Vox.Chunks;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using VoxToVFXFramework.Scripts.Core;
 using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Jobs;
-using VoxToVFXFramework.Scripts.Managers;
 using Color = FileToVoxCore.Drawing.Color;
 
 namespace VoxToVFXFramework.Scripts.Data

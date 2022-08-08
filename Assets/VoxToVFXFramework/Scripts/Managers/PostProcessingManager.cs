@@ -23,11 +23,33 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mVolume = GetComponent<Volume>();
 			mVolume.profile.TryGet(typeof(DepthOfField), out DepthOfField);
+			mVolume.enabled = false;
+		}
+
+		protected override void OnStart()
+		{
+			RuntimeVoxManager.Instance.LoadFinishedCallback += OnVoxLoadFinished;
+			RuntimeVoxManager.Instance.UnloadFinishedCallback += OnVoxUnloadFinished;
+		}
+
+
+		private void OnDestroy()
+		{
+			if (RuntimeVoxManager.Instance != null)
+			{
+				RuntimeVoxManager.Instance.LoadFinishedCallback -= OnVoxLoadFinished;
+				RuntimeVoxManager.Instance.UnloadFinishedCallback -= OnVoxUnloadFinished;
+			}
 		}
 
 		#endregion
 
 		#region PublicMethods
+
+		public void SetActiveVolume(bool active)
+		{
+			mVolume.enabled = active;
+		}
 
 		public void SetEdgePostProcess(float intensity, Color color)
 		{
@@ -104,6 +126,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#endregion
 
+		#region PrivateMethods
 
+		private void OnVoxLoadFinished()
+		{
+			SetActiveVolume(true);
+		}
+
+		private void OnVoxUnloadFinished()
+		{
+			SetActiveVolume(false);
+		}
+
+		#endregion
 	}
 }

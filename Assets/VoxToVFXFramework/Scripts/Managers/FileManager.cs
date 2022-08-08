@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -17,19 +18,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public async UniTask<string> UploadFile(string filePath)
 		{
+			Debug.Log("[FileManager] Start to upload file: " + filePath);
 			string filename = Path.GetFileNameWithoutExtension(filePath);
 			string filteredName = Regex.Replace(filename, @"\s", "");
 			byte[] data = await File.ReadAllBytesAsync(filePath);
-
 			string ipfsImagePath = await SaveImageToIpfs(filteredName, data);
-
 			if (string.IsNullOrEmpty(ipfsImagePath))
 			{
-				Debug.LogError("Failed to save image to IPFS");
+				Debug.LogError("[FileManager] Failed to save file to IPFS");
 				return null;
 			}
 
-			Debug.Log("Image file saved successfully to IPFS:" + ipfsImagePath);
+			Debug.Log("[FileManager] File saved successfully to IPFS:" + ipfsImagePath);
 			return ipfsImagePath;
 		}
 

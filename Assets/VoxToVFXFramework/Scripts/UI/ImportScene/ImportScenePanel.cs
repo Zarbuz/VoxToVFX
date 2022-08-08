@@ -130,7 +130,6 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 
 		private void OnLoadProgressUpdate(int step, float progress)
 		{
-			CanvasPlayerPCManager.Instance.PauseLockedState = true;
 			ImportState = EImportState.IMPORT_IN_PROGRESS;
 			ProgressStepText.text = $"Step: {step}/{VoxelDataCreatorManager.MAX_STEPS_ON_IMPORT}";
 			ProgressText.text = $"{progress.ToString("P", CultureInfo.InvariantCulture)}";
@@ -140,7 +139,6 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		private void OnLoadVoxFinished(string outputPath)
 		{
 			ImportState = EImportState.NORMAL;
-			CanvasPlayerPCManager.Instance.PauseLockedState = false;
 		}
 
 		private void OnLoadCustomFinished()
