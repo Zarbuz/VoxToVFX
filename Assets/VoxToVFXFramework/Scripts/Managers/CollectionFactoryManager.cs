@@ -91,6 +91,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisLiveQueryController.AddSubscription<CollectionCreatedEvent>("CollectionCreatedEvent", mGetEventsQuery, mQueryCallbacks);
 		}
 
+		
 		private async void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
 		{
 			Debug.Log("CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);

@@ -228,13 +228,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 		RuntimeVoxManager.Instance.SetMaterials(materials);
 
-		//Edge settings
-		int edgeR = reader.ReadInt32();
-		int edgeG = reader.ReadInt32();
-		int edgeB = reader.ReadInt32();
-		float width = reader.ReadSingle();
-
-		PostProcessingManager.Instance.SetEdgePostProcess(width, new Color(edgeR / (float)255, edgeG / (float)255, edgeB / (float)255));
 		return files;
 	}
 
@@ -406,15 +399,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 			binaryWriter.Write(mat.smoothness);
 			binaryWriter.Write(mat.alpha);
 		}
-
-		//Edge settings
-		string color = mImporter.WorldData.EdgeSetting.Attributes["_color"];
-		string width = mImporter.WorldData.EdgeSetting.Attributes["_width"];
-		string[] edgeColor = color.Split(" ");
-		binaryWriter.Write(Convert.ToInt32(edgeColor[0]));
-		binaryWriter.Write(Convert.ToInt32(edgeColor[1]));
-		binaryWriter.Write(Convert.ToInt32(edgeColor[2]));
-		binaryWriter.Write(Convert.ToSingle(width, CultureInfo.InvariantCulture));
 	}
 
 	private void OnComputeLodFinished()

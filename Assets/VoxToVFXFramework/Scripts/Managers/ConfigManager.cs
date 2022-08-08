@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MoralisUnity.Web3Api.Models;
+using UnityEngine;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -70,6 +71,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 				}
 
 				return "https://goerli.etherscan.io/";
+			}
+		}
+
+		public ChainList ChainList
+		{
+			get
+			{
+				if (BlockchainType == BlockchainType.MainNet)
+				{
+					return ChainList.eth;
+				}
+
+				return ChainList.goerli;
 			}
 		}
 

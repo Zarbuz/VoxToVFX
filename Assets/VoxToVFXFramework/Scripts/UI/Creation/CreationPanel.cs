@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using SFB;
 using TMPro;
@@ -28,7 +32,8 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			UPLOAD,
 			DETAILS,
 			CONFIRMATION_WALLET,
-			CONFIRMATION_BLOCKCHAIN
+			CONFIRMATION_BLOCKCHAIN,
+			CONGRATULATIONS
 		}
 
 		#endregion
@@ -42,6 +47,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private GameObject AddDetailsPanel;
 		[SerializeField] private GameObject WaitingConfirmationWalletPanel;
 		[SerializeField] private GameObject MintInProgressPanel;
+		[SerializeField] private GameObject CongratulationsPanel;
 
 		[Header("SelectFile")]
 		[SerializeField] private Button SelectFileButton;
@@ -66,6 +72,10 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private Button RetryButton;
 		[SerializeField] private Button OpenEtherscanButton;
 
+		[Header("Congratulations")]
+		[SerializeField] private Button ViewCollectionButton;
+		[SerializeField] private Button SetBuyPriceButton;
+
 		#endregion
 
 		#region Fields
@@ -74,6 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		private string mVoxUrl;
 		private string mTransactionId;
 		private eCreationState mCreationState;
+		private string mIpfsMetadataPath;
 
 		private eCreationState CreationState
 		{
@@ -87,6 +98,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 				AddDetailsPanel.SetActive(mCreationState == eCreationState.DETAILS);
 				WaitingConfirmationWalletPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_WALLET);
 				MintInProgressPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_BLOCKCHAIN);
+				CongratulationsPanel.SetActive(mCreationState == eCreationState.CONGRATULATIONS);
 			}
 		}
 
@@ -100,6 +112,9 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			DescriptionInputField.onValueChanged.AddListener(OnDescriptionValueChanged);
 			MintButton.onClick.AddListener(OnMintClicked);
 			OpenEtherscanButton.onClick.AddListener(OnOpenEtherscanClicked);
+			RetryButton.onClick.AddListener(OnRetryClicked);
+			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
+			SetBuyPriceButton.onClick.AddListener(OnSetBuyPriceClicked);
 			CreationState = eCreationState.SELECT;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
@@ -111,6 +126,9 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			DescriptionInputField.onValueChanged.RemoveListener(OnDescriptionValueChanged);
 			MintButton.onClick.RemoveListener(OnMintClicked);
 			OpenEtherscanButton.onClick.RemoveListener(OnOpenEtherscanClicked);
+			RetryButton.onClick.RemoveListener(OnRetryClicked);
+			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
+			SetBuyPriceButton.onClick.RemoveListener(OnSetBuyPriceClicked);
 
 			if (VoxelDataCreatorManager.Instance != null)
 			{
@@ -209,10 +227,14 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			string json = JsonConvert.SerializeObject(metadata);
 			string base64Data = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 
-			string ipfsMetadataPath = await FileManager.Instance.SaveToIpfs(metadataName, base64Data);
+			mIpfsMetadataPath = await FileManager.Instance.SaveToIpfs(metadataName, base64Data);
+			Mint();
+		}
 
-			mTransactionId = await NFTManager.Instance.MintNft(ipfsMetadataPath, mCollectionCreated.CollectionContract);
-			
+		private async void Mint()
+		{
+			mTransactionId = await NFTManager.Instance.MintNft(mIpfsMetadataPath, mCollectionCreated.CollectionContract);
+
 			if (string.IsNullOrEmpty(mTransactionId))
 			{
 				//error
@@ -224,7 +246,52 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			{
 				CreationState = eCreationState.CONFIRMATION_BLOCKCHAIN;
 				OpenEtherscanButton.gameObject.SetActive(true);
+				await WaitMintTransfer();
 			}
+		}
+
+		private async UniTask WaitMintTransfer()
+		{
+			NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(UserManager.Instance.CurrentUser.EthAddress, mCollectionCreated.CollectionContract);
+			int count = 0;
+			if (nftOwnerCollection.Total != null)
+			{
+				count = (int)nftOwnerCollection.Total;
+			}
+
+			while (true)
+			{
+				// replacement of yield return new WaitForSeconds/WaitForSecondsRealtime
+				await UniTask.Delay(TimeSpan.FromSeconds(15), ignoreTimeScale: false);
+
+				nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(UserManager.Instance.CurrentUser.EthAddress, mCollectionCreated.CollectionContract);
+				if (nftOwnerCollection.Total != null)
+				{
+					int newTotal = (int)nftOwnerCollection.Total;
+					if (newTotal != count)
+					{
+						break;
+					}
+				}
+			}
+
+			CreationState = eCreationState.CONGRATULATIONS;
+		}
+
+		private void OnRetryClicked()
+		{
+			Mint();
+		}
+
+		private void OnViewCollectionClicked()
+		{
+			//TODO Page details NFT
+
+		}
+
+		private void OnSetBuyPriceClicked()
+		{
+			//TODO
 		}
 
 		private void OnOpenEtherscanClicked()

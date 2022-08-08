@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
 using Nethereum.Hex.HexTypes;
@@ -19,14 +20,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public async UniTask<NftOwnerCollection> FetchNFTsForContract(string address, string contract)
 		{
-			NftOwnerCollection nftOwnerCollection = await Moralis.Web3Api.Account.GetNFTsForContract(address.ToLower(), contract, ChainList.eth);
+			NftOwnerCollection nftOwnerCollection = await Moralis.Web3Api.Account.GetNFTsForContract(address, contract, ConfigManager.Instance.ChainList);
 			return nftOwnerCollection;
 		}
 
 		public async UniTask<string> MintNft(string tokenCID, string contractAddress)
 		{
+			string token = tokenCID.Replace("https://", string.Empty);
+			Debug.Log(token);
+
 			object[] parameters = {
-				tokenCID
+				token
 			};
 
 			// Set gas estimate

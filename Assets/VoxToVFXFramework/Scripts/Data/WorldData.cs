@@ -23,7 +23,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		#region Fields
 		public UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>> WorldDataPositions;
 		public NativeArray<VoxelMaterialVFX> Materials { get; private set; }
-		public RendererSettingChunk EdgeSetting { get; private set; }
 		#endregion
 
 		#region ConstStatic
@@ -39,7 +38,6 @@ namespace VoxToVFXFramework.Scripts.Data
 		{
 			WorldDataPositions = new UnsafeHashMap<int, UnsafeHashMap<int, VoxelData>>(256, Allocator.Persistent);
 			WriteMaterials(voxModel);
-			WriteRenderSettings(voxModel);
 		}
 
 		public void AddVoxels(NativeList<Vector4> voxels)
@@ -201,25 +199,7 @@ namespace VoxToVFXFramework.Scripts.Data
 		}
 
 		
-		private void WriteRenderSettings(VoxModelCustom voxModel)
-		{
-			foreach (RendererSettingChunk rendererSettingChunk in voxModel.RendererSettingChunks)
-			{
-				if (rendererSettingChunk.Type == RenderSettingType._edge)
-				{
-					EdgeSetting = rendererSettingChunk;
-				}
-
-				if (rendererSettingChunk.Type == RenderSettingType._setting)
-				{
-					int activeEdge = Convert.ToInt32(rendererSettingChunk.Attributes["_edge"]);
-					if (activeEdge == 0)
-					{
-						EdgeSetting.Attributes["_width"] = "0";
-					}
-				}
-			}
-		}
+		
 		
 		private static UnsafeHashMap<int, VoxelData> ComputeLod(UnsafeHashMap<int, VoxelData> data, int3 worldChunkPosition, int step, int moduloCheck)
 		{
