@@ -35,6 +35,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private TextMeshProUGUI UserNameText;
 		[SerializeField] private TextMeshProUGUI BioText;
 		[SerializeField] private TextMeshProUGUI BioLabel;
+		[SerializeField] private TextMeshProUGUI LinkLabel;
+
 		[SerializeField] private TextMeshProUGUI WebsiteText;
 		[SerializeField] private TextMeshProUGUI DiscordText;
 		[SerializeField] private TextMeshProUGUI YoutubeText;
@@ -112,6 +114,14 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			BioLabel.gameObject.SetActive(!string.IsNullOrEmpty(user.Bio));
 			BioText.gameObject.SetActive(!string.IsNullOrEmpty(user.Bio));
 			BioText.text = user.Bio;
+
+			LinkLabel.gameObject.SetActive(!string.IsNullOrEmpty(user.WebsiteUrl) ||
+			                               !string.IsNullOrEmpty(user.Discord) ||
+			                               !string.IsNullOrEmpty(user.YoutubeUrl) ||
+			                               !string.IsNullOrEmpty(user.FacebookUrl) ||
+			                               !string.IsNullOrEmpty(user.TwitchUsername) ||
+			                               !string.IsNullOrEmpty(user.TikTokUsername) ||
+			                               !string.IsNullOrEmpty(user.SnapchatUsername));
 
 			WebsiteText.gameObject.SetActive(!string.IsNullOrEmpty(user.WebsiteUrl));
 			WebsiteText.text = user.WebsiteUrl;

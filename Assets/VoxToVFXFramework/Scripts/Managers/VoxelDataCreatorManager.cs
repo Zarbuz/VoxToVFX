@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -19,6 +20,7 @@ using VoxToVFXFramework.Scripts.Importer;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI;
+using VoxToVFXFramework.Scripts.Utils;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
 using Debug = UnityEngine.Debug;
 
@@ -27,7 +29,7 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	#region Fields
 
 	public event Action<int, float> LoadProgressCallback;
-	public event Action<string> LoadFinishedCallback;
+	public event Action<string, List<string>> LoadFinishedCallback;
 
 	private string mOutputPath;
 	private string mInputFileName;
@@ -89,6 +91,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	public void CreateZipFile(string inputPath, string outputPath)
 	{
 		mInputFileName = Path.GetFileNameWithoutExtension(inputPath);
+		mInputFileName = Regex.Replace(mInputFileName, @"\s", "");
+
 		mOutputPath = outputPath;
 		mChunksWritten.Clear();
 		mImporter = new VoxImporter();
@@ -131,8 +135,8 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private string GetMd5Checksum(string filepath)
 	{
 		using MD5 md5 = MD5.Create();
-		using FileStream stream = File.OpenRead(filepath);
-		byte[] hash = md5.ComputeHash(stream);
+		var data = File.ReadAllBytes(filepath);
+		byte[] hash = md5.ComputeHash(data);
 		return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
 	}
 
@@ -408,27 +412,36 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		WriteStructureFile();
 		mImporter.Dispose();
 		mImporter = null;
+		SplitZipFilesInChunks();
+
+		
+	}
+
+	private void SplitZipFilesInChunks()
+	{
 		string inputFolder = Path.Combine(mAppPersistantPath, EXTRACT_TMP_FOLDER_NAME);
 		if (File.Exists(mOutputPath))
 		{
 			File.Delete(mOutputPath);
 		}
-		ZipFile.CreateFromDirectory(inputFolder, mOutputPath, CompressionLevel.Optimal, false, Encoding.UTF8);
-		string md5ResultFile = GetMd5Checksum(mOutputPath);
 
-		string outputFolder = Path.Combine(mAppPersistantPath, md5ResultFile);
-		if (Directory.Exists(outputFolder))
+		ZipFile.CreateFromDirectory(inputFolder, mOutputPath, CompressionLevel.Optimal, false, Encoding.UTF8);
+		string directory = Path.Combine(mAppPersistantPath, IMPORT_TMP_FOLDER_NAME, mInputFileName);
+		if (!Directory.Exists(directory))
 		{
-			Directory.Delete(outputFolder);
+			Directory.CreateDirectory(directory);
 		}
-		Directory.CreateDirectory(outputFolder);
-		MoveFilesFromFolder(inputFolder, outputFolder);
-		//Process.Start(Path.GetDirectoryName(mOutputPath) ?? string.Empty);
+		else
+		{
+			CleanFolder(directory);
+		}
+
+		List<string> list = FileUtils.SplitFile(mOutputPath, 5000000, mInputFileName, directory);
 
 		UnityMainThreadManager.Instance.Enqueue(() =>
 		{
 			CanvasPlayerPCManager.Instance.PauseLockedState = false;
-			LoadFinishedCallback?.Invoke(mOutputPath);
+			LoadFinishedCallback?.Invoke(mOutputPath, list);
 		});
 	}
 

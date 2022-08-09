@@ -1,4 +1,5 @@
-﻿using SFB;
+﻿using System.Collections.Generic;
+using SFB;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
@@ -136,7 +137,7 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 			ProgressBarFilled.fillAmount = progress;
 		}
 
-		private void OnLoadVoxFinished(string outputPath)
+		private void OnLoadVoxFinished(string outputZip, List<string> outputChunkPaths)
 		{
 			ImportState = EImportState.NORMAL;
 		}

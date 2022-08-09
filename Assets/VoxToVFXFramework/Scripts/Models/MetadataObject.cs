@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace VoxToVFXFramework.Scripts.Models
@@ -14,7 +15,7 @@ namespace VoxToVFXFramework.Scripts.Models
 		[JsonProperty("image")]
 		public string Image { get; set; }
 
-		[JsonProperty("external_url")]
-		public string ExternalUrl { get; set; }
+		[JsonProperty("files_url")]
+		public List<string> FilesUrl { get; set; }
 	}
 }

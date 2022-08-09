@@ -3,7 +3,9 @@ using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using SFB;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -78,7 +80,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		#region Fields
 
 		private CollectionCreatedEvent mCollectionCreated;
-		private string mVoxUrl;
+		private List<string> mIpfsFiles;
 		private string mZipLocalPath;
 		private string mTransactionId;
 		private eCreationState mCreationState;
@@ -170,25 +172,25 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			ProgressBarImage.fillAmount = progress;
 		}
 
-		private async void OnLoadVoxFinished(string outputPath)
+		private async void OnLoadVoxFinished(string outputZipPath, List<string> outputChunkPaths)
 		{
 			CreationState = eCreationState.UPLOAD;
-			mZipLocalPath = outputPath;
-			string fileUrl = await FileManager.Instance.UploadFile(outputPath);
-			if (fileUrl == null)
+			mZipLocalPath = outputZipPath;
+			List<string> fileUrls = await FileManager.Instance.UploadMultipleFiles(outputChunkPaths);
+			if (fileUrls == null)
 			{
 				MessagePopup.Show(LocalizationKeys.CREATION_UPLOAD_ERROR.Translate());
 				CreationState = eCreationState.SELECT;
 			}
 			else
 			{
-				OnUploadVoxFinished(fileUrl);
+				OnUploadVoxFinished(fileUrls);
 			}
 		}
 
-		private void OnUploadVoxFinished(string fileUrl)
+		private void OnUploadVoxFinished(List<string> fileUrls)
 		{
-			mVoxUrl = fileUrl;
+			mIpfsFiles = fileUrls;
 			CreationState = eCreationState.DETAILS;
 			ImageSelectImage.Initialize(string.Empty);
 		}
@@ -232,7 +234,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			CreationState = eCreationState.CONFIRMATION_WALLET;
 			OpenEtherscanButton.gameObject.SetActive(false);
 
-			MetadataObject metadata = BuildMetadata(NameInputField.text, DescriptionInputField.text, ImageSelectImage.ImageUrl, mVoxUrl);
+			MetadataObject metadata = BuildMetadata(NameInputField.text, DescriptionInputField.text, ImageSelectImage.ImageUrl, mIpfsFiles);
 			string dateTime = DateTime.Now.Ticks.ToString();
 
 			string filteredName = Regex.Replace(NameInputField.text, @"\s", "");
@@ -315,13 +317,13 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Application.OpenURL(url);
 		}
 
-		private MetadataObject BuildMetadata(string name, string description, string imageUrl, string voxUrl)
+		private MetadataObject BuildMetadata(string name, string description, string imageUrl, List<string> files)
 		{
 			MetadataObject metadata = new MetadataObject
 			{
 				Description = description,
 				Name = name,
-				ExternalUrl = voxUrl,
+				FilesUrl = files,
 				Image = imageUrl
 			};
 			return metadata;

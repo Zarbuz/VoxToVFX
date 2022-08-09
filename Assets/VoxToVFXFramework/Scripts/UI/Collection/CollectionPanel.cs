@@ -188,7 +188,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 				Destroy(ListCollectionParent.GetChild(i).gameObject);
 			}
 
-			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt).Take(1)) //Take 1 ->  Temporary just to limit the number of requests
+			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
 				NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
