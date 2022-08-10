@@ -52,8 +52,10 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		[Header("Conversion")]
 		[SerializeField] private TextMeshProUGUI ProgressStepText;
-		[SerializeField] private TextMeshProUGUI ProgressText;
-		[SerializeField] private Image ProgressBarImage;
+		[SerializeField] private ProgressBar ProgressBar;
+
+		[Header("Upload")] 
+		[SerializeField] private ProgressBar UploadProgressBar;
 
 		[Header("Details")]
 		[SerializeField] private TMP_InputField NameInputField;
@@ -168,15 +170,14 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		private void OnLoadProgressUpdate(int step, float progress)
 		{
 			ProgressStepText.text = $"Step: {step}/{VoxelDataCreatorManager.MAX_STEPS_ON_IMPORT}";
-			ProgressText.text = $"{progress.ToString("P", CultureInfo.InvariantCulture)}";
-			ProgressBarImage.fillAmount = progress;
+			ProgressBar.SetProgress(progress);
 		}
 
 		private async void OnLoadVoxFinished(string outputZipPath, List<string> outputChunkPaths)
 		{
 			CreationState = eCreationState.UPLOAD;
 			mZipLocalPath = outputZipPath;
-			List<string> fileUrls = await FileManager.Instance.UploadMultipleFiles(outputChunkPaths);
+			List<string> fileUrls = await FileManager.Instance.UploadMultipleFiles(outputChunkPaths, OnUploadProgress);
 			if (fileUrls == null)
 			{
 				MessagePopup.Show(LocalizationKeys.CREATION_UPLOAD_ERROR.Translate());
@@ -186,6 +187,11 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			{
 				OnUploadVoxFinished(fileUrls);
 			}
+		}
+
+		private void OnUploadProgress(float progress)
+		{
+			UploadProgressBar.SetProgress(progress);
 		}
 
 		private void OnUploadVoxFinished(List<string> fileUrls)

@@ -26,6 +26,7 @@ namespace VoxToVFXFramework.Scripts.UI
 	public enum CanvasPlayerPCState
 	{
 		Closed,
+		Empty,
 		Pause,
 		ImportScene,
 		Settings,
@@ -36,7 +37,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		Collection,
 		Profile,
 		Creation,
-		Loading
+		Loading,
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -111,7 +112,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
-				GenericTogglePanel(CanvasPlayerPCState.Pause);
+				GenericTogglePanel(PreviewPanel.gameObject.activeSelf ? CanvasPlayerPCState.Empty : CanvasPlayerPCState.Pause);
 			}
 			else if (Keyboard.current.tabKey.wasPressedThisFrame && (CanvasPlayerPcState == CanvasPlayerPCState.Photo || CanvasPlayerPcState == CanvasPlayerPCState.Closed))
 			{

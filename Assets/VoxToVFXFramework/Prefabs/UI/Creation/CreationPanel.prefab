@@ -105,8 +105,8 @@ MonoBehaviour:
   CongratulationsPanel: {fileID: 3831634469463929274}
   SelectFileButton: {fileID: 4945977422763805574}
   ProgressStepText: {fileID: 6910981368059145882}
-  ProgressText: {fileID: 8057704310000092612}
-  ProgressBarImage: {fileID: 2087714048132019477}
+  ProgressBar: {fileID: 5284426388061540650}
+  UploadProgressBar: {fileID: 9099888420970394920}
   NameInputField: {fileID: 508416399561588804}
   DescriptionInputField: {fileID: 755051493788002432}
   DescriptionCounter: {fileID: 1086442091521079567}
@@ -539,18 +539,23 @@ PrefabInstance:
       propertyPath: m_Name
       value: ConversionPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 1038172703620752746, guid: cec0a1511df248d4aa9c5795ee3837af,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cec0a1511df248d4aa9c5795ee3837af, type: 3}
---- !u!114 &2087714048132019477 stripped
+--- !u!114 &5284426388061540650 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6642567959912502359, guid: cec0a1511df248d4aa9c5795ee3837af,
+  m_CorrespondingSourceObject: {fileID: 684588157334876264, guid: cec0a1511df248d4aa9c5795ee3837af,
     type: 3}
   m_PrefabInstance: {fileID: 4671966193823359298}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: b70310b3a00b5af47abd78ac88cf12fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!224 &5406072006659126975 stripped
@@ -568,18 +573,6 @@ GameObject:
 --- !u!114 &6910981368059145882 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2251400073528971224, guid: cec0a1511df248d4aa9c5795ee3837af,
-    type: 3}
-  m_PrefabInstance: {fileID: 4671966193823359298}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8057704310000092612 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3388008607731229830, guid: cec0a1511df248d4aa9c5795ee3837af,
     type: 3}
   m_PrefabInstance: {fileID: 4671966193823359298}
   m_PrefabAsset: {fileID: 0}
@@ -1688,6 +1681,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: UploadPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 8033478338616719421, guid: 4d3a302e9755f8e45b6eb2f175636ce5,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4d3a302e9755f8e45b6eb2f175636ce5, type: 3}
 --- !u!1 &1420280626796651374 stripped
@@ -1702,3 +1700,15 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 8991854783419521875}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9099888420970394920 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 180196791285673595, guid: 4d3a302e9755f8e45b6eb2f175636ce5,
+    type: 3}
+  m_PrefabInstance: {fileID: 8991854783419521875}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b70310b3a00b5af47abd78ac88cf12fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

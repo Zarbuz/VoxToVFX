@@ -35,12 +35,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return url;
 		}
 
-		public async UniTask<List<string>> UploadMultipleFiles(List<string> filePaths)
+		public async UniTask<List<string>> UploadMultipleFiles(List<string> filePaths, Action<float> uploadProgress)
 		{
 			try
 			{
 				List<string> result = new List<string>();
 
+				int count = 0;
 				foreach (string filePath in filePaths)
 				{
 					string filename = Path.GetFileName(filePath);
@@ -53,6 +54,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 					{
 						result.Add(url);
 					}
+					uploadProgress?.Invoke(count / (float)filePaths.Count);
+					count++;
 				}
 
 				foreach (string path in result)
