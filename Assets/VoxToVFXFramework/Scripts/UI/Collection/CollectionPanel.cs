@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 
@@ -182,12 +183,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		private async void RefreshCollectionList()
 		{
 			ShowSpinnerImage(true);
+			ListCollectionParent.DestroyAllChildren();
 			List<CollectionCreatedEvent> userContracts = await CollectionFactoryManager.Instance.GetUserListContract();
-			for (int i = 1; i < ListCollectionParent.childCount; i++)
-			{
-				Destroy(ListCollectionParent.GetChild(i).gameObject);
-			}
-
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
@@ -293,6 +290,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			Debug.Log("[CollectionPanel] OnCollectionCreated received!");
 			CollectionPanelState = eCollectionPanelState.CONGRATULATIONS;
 		}
+
+		
 
 		private void OnBackCongratulationsClicked()
 		{

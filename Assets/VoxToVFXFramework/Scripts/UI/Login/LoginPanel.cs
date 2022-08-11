@@ -67,6 +67,8 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 			{
 				CanvasPlayerPCManager.Instance.GenericClosePanel();
 			}
+
+			Debug.Log("CurrentChainId: " + Moralis.CurrentChain.ChainId);
 			OnWalletConnected?.Invoke();
 		}
 

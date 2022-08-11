@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 
 namespace VoxToVFXFramework.Scripts.UI.Collection
 {

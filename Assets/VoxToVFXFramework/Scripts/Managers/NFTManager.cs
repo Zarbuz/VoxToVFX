@@ -24,6 +24,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return nftOwnerCollection;
 		}
 
+		public async UniTask<NftCollection> GetAllTokenIds(string address)
+		{
+			NftCollection collection = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList, null);
+			return collection;
+		}
+
 		public async UniTask<string> MintNft(string tokenCID, string contractAddress)
 		{
 			string token = tokenCID.Replace("https://", string.Empty);

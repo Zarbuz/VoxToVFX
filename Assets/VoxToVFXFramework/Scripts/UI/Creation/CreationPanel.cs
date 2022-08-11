@@ -14,6 +14,7 @@ using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.UI.Popups;
 
@@ -121,6 +122,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			CreationState = eCreationState.SELECT;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
+			CollectionFactoryManager.Instance.CollectionMintedEvent += OnCollectionMinted;
 		}
 
 		private void OnDisable()
@@ -138,6 +140,11 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			{
 				VoxelDataCreatorManager.Instance.LoadProgressCallback -= OnLoadProgressUpdate;
 				VoxelDataCreatorManager.Instance.LoadFinishedCallback -= OnLoadVoxFinished;
+			}
+
+			if (CollectionFactoryManager.Instance != null)
+			{
+				CollectionFactoryManager.Instance.CollectionMintedEvent -= OnCollectionMinted;
 			}
 		}
 
@@ -269,35 +276,12 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			{
 				CreationState = eCreationState.CONFIRMATION_BLOCKCHAIN;
 				OpenEtherscanButton.gameObject.SetActive(true);
-				await WaitMintTransfer();
 			}
 		}
-
-		private async UniTask WaitMintTransfer()
+	
+		private void OnCollectionMinted(CollectionMintedEvent collectionMinted)
 		{
-			NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(UserManager.Instance.CurrentUser.EthAddress, mCollectionCreated.CollectionContract);
-			int count = 0;
-			if (nftOwnerCollection.Total != null)
-			{
-				count = (int)nftOwnerCollection.Total;
-			}
-
-			while (true)
-			{
-				// replacement of yield return new WaitForSeconds/WaitForSecondsRealtime
-				await UniTask.Delay(TimeSpan.FromSeconds(15), ignoreTimeScale: false);
-
-				nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(UserManager.Instance.CurrentUser.EthAddress, mCollectionCreated.CollectionContract);
-				if (nftOwnerCollection.Total != null)
-				{
-					int newTotal = (int)nftOwnerCollection.Total;
-					if (newTotal != count)
-					{
-						break;
-					}
-				}
-			}
-
+			Debug.Log("[CollectionPanel OnCollectionMinted received!");
 			CreationState = eCreationState.CONGRATULATIONS;
 		}
 

@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
 using MoralisUnity.Platform.Queries;
 using MoralisUnity.Platform.Queries.Live;
 using Nethereum.Hex.HexTypes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
-using Random = System.Random;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -20,11 +20,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region Fields
 
 		public SmartContractAddressConfig SmartContractAddressConfig => ConfigManager.Instance.SmartContractAddress;
-		public event Action<CollectionCreatedEvent> CollectionCreatedEvent; 
+		public event Action<CollectionCreatedEvent> CollectionCreatedEvent;
+		public event Action<CollectionMintedEvent> CollectionMintedEvent;
 
 		//Database Queries
-		private MoralisQuery<CollectionCreatedEvent> mGetEventsQuery;
-		private MoralisLiveQueryCallbacks<CollectionCreatedEvent> mQueryCallbacks;
+		private MoralisQuery<CollectionCreatedEvent> mCollectionCreatedQuery;
+		private MoralisLiveQueryCallbacks<CollectionCreatedEvent> mCollectionCreatedQueryCallbacks;
+
+		private MoralisQuery<CollectionMintedEvent> mCollectionMintedQuery;
+		private MoralisLiveQueryCallbacks<CollectionMintedEvent> mCollectionMintedQueryCallbacks;
 		#endregion
 
 		#region UnityMethods
@@ -66,11 +70,32 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract()
 		{
+			List<CollectionCreatedEvent> list = await GetUserListContract(UserManager.Instance.CurrentUser);
+			return list;
+		}
+
+		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(CustomUser user)
+		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
 			MoralisUser moralisUser = await Moralis.GetUserAsync();
-			q = q.WhereEqualTo("creator", moralisUser.ethAddress);
+			q = q.WhereEqualTo("creator", user.EthAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
 			return result.ToList();
+		}
+
+		public async UniTask WatchMintedEventContract(CollectionCreatedEvent collectionCreated)
+		{
+			try
+			{
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				//parameters.Add("address", collectionCreated.CollectionContract);
+				//parameters.Add("chainId", ConfigManager.Instance.ChainListString);
+				await Moralis.Cloud.RunAsync<object>("watchMintedEventContract", parameters);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message + " " + e.StackTrace);
+			}
 		}
 
 		#endregion
@@ -79,22 +104,33 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private async UniTask SubscribeToDatabaseEvents()
 		{
-			mGetEventsQuery = await Moralis.GetClient().Query<CollectionCreatedEvent>();
-			mQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionCreatedEvent>();
+			mCollectionCreatedQuery = await Moralis.GetClient().Query<CollectionCreatedEvent>();
+			mCollectionCreatedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionCreatedEvent>();
 
-			mQueryCallbacks.OnUpdateEvent += HandleOnCollectionCreatedEvent;
-			//mQueryCallbacks.OnCreateEvent += HandleOnCollectionCreatedEvent;
-			mQueryCallbacks.OnErrorEvent += delegate(ErrorMessage evt)
+			mCollectionMintedQuery = await Moralis.GetClient().Query<CollectionMintedEvent>();
+			mCollectionMintedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionMintedEvent>();
+
+			mCollectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
+			mCollectionMintedQueryCallbacks.OnErrorEvent += delegate(ErrorMessage evt)
 			{
 				Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
 			};
-			MoralisLiveQueryController.AddSubscription<CollectionCreatedEvent>("CollectionCreatedEvent", mGetEventsQuery, mQueryCallbacks);
+
+			mCollectionCreatedQueryCallbacks.OnUpdateEvent += HandleOnCollectionCreatedEvent;
+			//mQueryCallbacks.OnCreateEvent += HandleOnCollectionCreatedEvent;
+			mCollectionCreatedQueryCallbacks.OnErrorEvent += delegate (ErrorMessage evt)
+			{
+				Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
+			};
+			MoralisLiveQueryController.AddSubscription<CollectionCreatedEvent>("CollectionCreatedEvent", mCollectionCreatedQuery, mCollectionCreatedQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription<CollectionMintedEvent>("CollectionMintedEvent", mCollectionMintedQuery, mCollectionMintedQueryCallbacks);
 		}
 
-		
+	
+
 		private async void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
 		{
-			Debug.Log("CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);
+			Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);
 			MoralisUser user = await Moralis.GetUserAsync();
 			if (user != null)
 			{
@@ -103,6 +139,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 					{
 						CollectionCreatedEvent?.Invoke(item);
+					});
+				}
+			}
+		}
+
+		private async void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
+		{
+			Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent " + item.Creator);
+			MoralisUser user = await Moralis.GetUserAsync();
+			if (user != null)
+			{
+				if (user.ethAddress == item.Creator)
+				{
+					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
+					{
+						CollectionMintedEvent?.Invoke(item);
 					});
 				}
 			}
