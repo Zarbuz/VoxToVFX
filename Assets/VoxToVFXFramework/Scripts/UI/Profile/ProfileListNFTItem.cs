@@ -76,7 +76,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				mCoroutineAlphaExit = null;
 			}
 
-			mCoroutineAlphaEnter = StartCoroutine(CanvasGroup.AlphaFade(1, 0.1f));
+			mCoroutineAlphaEnter = StartCoroutine(CanvasGroup.AlphaFade(1, 0.05f));
 		}
 
 		public void OnPointerExit(PointerEventData eventData)
@@ -86,7 +86,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				StopCoroutine(mCoroutineAlphaEnter);
 				mCoroutineAlphaEnter = null;
 			}
-			mCoroutineAlphaExit = StartCoroutine(CanvasGroup.AlphaFade(0, 0.1f));
+			mCoroutineAlphaExit = StartCoroutine(CanvasGroup.AlphaFade(0, 0.05f));
 		}
 
 		#endregion

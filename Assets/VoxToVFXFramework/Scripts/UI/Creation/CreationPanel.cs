@@ -258,6 +258,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			string base64Data = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 
 			mIpfsMetadataPath = await FileManager.Instance.SaveToIpfs(metadataName, base64Data);
+			mIpfsMetadataPath = mIpfsMetadataPath.Replace("https://ipfs.moralis.io:2053/ipfs/", string.Empty);
 			Mint();
 		}
 

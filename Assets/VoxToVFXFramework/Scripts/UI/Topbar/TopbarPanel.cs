@@ -191,12 +191,12 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 		private void OnConnectWalletClicked()
 		{
 			CanvasPlayerPCManager.Instance.PauseLockedState = true;
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Login);
+			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Login);
 		}
 
 		private void OnSettingsClicked()
 		{
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Settings);
+			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Settings);
 			ProfilePopup.gameObject.SetActive(false);
 			RefreshCircle();
 		}
@@ -220,7 +220,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private void OnCreateItemClicked()
 		{
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Collection);
+			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Collection);
 		}
 
 		#endregion

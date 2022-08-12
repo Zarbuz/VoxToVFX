@@ -162,7 +162,7 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		public void OpenProfilePanel(CustomUser user)
 		{
-			GenericTogglePanel(CanvasPlayerPCState.Profile);
+			SetCanvasPlayerState(CanvasPlayerPCState.Profile);
 			ProfilePanel.Initialize(user);
 		}
 
