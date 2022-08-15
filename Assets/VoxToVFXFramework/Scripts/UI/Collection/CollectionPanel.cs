@@ -188,8 +188,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
-				NftOwnerCollection nftOwnerCollection = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
-				item.Initialize(collection, nftOwnerCollection, OnCollectionSelected);
+				List<CollectionMintedEvent> list = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
+				item.Initialize(collection, list.Count, OnCollectionSelected);
 			}
 
 			ShowSpinnerImage(false);
@@ -290,8 +290,6 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			Debug.Log("[CollectionPanel] OnCollectionCreated received!");
 			CollectionPanelState = eCollectionPanelState.CONGRATULATIONS;
 		}
-
-		
 
 		private void OnBackCongratulationsClicked()
 		{

@@ -60,6 +60,13 @@ public class SelectImage : MonoBehaviour
 		{
 			NoImageFound.gameObject.SetActive(string.IsNullOrEmpty(imageUrl));
 		}
+		else
+		{
+			if (NoImageFound)
+			{
+				NoImageFound.gameObject.SetActive(false);
+			}
+		}
 
 		DeleteImageButton.gameObject.SetActive(!string.IsNullOrEmpty(imageUrl));
 		SelectImageButton.gameObject.SetActive(string.IsNullOrEmpty(imageUrl));

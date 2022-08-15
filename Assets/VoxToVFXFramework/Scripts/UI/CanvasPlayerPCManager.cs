@@ -20,6 +20,7 @@ using VoxToVFXFramework.Scripts.UI.Profile;
 using VoxToVFXFramework.Scripts.UI.Settings;
 using VoxToVFXFramework.Scripts.UI.Topbar;
 using VoxToVFXFramework.Scripts.UI.Weather;
+using VoxToVFXFramework.Scripts.Utils.Extensions;
 using Cursor = UnityEngine.Cursor;
 
 namespace VoxToVFXFramework.Scripts.UI
@@ -74,17 +75,17 @@ namespace VoxToVFXFramework.Scripts.UI
 			set
 			{
 				mCanvasPlayerPcState = value;
-				PausePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
-				ImportScenePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
-				SettingsPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
-				WeatherPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
-				PhotoPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
-				LoginPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
-				EditProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
-				CollectionPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
-				ProfilePanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
-				CreationPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
-				LoadingPanel.gameObject.SetActive(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
+				PausePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Pause);
+				ImportScenePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.ImportScene);
+				SettingsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
+				WeatherPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
+				PhotoPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
+				LoginPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
+				EditProfilePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
+				CollectionPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
+				ProfilePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
+				CreationPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
+				LoadingPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 
 				CheckBlurImage();
 				RefreshCursorState();

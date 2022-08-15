@@ -17,6 +17,7 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.UI.Popups;
+using VoxToVFXFramework.Scripts.Utils.MetadataBuilder;
 
 namespace VoxToVFXFramework.Scripts.UI.Creation
 {
@@ -247,7 +248,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			CreationState = eCreationState.CONFIRMATION_WALLET;
 			OpenEtherscanButton.gameObject.SetActive(false);
 
-			MetadataObject metadata = BuildMetadata(NameInputField.text, DescriptionInputField.text, ImageSelectImage.ImageUrl, mIpfsFiles);
+			MetadataObject metadata = MetadataBuilder.BuildMetadata(NameInputField.text, DescriptionInputField.text, ImageSelectImage.ImageUrl, mIpfsFiles);
 			string dateTime = DateTime.Now.Ticks.ToString();
 
 			string filteredName = Regex.Replace(NameInputField.text, @"\s", "");
@@ -308,17 +309,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Application.OpenURL(url);
 		}
 
-		private MetadataObject BuildMetadata(string name, string description, string imageUrl, List<string> files)
-		{
-			MetadataObject metadata = new MetadataObject
-			{
-				Description = description,
-				Name = name,
-				FilesUrl = files,
-				Image = imageUrl
-			};
-			return metadata;
-		}
+		
 
 		#endregion
 	}

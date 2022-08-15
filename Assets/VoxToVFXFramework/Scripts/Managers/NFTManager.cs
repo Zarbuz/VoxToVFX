@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MoralisUnity;
+using MoralisUnity.Platform.Queries;
 using MoralisUnity.Web3Api.Models;
 using Nethereum.Hex.HexTypes;
 using UnityEngine;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
 
@@ -16,18 +20,30 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public SmartContractAddressConfig SmartContractAddressConfig => ConfigManager.Instance.SmartContractAddress;
 
 		#endregion
+
 		#region PublicMethods
 
-		public async UniTask<NftOwnerCollection> FetchNFTsForContract(string address, string contract)
+		public async UniTask<List<CollectionMintedEvent>> FetchNFTsForContract(string creator, string contract)
 		{
-			NftOwnerCollection nftOwnerCollection = await Moralis.Web3Api.Account.GetNFTsForContract(address, contract, ConfigManager.Instance.ChainList);
-			return nftOwnerCollection;
+			MoralisQuery<CollectionMintedEvent> q = await Moralis.Query<CollectionMintedEvent>();
+			q = q.WhereEqualTo("creator", creator);
+			q = q.WhereEqualTo("address", contract);
+
+			IEnumerable<CollectionMintedEvent> result = await q.FindAsync();
+			return result.ToList();
 		}
 
 		public async UniTask<NftCollection> GetAllTokenIds(string address)
 		{
 			NftCollection collection = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList, null);
 			return collection;
+		}
+
+		public async UniTask<bool> SyncNFTContract(string address)
+		{
+			bool success = await Moralis.Web3Api.Token.SyncNFTContract(address, ConfigManager.Instance.ChainList);
+			Debug.Log("[NFTManager] SyncNFTContract: " +success);
+			return success;
 		}
 
 		public async UniTask<string> MintNft(string tokenCID, string contractAddress)

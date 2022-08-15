@@ -152,6 +152,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				if (user.ethAddress == item.Creator)
 				{
+					await NFTManager.Instance.SyncNFTContract(item.Address);
 					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 					{
 						CollectionMintedEvent?.Invoke(item);

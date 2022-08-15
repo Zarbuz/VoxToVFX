@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Utils.Image;
@@ -16,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		#region PublicMethods
 
-		public async void Initialize(CustomUser user)
+		public async UniTask Initialize(CustomUser user)
 		{
 			NoAvatarImage.gameObject.SetActive(true);
 			ProfileImage.gameObject.SetActive(false);

@@ -17,6 +17,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private Image BannerImage;
 		[SerializeField] private AvatarImage AvatarImage;
 
+		[SerializeField] private VerticalLayoutGroup LeftPartVerticalLayout;
+
 		[SerializeField] private TextMeshProUGUI AddressText;
 		[SerializeField] private TextMeshProUGUI NameText;
 		[SerializeField] private TextMeshProUGUI UserNameText;
@@ -46,11 +48,16 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private void OnEnable()
 		{
 			EditProfileButton.onClick.AddListener(OnEditProfileClicked);
+			UserManager.Instance.OnUserInfoUpdated += OnUserInfoUpdated;
 		}
 
 		private void OnDisable()
 		{
 			EditProfileButton.onClick.RemoveListener(OnEditProfileClicked);
+			if (UserManager.Instance != null)
+			{
+				UserManager.Instance.OnUserInfoUpdated -= OnUserInfoUpdated;
+			}
 		}
 
 		#endregion
@@ -60,7 +67,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public async void Initialize(CustomUser user)
 		{
 			ProfileListingPanel.Initialize(user);
-			AvatarImage.Initialize(user);
+			await AvatarImage.Initialize(user);
 
 			UserNameText.text = "@" + user.UserName;
 			NameText.text = user.Name;
@@ -108,8 +115,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				JoinedText.text = user.createdAt.Value.ToShortDateString();
 			}
 
-		
-
 			if (!string.IsNullOrEmpty(user.BannerUrl))
 			{
 				Texture2D texture = await MediaManager.Instance.DownloadImage(user.BannerUrl, int.MaxValue, true, false);
@@ -118,15 +123,22 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				BannerImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
 				BannerImage.preserveAspect = false;
 			}
+
+			LayoutRebuilder.ForceRebuildLayoutImmediate(LeftPartVerticalLayout.GetComponent<RectTransform>());
 		}
 
 		#endregion
 
 		#region PrivateMethods
 
+		private void OnUserInfoUpdated(CustomUser user)
+		{
+			Initialize(user);
+		}
+
 		private void OnEditProfileClicked()
 		{
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.EditProfile);
+			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.EditProfile);
 		}
 
 		#endregion

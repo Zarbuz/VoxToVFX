@@ -22,17 +22,10 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 
 		#region PublicMethods
 
-		public void Initialize(CollectionCreatedEvent collectionCreated, NftOwnerCollection nftOwnerCollection, Action<CollectionCreatedEvent> onSelectedCallback)
+		public void Initialize(CollectionCreatedEvent collectionCreated, int count, Action<CollectionCreatedEvent> onSelectedCallback)
 		{
 			NameText.text = collectionCreated.Name;
-			if (nftOwnerCollection.Total != null)
-			{
-				CounterText.text = nftOwnerCollection.Total.Value + " NFTs";
-			}
-			else
-			{
-				CounterText.gameObject.SetActive(false);
-			}
+			CounterText.text = count + " NFTs";
 			PlusImage.gameObject.SetActive(false);
 			SelectButton.onClick.AddListener(() =>
 			{

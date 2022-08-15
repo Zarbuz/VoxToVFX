@@ -7,6 +7,9 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 		[JsonProperty("tokenCID")]
 		public string TokenCID { get; set; }
 
+		[JsonProperty("tokenId")]
+		public string TokenID { get; set; }
+
 		//[JsonProperty("tokenId_decimal")]
 		//public int TokenIdDecimal { get; set; }
 
@@ -16,6 +19,7 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 		[JsonProperty("indexedTokenCID")]
 		public string IndexedTokenCID { get; set; }
 
-		
+		[JsonProperty("address")]
+		public string Address { get; set; }
 	}
 }

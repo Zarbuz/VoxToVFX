@@ -9,6 +9,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
@@ -42,25 +43,34 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async UniTask Initialize(Nft nft)
+		public async UniTask<bool> Initialize(CollectionMintedEvent nft, CustomUser creatorUser)
 		{
 			try
 			{
-				CollectionNameText.text = nft.Name;
-				//await Moralis.Web3Api.Token.ReSyncMetadata(address:nft.TokenAddress, tokenId:nft.TokenId, ConfigManager.Instance.ChainList);
-				Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: nft.TokenAddress, tokenId: nft.TokenId, ConfigManager.Instance.ChainList);
-				Debug.Log(tokenIdMetadata.TokenUri);
-				Debug.Log(tokenIdMetadata.Metadata);
+				Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: nft.Address, tokenId: nft.TokenID, ConfigManager.Instance.ChainList);
+				CollectionNameText.text = tokenIdMetadata.Name;
+				CreatorUsernameText.text = "@" + creatorUser.UserName;
+
+				await CreatorAvatarImage.Initialize(creatorUser);
 				if (tokenIdMetadata.Metadata != null)
 				{
+					Debug.Log(tokenIdMetadata.Metadata);
+
 					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
 					Title.text = metadataObject.Name;
 					await ImageUtils.DownloadAndApplyImage(metadataObject.Image, MainImage, 512, true, true, true);
 				}
+				else
+				{
+					return false;
+				}
+
+				return true;
 			}
 			catch (Exception e)
 			{
 				Debug.LogError(e.Message);
+				return false;
 			}
 		}
 

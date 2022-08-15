@@ -12,5 +12,19 @@ namespace VoxToVFXFramework.Scripts.Utils.Extensions
 				Object.Destroy(child.gameObject);
 			}
 		}
+
+		public static int CountActiveChild(this Transform parent)
+		{
+			int count = 0;
+			for (int i = 0; i < parent.childCount; ++i)
+			{
+				Transform child = parent.GetChild(i);
+				if (child.gameObject.activeSelf)
+				{
+					count++;
+				}
+			}
+			return count;
+		}
 	}
 }
