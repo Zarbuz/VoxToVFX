@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using MoralisUnity.Web3Api.Models;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Loading;
 using VoxToVFXFramework.Scripts.UI.Login;
+using VoxToVFXFramework.Scripts.UI.NFTDetails;
 using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Preview;
 using VoxToVFXFramework.Scripts.UI.Profile;
@@ -40,6 +42,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		Profile,
 		Creation,
 		Loading,
+		NftDetails
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -62,7 +65,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private CreationPanel CreationPanel;
 		[SerializeField] private LoadingPanel LoadingPanel;
 		[SerializeField] private PreviewPanel PreviewPanel;
-
+		[SerializeField] private NFTDetailsPanel NFTDetailsPanel;
 		#endregion
 
 		#region Fields
@@ -86,6 +89,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				ProfilePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
 				CreationPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
 				LoadingPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
+				NFTDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftDetails);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -157,14 +161,20 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		public void OpenImportScenePanel(ImportScenePanel.EDataImportType dataImportType)
 		{
+			SetCanvasPlayerState(CanvasPlayerPCState.ImportScene);
 			ImportScenePanel.Initialize(dataImportType);
-			GenericTogglePanel(CanvasPlayerPCState.ImportScene);
 		}
 
 		public void OpenProfilePanel(CustomUser user)
 		{
 			SetCanvasPlayerState(CanvasPlayerPCState.Profile);
 			ProfilePanel.Initialize(user);
+		}
+
+		public void OpenNftDetailsPanel(CollectionMintedEvent collectionMinted, Nft metadata)
+		{
+			SetCanvasPlayerState(CanvasPlayerPCState.NftDetails);
+			NFTDetailsPanel.Initialize(collectionMinted, metadata);
 		}
 
 		public void OpenCreationPanel(CollectionCreatedEvent collectionCreated)

@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region ScriptParameters
 
 		[SerializeField] private Image MainImage;
+		[SerializeField] private Button Button;
 		[SerializeField] private AvatarImage CreatorAvatarImage;
 		[SerializeField] private TextMeshProUGUI CreatorUsernameText;
 		[SerializeField] private TextMeshProUGUI ActionText;
@@ -38,6 +40,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private Coroutine mCoroutineAlphaEnter;
 		private Coroutine mCoroutineAlphaExit;
+		private CollectionMintedEvent mCollectionMintedEvent;
+		[CanBeNull] private Nft mMetadata;
 
 		#endregion
 
@@ -45,9 +49,12 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public async UniTask<bool> Initialize(CollectionMintedEvent nft, CustomUser creatorUser)
 		{
+			mCollectionMintedEvent = nft;
 			try
 			{
+				Button.onClick.AddListener(OnItemClicked);
 				Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: nft.Address, tokenId: nft.TokenID, ConfigManager.Instance.ChainList);
+				mMetadata = tokenIdMetadata;
 				CollectionNameText.text = tokenIdMetadata.Name;
 				CreatorUsernameText.text = "@" + creatorUser.UserName;
 
@@ -97,6 +104,15 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				mCoroutineAlphaEnter = null;
 			}
 			mCoroutineAlphaExit = StartCoroutine(CanvasGroup.AlphaFade(0, 0.05f));
+		}
+
+		#endregion
+
+		#region PrivateMethods
+
+		private void OnItemClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionMintedEvent, mMetadata);
 		}
 
 		#endregion

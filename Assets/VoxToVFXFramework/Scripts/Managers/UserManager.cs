@@ -79,6 +79,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return await LoadFromUser(user.objectId);
 		}
 
+		public async UniTask<CustomUser> LoadUserFromEthAddress(string ethAddress)
+		{
+			MoralisQuery<CustomUser> q = await Moralis.Query<CustomUser>();
+			CustomUser user = await q.WhereEqualTo("EthAddress", ethAddress).FirstOrDefaultAsync();
+			return user;
+		}
+
 		public async UniTask<CustomUser> LoadFromUser(string objectId)
 		{
 			MoralisQuery<CustomUser> q = await Moralis.Query<CustomUser>();

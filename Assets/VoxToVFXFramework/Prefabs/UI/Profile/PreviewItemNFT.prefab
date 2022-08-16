@@ -999,6 +999,7 @@ GameObject:
   - component: {fileID: 7057423397668842686}
   - component: {fileID: 5323208706785908599}
   - component: {fileID: 6650542330305824072}
+  - component: {fileID: 881092132651341239}
   m_Layer: 5
   m_Name: PreviewItemNFT
   m_TagString: Untagged
@@ -1084,6 +1085,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainImage: {fileID: 1806718769242621774}
+  Button: {fileID: 881092132651341239}
   CreatorAvatarImage: {fileID: 8826759600656800183}
   CreatorUsernameText: {fileID: 5355967844932619539}
   ActionText: {fileID: 6225901632897745260}
@@ -1093,6 +1095,50 @@ MonoBehaviour:
   CanvasGroup: {fileID: 5384673614727676458}
   Title: {fileID: 3432434266479447860}
   CollectionNameText: {fileID: 6391756040510504676}
+--- !u!114 &881092132651341239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8686908956626241736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 5323208706785908599}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8741906980783883615
 GameObject:
   m_ObjectHideFlags: 0

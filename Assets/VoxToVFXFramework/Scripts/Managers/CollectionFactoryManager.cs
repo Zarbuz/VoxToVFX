@@ -77,7 +77,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(CustomUser user)
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
-			MoralisUser moralisUser = await Moralis.GetUserAsync();
 			q = q.WhereEqualTo("creator", user.EthAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
 			return result.ToList();

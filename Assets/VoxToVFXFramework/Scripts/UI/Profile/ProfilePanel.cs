@@ -67,7 +67,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public async void Initialize(CustomUser user)
 		{
 			ProfileListingPanel.Initialize(user);
-			await AvatarImage.Initialize(user);
 
 			UserNameText.text = "@" + user.UserName;
 			NameText.text = user.Name;
@@ -114,6 +113,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			{
 				JoinedText.text = user.createdAt.Value.ToShortDateString();
 			}
+			LayoutRebuilder.ForceRebuildLayoutImmediate(LeftPartVerticalLayout.GetComponent<RectTransform>());
+			await AvatarImage.Initialize(user);
 
 			if (!string.IsNullOrEmpty(user.BannerUrl))
 			{
@@ -124,7 +125,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				BannerImage.preserveAspect = false;
 			}
 
-			LayoutRebuilder.ForceRebuildLayoutImmediate(LeftPartVerticalLayout.GetComponent<RectTransform>());
 		}
 
 		#endregion
