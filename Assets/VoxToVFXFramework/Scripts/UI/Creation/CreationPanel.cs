@@ -216,7 +216,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnPreviewClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenLoadingPanel(() =>
+			CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_SCENE_DESCRIPTION.Translate(), () =>
 			{
 				CanvasPlayerPCManager.Instance.GenericClosePanel();
 				CanvasPlayerPCManager.Instance.OpenPreviewPanel(NameInputField.text, DescriptionInputField.text, () =>

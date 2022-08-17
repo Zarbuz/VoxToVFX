@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
@@ -31,6 +32,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Button ViewEtherscanButton;
 		[SerializeField] private Button ViewMetadataButton;
 		[SerializeField] private Button ViewIpfsButton;
+		[SerializeField] private Button LoadVoxModelButton;
 
 		#endregion
 
@@ -49,6 +51,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewEtherscanButton.onClick.AddListener(OnViewEtherscanClicked);
 			ViewMetadataButton.onClick.AddListener(OnViewMetadataClicked);
 			ViewIpfsButton.onClick.AddListener(OnViewIpfsClicked);
+			LoadVoxModelButton.onClick.AddListener(OnLoadVoxModelClicked);
 		}
 
 		private void OnDisable()
@@ -57,9 +60,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewEtherscanButton.onClick.RemoveListener(OnViewEtherscanClicked);
 			ViewMetadataButton.onClick.RemoveListener(OnViewMetadataClicked);
 			ViewIpfsButton.onClick.RemoveListener(OnViewIpfsClicked);
+			LoadVoxModelButton.onClick.RemoveListener(OnLoadVoxModelClicked);
 		}
-
-
 
 		#endregion
 
@@ -112,6 +114,33 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			Application.OpenURL(url);
 		}
 
+		private async void OnLoadVoxModelClicked()
+		{
+			string fileName = mCollectionMinted.TransactionHash + ".zip";
+			string zipPath = Path.Combine(Application.persistentDataPath, fileName);
+
+			if (File.Exists(zipPath))
+			{
+				ReadZipPath(zipPath);
+			}
+			else
+			{
+				CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_DOWNLOAD_MODEL.Translate());
+				string path = await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, fileName);
+				ReadZipPath(path);
+			}
+		}
+
+		private void ReadZipPath(string zipPath)
+		{
+			CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_SCENE_DESCRIPTION.Translate(),
+				() =>
+				{
+					CanvasPlayerPCManager.Instance.GenericClosePanel();
+				});
+
+			VoxelDataCreatorManager.Instance.ReadZipFile(zipPath);
+		}
 		#endregion
 	}
 }

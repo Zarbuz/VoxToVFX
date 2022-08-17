@@ -182,9 +182,14 @@ namespace VoxToVFXFramework.Scripts.UI
 			CreationPanel.Initialize(collectionCreated);
 		}
 
-		public void OpenLoadingPanel(Action onLoadFinished)
+		public void OpenLoadingPanel(string description, Action onLoadFinished)
 		{
-			LoadingPanel.Initialize(onLoadFinished);
+			LoadingPanel.Initialize(description, onLoadFinished);
+		}
+
+		public void OpenLoadingPanel(string description)
+		{
+			LoadingPanel.Initialize(description);
 		}
 
 		public void OpenPreviewPanel(string title, string description, Action onBackCallback)

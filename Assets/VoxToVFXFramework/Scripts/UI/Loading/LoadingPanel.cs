@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.UI.Atomic;
 
 namespace VoxToVFXFramework.Scripts.UI.Loading
 {
@@ -11,9 +12,9 @@ namespace VoxToVFXFramework.Scripts.UI.Loading
 	{
 		#region ScriptParameters
 
-		[SerializeField] private TextMeshProUGUI ProgressText;
-		[SerializeField] private Image ProgressBarFilled;
-
+		[SerializeField] private TextMeshProUGUI Description;
+		[SerializeField] private ProgressBar ProgressBar;
+		[SerializeField] private Image Spinner;
 		#endregion
 
 		#region Fields
@@ -47,10 +48,18 @@ namespace VoxToVFXFramework.Scripts.UI.Loading
 
 		#region PublicMethods
 
-		public void Initialize(Action onLoadingFinished)
+		public void Initialize(string description, Action onLoadingFinished)
 		{
-			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Loading);
+			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Loading);
+			Spinner.gameObject.SetActive(onLoadingFinished == null);
+			ProgressBar.gameObject.SetActive(onLoadingFinished != null);
+			Description.text = description;
 			mOnLoadingFinished = onLoadingFinished;
+		}
+
+		public void Initialize(string description)
+		{
+			Initialize(description, null);
 		}
 
 		#endregion
@@ -59,8 +68,7 @@ namespace VoxToVFXFramework.Scripts.UI.Loading
 
 		private void OnLoadProgressUpdate(int step, float progress)
 		{
-			ProgressText.text = $"{progress.ToString("P", CultureInfo.InvariantCulture)}";
-			ProgressBarFilled.fillAmount = progress;
+			ProgressBar.SetProgress(progress);
 		}
 
 		private void OnLoadFinished()

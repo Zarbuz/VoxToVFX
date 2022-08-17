@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEngine;
 
 namespace VoxToVFXFramework.Scripts.Utils
 {
@@ -31,6 +33,23 @@ namespace VoxToVFXFramework.Scripts.Utils
 			}
 
 			return outputList;
+		}
+
+		public static string Combine(byte[][] arrays, string filename)
+		{
+			byte[] bytes = new byte[arrays.Sum(a => a.Length)];
+			int offset = 0;
+
+			foreach (byte[] array in arrays)
+			{
+				Buffer.BlockCopy(array, 0, bytes, offset, array.Length);
+				offset += array.Length;
+			}
+
+			string path = Path.Combine(Application.persistentDataPath, filename);
+			File.WriteAllBytes(path, bytes); 
+
+			return path;
 		}
 	}
 }
