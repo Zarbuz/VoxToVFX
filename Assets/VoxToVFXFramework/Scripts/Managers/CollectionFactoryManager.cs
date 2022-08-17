@@ -45,7 +45,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#endregion
 
-
 		#region PublicMethods
 
 		public async UniTask<string> CreateCollection(string collectionName, string collectionSymbol)
@@ -80,6 +79,14 @@ namespace VoxToVFXFramework.Scripts.Managers
 			q = q.WhereEqualTo("creator", user.EthAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
 			return result.ToList();
+		}
+
+		public async UniTask<CollectionCreatedEvent> GetCollection(string collectionContract)
+		{
+			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
+			q = q.WhereEqualTo("collectionContract", collectionContract);
+			CollectionCreatedEvent collection = await q.FirstOrDefaultAsync();
+			return collection;
 		}
 
 		public async UniTask WatchMintedEventContract(CollectionCreatedEvent collectionCreated)

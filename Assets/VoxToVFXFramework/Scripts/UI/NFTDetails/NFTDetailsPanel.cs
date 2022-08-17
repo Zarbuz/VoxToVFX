@@ -34,12 +34,14 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Button ViewIpfsButton;
 		[SerializeField] private Button LoadVoxModelButton;
 		[SerializeField] private Button OpenCreatorProfileButton;
+		[SerializeField] private Button OpenCollectionButton;
 
 		#endregion
 
 		#region Fields
 
 		private CollectionMintedEvent mCollectionMinted;
+		private CollectionCreatedEvent mCollectionCreated;
 		private Nft mNft;
 		private MetadataObject mMetadataObject;
 		private CustomUser mCreatorUser;
@@ -55,6 +57,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewIpfsButton.onClick.AddListener(OnViewIpfsClicked);
 			LoadVoxModelButton.onClick.AddListener(OnLoadVoxModelClicked);
 			OpenCreatorProfileButton.onClick.AddListener(OnOpenCreatorProfileClicked);
+			OpenCollectionButton.onClick.AddListener(OnOpenCollectionClicked);
 		}
 
 		private void OnDisable()
@@ -65,6 +68,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewIpfsButton.onClick.RemoveListener(OnViewIpfsClicked);
 			LoadVoxModelButton.onClick.RemoveListener(OnLoadVoxModelClicked);
 			OpenCreatorProfileButton.onClick.RemoveListener(OnOpenCreatorProfileClicked);
+			OpenCollectionButton.onClick.RemoveListener(OnOpenCollectionClicked);
 		}
 
 		#endregion
@@ -75,7 +79,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		{
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
-			mCreatorUser= await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
+			mCreatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
+			mCollectionCreated = await CollectionFactoryManager.Instance.GetCollection(collectionMinted.Address);
 			mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(metadata.Metadata);
 			Title.text = mMetadataObject.Name;
 			DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
@@ -99,6 +104,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private void OnOpenCreatorProfileClicked()
 		{
 			CanvasPlayerPCManager.Instance.OpenProfilePanel(mCreatorUser);
+		}
+
+		private void OnOpenCollectionClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenCollectionDetailsPanel(mCollectionCreated);
 		}
 
 		private void OnViewEtherscanClicked()

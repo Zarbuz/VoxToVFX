@@ -10,6 +10,7 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.Collection;
+using VoxToVFXFramework.Scripts.UI.CollectionDetails;
 using VoxToVFXFramework.Scripts.UI.Creation;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
@@ -42,7 +43,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Profile,
 		Creation,
 		Loading,
-		NftDetails
+		NftDetails,
+		CollectionDetails
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -66,6 +68,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private LoadingPanel LoadingPanel;
 		[SerializeField] private PreviewPanel PreviewPanel;
 		[SerializeField] private NFTDetailsPanel NFTDetailsPanel;
+		[SerializeField] private CollectionDetailsPanel CollectionDetailsPanel;
 		#endregion
 
 		#region Fields
@@ -90,6 +93,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				CreationPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
 				LoadingPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 				NFTDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftDetails);
+				CollectionDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionDetails);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -175,6 +179,12 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			SetCanvasPlayerState(CanvasPlayerPCState.NftDetails);
 			NFTDetailsPanel.Initialize(collectionMinted, metadata);
+		}
+
+		public void OpenCollectionDetailsPanel(CollectionCreatedEvent collectionCreated)
+		{
+			SetCanvasPlayerState(CanvasPlayerPCState.CollectionDetails);
+			CollectionDetailsPanel.Initialize(collectionCreated);
 		}
 
 		public void OpenCreationPanel(CollectionCreatedEvent collectionCreated)
