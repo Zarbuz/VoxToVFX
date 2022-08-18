@@ -25,15 +25,13 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private TextMeshProUGUI Description;
 		[SerializeField] private Button OpenTransactionButton;
 		[SerializeField] private TextMeshProUGUI MintedDateText;
-		[SerializeField] private TextMeshProUGUI CreatorUsername;
-		[SerializeField] private AvatarImage CreatorImage;
+		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private AvatarImage CollectionImage;
 		[SerializeField] private Button ViewEtherscanButton;
 		[SerializeField] private Button ViewMetadataButton;
 		[SerializeField] private Button ViewIpfsButton;
 		[SerializeField] private Button LoadVoxModelButton;
-		[SerializeField] private Button OpenCreatorProfileButton;
 		[SerializeField] private Button OpenCollectionButton;
 
 		#endregion
@@ -44,7 +42,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private CollectionCreatedEvent mCollectionCreated;
 		private Nft mNft;
 		private MetadataObject mMetadataObject;
-		private CustomUser mCreatorUser;
 		#endregion
 
 		#region UnityMethods
@@ -56,7 +53,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewMetadataButton.onClick.AddListener(OnViewMetadataClicked);
 			ViewIpfsButton.onClick.AddListener(OnViewIpfsClicked);
 			LoadVoxModelButton.onClick.AddListener(OnLoadVoxModelClicked);
-			OpenCreatorProfileButton.onClick.AddListener(OnOpenCreatorProfileClicked);
 			OpenCollectionButton.onClick.AddListener(OnOpenCollectionClicked);
 		}
 
@@ -67,7 +63,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			ViewMetadataButton.onClick.RemoveListener(OnViewMetadataClicked);
 			ViewIpfsButton.onClick.RemoveListener(OnViewIpfsClicked);
 			LoadVoxModelButton.onClick.RemoveListener(OnLoadVoxModelClicked);
-			OpenCreatorProfileButton.onClick.RemoveListener(OnOpenCreatorProfileClicked);
 			OpenCollectionButton.onClick.RemoveListener(OnOpenCollectionClicked);
 		}
 
@@ -79,16 +74,14 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		{
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
-			mCreatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
+			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
+			OpenUserProfileButton.Initialize(creatorUser);
 			mCollectionCreated = await CollectionFactoryManager.Instance.GetCollection(collectionMinted.Address);
 			mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(metadata.Metadata);
 			Title.text = mMetadataObject.Name;
 			DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
 			Description.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
 			Description.text = mMetadataObject.Description;
-			CollectionNameText.text = metadata.Name;
-			CreatorUsername.text = mCreatorUser.UserName;
-			await CreatorImage.Initialize(mCreatorUser);
 			if (collectionMinted.createdAt != null)
 			{
 				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), collectionMinted.createdAt.Value.ToShortDateString());
@@ -101,10 +94,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PrivateMethods
 
-		private void OnOpenCreatorProfileClicked()
-		{
-			CanvasPlayerPCManager.Instance.OpenProfilePanel(mCreatorUser);
-		}
 
 		private void OnOpenCollectionClicked()
 		{
