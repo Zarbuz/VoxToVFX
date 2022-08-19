@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.Utils.Image
 {
@@ -22,7 +23,22 @@ namespace VoxToVFXFramework.Scripts.Utils.Image
 				return false;
 			}
 
-			Debug.LogWarning("[ImageUtils] Media is null ");
+			return false;
+		}
+
+		public static async UniTask<bool> DownloadAndApplyWholeImage(string imageUrl, UnityEngine.UI.Image image)
+		{
+			if (!string.IsNullOrEmpty(imageUrl))
+			{
+				Texture2D texture = await MediaManager.Instance.DownloadImage(imageUrl, int.MaxValue, true, false);
+				RectTransform rt = image.GetComponent<RectTransform>();
+				texture = texture.ResampleAndCrop((int)rt.rect.width, (int)rt.rect.height);
+
+				image.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
+				image.preserveAspect = false;
+				return true;
+			}
+
 			return false;
 		}
 

@@ -27,7 +27,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private TextMeshProUGUI MintedDateText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
-		[SerializeField] private AvatarImage CollectionImage;
+		[SerializeField] private Image CollectionImage;
 		[SerializeField] private Button ViewEtherscanButton;
 		[SerializeField] private Button ViewMetadataButton;
 		[SerializeField] private Button ViewIpfsButton;
@@ -75,13 +75,45 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
 			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
+			Models.CollectionDetails details = await CollectionDetailsManager.Instance.GetCollectionDetails(collectionMinted.Address);
 			OpenUserProfileButton.Initialize(creatorUser);
 			mCollectionCreated = await CollectionFactoryManager.Instance.GetCollection(collectionMinted.Address);
-			mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(metadata.Metadata);
-			Title.text = mMetadataObject.Name;
-			DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
-			Description.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
-			Description.text = mMetadataObject.Description;
+			CollectionNameText.text = mCollectionCreated.Name;
+			try
+			{
+				mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(metadata.Metadata);
+				Title.text = mMetadataObject.Name;
+				DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
+				Description.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
+				Description.text = mMetadataObject.Description;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				throw;
+			}
+
+			if (details != null)
+			{
+				if (!string.IsNullOrEmpty(details.LogoImageUrl))
+				{
+					CollectionImage.gameObject.SetActive(true);
+					bool success = await ImageUtils.DownloadAndApplyImage(details.LogoImageUrl, CollectionImage, 256, true, true, true);
+					if (!success)
+					{
+						CollectionImage.gameObject.SetActive(false);
+					}
+				}
+				else
+				{
+					CollectionImage.gameObject.SetActive(false);
+				}
+			}
+			else
+			{
+				CollectionImage.gameObject.SetActive(false);
+			}
+
 			if (collectionMinted.createdAt != null)
 			{
 				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), collectionMinted.createdAt.Value.ToShortDateString());

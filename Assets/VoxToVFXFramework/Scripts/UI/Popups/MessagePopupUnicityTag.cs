@@ -4,5 +4,6 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 	{
 		DUPLICATE_ALLOWED,
 		// ---------------------------------------------
+		EDIT_COLLECTION
 	}
 }

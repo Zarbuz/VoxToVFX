@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;

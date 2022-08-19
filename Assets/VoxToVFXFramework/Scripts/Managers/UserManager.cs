@@ -38,6 +38,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 				CustomUser newUserInfo = Moralis.Create<CustomUser>();
 				newUserInfo.ACL = new MoralisAcl(moralisUser);
+				newUserInfo.ACL.PublicReadAccess = true;
 				newUserInfo = UpdateFields(newUserInfo, customUser);
 				await newUserInfo.SaveAsync();
 			}

@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,6 +6,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
+using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
@@ -64,7 +66,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async void Initialize(CustomUser user)
+		public async UniTask Initialize(CustomUser user)
 		{
 			ProfileListingPanel.Initialize(user);
 
@@ -115,16 +117,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 			LayoutRebuilder.ForceRebuildLayoutImmediate(LeftPartVerticalLayout.GetComponent<RectTransform>());
 			await AvatarImage.Initialize(user);
-
-			if (!string.IsNullOrEmpty(user.BannerUrl))
-			{
-				Texture2D texture = await MediaManager.Instance.DownloadImage(user.BannerUrl, int.MaxValue, true, false);
-				texture = texture.ResampleAndCrop(1920, 280);
-
-				BannerImage.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
-				BannerImage.preserveAspect = false;
-			}
-
+			await ImageUtils.DownloadAndApplyWholeImage(user.BannerUrl, BannerImage);
 		}
 
 		#endregion

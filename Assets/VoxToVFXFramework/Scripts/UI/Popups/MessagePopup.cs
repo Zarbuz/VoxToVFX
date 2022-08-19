@@ -24,6 +24,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 		[SerializeField] private GameObject MessagePrefab;
 		[SerializeField] private GameObject BlockingConfirmPopup;
+		[SerializeField] private GameObject EditCollectionPopup;
 
 		#endregion
 
@@ -66,9 +67,22 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 			}
 		}
 
-		public static void ShowEditCollectionPopup()
+		public static void ShowEditCollectionPopup(string logoImageUrl, string coverImageUrl, string description, Action<Models.CollectionDetails> onConfirm, Action onCancel)
 		{
-			//TODO
+			var popupDescriptor = new EditCollectionDescriptor()
+			{
+				UnicityTag = MessagePopupUnicityTag.EDIT_COLLECTION,
+				LogoImageUrl = logoImageUrl,
+				CoverImageUrl = coverImageUrl,
+				Description = description,
+				OnConfirmAction = onConfirm,
+				OnCancelAction = onCancel
+			};
+
+			Instance.CreateAndShow<EditCollectionPopup, EditCollectionDescriptor>(
+				Instance.EditCollectionPopup,
+				Instance.BlockingConfirmPanel,
+				popupDescriptor);
 		}
 
 		public static void ShowOrUpdateCurrent(string message, LogType logType, MessagePopupUnicityTag unicityTag)
