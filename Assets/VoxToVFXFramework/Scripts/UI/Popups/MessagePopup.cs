@@ -66,6 +66,11 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 			}
 		}
 
+		public static void ShowEditCollectionPopup()
+		{
+			//TODO
+		}
+
 		public static void ShowOrUpdateCurrent(string message, LogType logType, MessagePopupUnicityTag unicityTag)
 		{
 			var curPopup = Instance.mDisplayedPopups.FirstOrDefault(t => t.UnicityTag == unicityTag);
@@ -275,5 +280,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 		}
 
 		#endregion
+
+		
 	}
 }
