@@ -20,6 +20,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		[SerializeField] private VerticalLayoutGroup VerticalLayoutGroup;
 		[SerializeField] private Image MainImage;
+		[SerializeField] private Image LoadingBackgroundImage;
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI DescriptionLabel;
 		[SerializeField] private TextMeshProUGUI Description;
@@ -33,7 +34,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Button ViewIpfsButton;
 		[SerializeField] private Button LoadVoxModelButton;
 		[SerializeField] private Button OpenCollectionButton;
-
 		#endregion
 
 		#region Fields
@@ -74,6 +74,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		{
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
+			LoadingBackgroundImage.gameObject.SetActive(true);
 			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
 			Models.CollectionDetails details = await CollectionDetailsManager.Instance.GetCollectionDetails(collectionMinted.Address);
 			OpenUserProfileButton.Initialize(creatorUser);
@@ -118,8 +119,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			{
 				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), collectionMinted.createdAt.Value.ToShortDateString());
 			}
-			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage, 512);
+			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage, int.MaxValue);
 			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
+			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
 
 		#endregion

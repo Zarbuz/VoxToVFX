@@ -28,6 +28,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		#region ScriptParameters
 
 		[SerializeField] private Image MainImage;
+		[SerializeField] private Image LoadingBackgroundImage;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private Button EditCollectionButton;
@@ -56,6 +57,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private CollectionCreatedEvent mCollectionCreated;
 		private Models.CollectionDetails mCollectionDetails;
 		private eCollectionDetailsState mCollectionDetailsState;
+		private TransparentButton[] mTransparentButtons;
 
 		private eCollectionDetailsState CollectionDetailsState
 		{
@@ -83,6 +85,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			ActivityTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.ACTIVITY));
 			DescriptionTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.DESCRIPTION));
 			EditCollectionButton.onClick.AddListener(OnEditCollectionClicked);
+			MintNftButton.onClick.AddListener(OnMintNftClicked);
+			mTransparentButtons = GetComponentsInChildren<TransparentButton>();
 		}
 
 
@@ -93,6 +97,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			ActivityTabButton.onClick.RemoveAllListeners();
 			DescriptionTabButton.onClick.RemoveAllListeners();
 			EditCollectionButton.onClick.RemoveListener(OnEditCollectionClicked);
+			MintNftButton.onClick.RemoveListener(OnMintNftClicked);
+
 		}
 
 		#endregion
@@ -102,6 +108,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		public async UniTask Initialize(CollectionCreatedEvent collection)
 		{
 			mCollectionCreated = collection;
+			LoadingBackgroundImage.gameObject.SetActive(true);
 			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collection.Creator);
 			mCollectionDetails = await CollectionDetailsManager.Instance.GetCollectionDetails(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
@@ -146,6 +153,11 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			if (mCollectionDetails != null)
 			{
 				await ImageUtils.DownloadAndApplyWholeImage(mCollectionDetails.CoverImageUrl, MainImage);
+
+				foreach (TransparentButton transparentButton in mTransparentButtons)
+				{
+					transparentButton.ImageBackgroundActive = !string.IsNullOrEmpty(mCollectionDetails.CoverImageUrl);
+				}
 				DescriptionText.text = mCollectionDetails.Description;
 				NFTTabButton.gameObject.SetActive(!string.IsNullOrEmpty(mCollectionDetails.Description));
 				if (!string.IsNullOrEmpty(mCollectionDetails.CoverImageUrl))
@@ -155,9 +167,15 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			}
 			else
 			{
+				foreach (TransparentButton transparentButton in mTransparentButtons)
+				{
+					transparentButton.ImageBackgroundActive = false;
+				}
+
 				CollectionNameText.color = Color.black;
 				NFTTabButton.gameObject.SetActive(false);
 			}
+			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
 
 		private async void OnCollectionUpdated(Models.CollectionDetails collectionDetails)
@@ -168,6 +186,10 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			RefreshCollectionDetails();
 		}
 
+		private void OnMintNftClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenCreationPanel(mCollectionCreated);
+		}
 		#endregion
 	}
 }

@@ -16,9 +16,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			public int Count = 1;
 			public Texture2D Texture;
-
-			//indicate if we can GC collect it
-			public bool DoNotGC = false;
 		}
 
 		#region Fields
@@ -62,31 +59,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public async UniTask<Texture2D> DownloadImage(string imageUrl, int maxWidth, bool keepPermanent, bool cropToCenter)
 		{
 			return await DownloadImageStandalone(imageUrl, maxWidth, keepPermanent, cropToCenter);
-		}
-
-		public void GC()
-		{
-			Dictionary<string, RefTexture> spritesWeKeepDict = new Dictionary<string, RefTexture>();
-			if (mCachedTexture.Count(el => !el.Value.DoNotGC) > MAX_CACHED_SIZE)
-			{
-				spritesWeKeepDict = mCachedTexture.Where((el) => !el.Value.DoNotGC).OrderByDescending((el) => el.Value.Count)
-					.Take(CACHED_SIZE_WHEN_CLEAN)
-					.ToDictionary((el) => el.Key, (el) => el.Value);
-
-				foreach (KeyValuePair<string, RefTexture> el in mCachedTexture.Where((el) => el.Value.DoNotGC))
-				{
-					spritesWeKeepDict.Add(el.Key, el.Value);
-				}
-
-				foreach (KeyValuePair<string, RefTexture> reference in mCachedTexture.Where(reference => !spritesWeKeepDict.ContainsKey(reference.Key)))
-				{
-					Object.Destroy(reference.Value.Texture);
-				}
-
-				mCachedTexture = spritesWeKeepDict;
-
-				Debug.Log("[Media] GC done");
-			}
 		}
 
 		#endregion
@@ -134,12 +106,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 				textRes = textRes.ResampleAndCrop(maxWidth, maxWidth);
 			}
 
-			if (!mCachedTexture.ContainsKey(imageUrl))
+			if (!mCachedTexture.ContainsKey(imageUrl) && keepPermanent)
 			{
 				mCachedTexture.Add(imageUrl, new RefTexture()
 				{
 					Texture = textRes,
-					DoNotGC = keepPermanent,
 				});
 			}
 		

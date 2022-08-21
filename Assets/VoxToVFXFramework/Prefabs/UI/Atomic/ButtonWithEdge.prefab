@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: 5202280719057476382}
   - component: {fileID: 4074392812937352951}
   - component: {fileID: 1749761086369744634}
+  - component: {fileID: 974097466287916349}
   m_Layer: 5
   m_Name: ButtonWithEdge
   m_TagString: Untagged
@@ -259,6 +260,27 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &974097466287916349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8680078703272911746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb307a872021d9a49a56f18ae2f44ee2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FrameImage: {fileID: 4074392812937352951}
+  BackgroundImage: {fileID: 102458093233700538}
+  OptionalIcon: {fileID: 0}
+  ButtonText: {fileID: 1675827506179164406}
+  BackgroundActive: {r: 0.99215686, g: 0.99215686, b: 0.99215686, a: 1}
+  BackgroundDisable: {r: 1, g: 1, b: 1, a: 0.09803922}
+  FrameColorActive: {r: 0, g: 0, b: 0, a: 1}
+  FrameColorDisable: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  OptionalIconColorDisable: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
 --- !u!1 &8691366180335675550
 GameObject:
   m_ObjectHideFlags: 0

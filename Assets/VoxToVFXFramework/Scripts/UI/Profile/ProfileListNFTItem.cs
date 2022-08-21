@@ -65,7 +65,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
 					Title.text = metadataObject.Name;
-					await ImageUtils.DownloadAndApplyImage(metadataObject.Image, MainImage, 512, true, true, true);
+					await ImageUtils.DownloadAndApplyImage(metadataObject.Image, MainImage, 512, true, false, true);
 				}
 				else
 				{
