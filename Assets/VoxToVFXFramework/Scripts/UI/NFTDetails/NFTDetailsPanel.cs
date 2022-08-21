@@ -94,26 +94,19 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				throw;
 			}
 
+			CollectionImage.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
 			if (details != null)
 			{
 				if (!string.IsNullOrEmpty(details.LogoImageUrl))
 				{
-					CollectionImage.gameObject.SetActive(true);
-					bool success = await ImageUtils.DownloadAndApplyImage(details.LogoImageUrl, CollectionImage, 256, true, true, true);
+					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32);
 					if (!success)
 					{
 						CollectionImage.gameObject.SetActive(false);
 					}
 				}
-				else
-				{
-					CollectionImage.gameObject.SetActive(false);
-				}
 			}
-			else
-			{
-				CollectionImage.gameObject.SetActive(false);
-			}
+		
 
 			if (collectionMinted.createdAt != null)
 			{

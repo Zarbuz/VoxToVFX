@@ -123,7 +123,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			mCollectionCreated = collection;
 			LoadingBackgroundImage.gameObject.SetActive(true);
 			mCreatorUser = await UserManager.Instance.LoadUserFromEthAddress(collection.Creator);
-			mCollectionDetails = await CollectionDetailsManager.Instance.GetCollectionDetails(collection.CollectionContract);
+			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
 			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
 			EditCollectionButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
@@ -238,6 +238,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			collectionDetails.CollectionContract = mCollectionCreated.CollectionContract;
 			mCollectionDetails = collectionDetails;
 			await CollectionDetailsManager.Instance.SaveCollectionDetails(mCollectionDetails);
+			DataManager.Instance.SaveCollectionDetails(mCollectionDetails);
 			await RefreshCollectionDetails();
 		}
 

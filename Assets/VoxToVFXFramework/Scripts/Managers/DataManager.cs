@@ -19,6 +19,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Dictionary<string, MoralisDataCacheDTO> ContractCreatedPerUsers = new Dictionary<string, MoralisDataCacheDTO>();
 		public Dictionary<string, MoralisDataCacheDTO> NFTPerContract = new Dictionary<string, MoralisDataCacheDTO>();
 		public Dictionary<string, Nft> NftMetadataPerAddressAndTokenId = new Dictionary<string, Nft>();
+		public Dictionary<string, CollectionDetails> CollectionDetails = new Dictionary<string, CollectionDetails>();
 		#endregion
 
 		#region ConstStatic
@@ -48,6 +49,56 @@ namespace VoxToVFXFramework.Scripts.Managers
 			};
 
 			return list;
+		}
+
+		public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
+		{
+			if (NFTPerContract.ContainsKey(contract))
+			{
+				MoralisDataCacheDTO dto = NFTPerContract[contract];
+				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
+				{
+					return dto.List.Cast<CollectionMintedEvent>().ToList();
+				}
+			}
+			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator,contract);
+			NFTPerContract[contract] = new MoralisDataCacheDTO()
+			{
+				LastTimeUpdated = DateTime.UtcNow,
+				List = listNfTsForContract.Cast<MoralisObject>().ToList()
+			};
+
+			return listNfTsForContract;
+		}
+
+		public async UniTask<Nft> GetTokenIdMetadataWithCache(string address, string tokenId)
+		{
+			string key = address + "_" + tokenId;
+			if (NftMetadataPerAddressAndTokenId.TryGetValue(key, out Nft nft))
+			{
+				return nft;
+			}
+
+			Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: address, tokenId: tokenId, ConfigManager.Instance.ChainList);
+			NftMetadataPerAddressAndTokenId[key] = tokenIdMetadata;
+			return tokenIdMetadata;
+		}
+
+		public async UniTask<CollectionDetails> GetCollectionDetailsWithCache(string collectionContract)
+		{
+			if (CollectionDetails.TryGetValue(collectionContract, out CollectionDetails collectionDetails))
+			{
+				return collectionDetails;
+			}
+
+			CollectionDetails details = await CollectionDetailsManager.Instance.GetCollectionDetails(collectionContract);
+			CollectionDetails[collectionContract]= details;
+			return details;
+		}
+
+		public void SaveCollectionDetails(CollectionDetails collectionDetails)
+		{
+			CollectionDetails[collectionDetails.CollectionContract] = collectionDetails;
 		}
 
 		public void AddCollectionCreated(CollectionCreatedEvent collectionCreated)
@@ -96,39 +147,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 				cache.LastTimeUpdated = DateTime.UtcNow;
 				NFTPerContract[collectionMinted.Address] = cache;
 			}
-		}
-
-		public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
-		{
-			if (NFTPerContract.ContainsKey(contract))
-			{
-				MoralisDataCacheDTO dto = NFTPerContract[contract];
-				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
-				{
-					return dto.List.Cast<CollectionMintedEvent>().ToList();
-				}
-			}
-			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator,contract);
-			NFTPerContract[contract] = new MoralisDataCacheDTO()
-			{
-				LastTimeUpdated = DateTime.UtcNow,
-				List = listNfTsForContract.Cast<MoralisObject>().ToList()
-			};
-
-			return listNfTsForContract;
-		}
-
-		public async UniTask<Nft> GetTokenIdMetadataWithCache(string address, string tokenId)
-		{
-			string key = address + "_" + tokenId;
-			if (NftMetadataPerAddressAndTokenId.TryGetValue(key, out Nft nft))
-			{
-				return nft;
-			}
-
-			Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: address, tokenId: tokenId, ConfigManager.Instance.ChainList);
-			NftMetadataPerAddressAndTokenId[key] = tokenIdMetadata;
-			return tokenIdMetadata;
 		}
 
 		#endregion

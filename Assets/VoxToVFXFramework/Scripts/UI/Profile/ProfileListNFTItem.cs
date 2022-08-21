@@ -1,9 +1,8 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
-using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -22,6 +21,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region ScriptParameters
 
 		[SerializeField] private Image MainImage;
+		[SerializeField] private Image CollectionLogoImage;
 		[SerializeField] private Button Button;
 		[SerializeField] private AvatarImage CreatorAvatarImage;
 		[SerializeField] private TextMeshProUGUI CreatorUsernameText;
@@ -41,7 +41,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private Coroutine mCoroutineAlphaEnter;
 		private Coroutine mCoroutineAlphaExit;
 		private CollectionMintedEvent mCollectionMintedEvent;
-		[CanBeNull] private Nft mMetadata;
+		private Nft mMetadata;
+		private Models.CollectionDetails mCollectionDetails;
 
 		#endregion
 
@@ -54,6 +55,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			{
 				Button.onClick.AddListener(OnItemClicked);
 				Nft tokenIdMetadata = await DataManager.Instance.GetTokenIdMetadataWithCache(address: nft.Address, tokenId: nft.TokenID);
+				mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
+
 				mMetadata = tokenIdMetadata;
 				CollectionNameText.text = tokenIdMetadata.Name;
 				CreatorUsernameText.text = "@" + creatorUser.UserName;
@@ -61,11 +64,19 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				await CreatorAvatarImage.Initialize(creatorUser);
 				if (tokenIdMetadata.Metadata != null)
 				{
-					Debug.Log(tokenIdMetadata.Metadata);
-
 					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
 					Title.text = metadataObject.Name;
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, int.MaxValue, 512);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512);
+
+					if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
+					{
+						CollectionLogoImage.gameObject.SetActive(false);
+					}
+					else
+					{
+						CollectionLogoImage.gameObject.SetActive(true);
+						await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, CollectionLogoImage, 32);
+					}
 				}
 				else
 				{
