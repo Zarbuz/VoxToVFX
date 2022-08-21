@@ -32,6 +32,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		#region ScriptParameters
 
 		[SerializeField] private Image MainImage;
+		[SerializeField] private Image LogoImage;
 		[SerializeField] private Image LoadingBackgroundImage;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
@@ -169,6 +170,15 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			if (mCollectionDetails != null)
 			{
 				await ImageUtils.DownloadAndApplyWholeImage(mCollectionDetails.CoverImageUrl, MainImage);
+				if (!string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
+				{
+					LogoImage.transform.parent.gameObject.SetActive(true);
+					await ImageUtils.DownloadAndApplyImage(mCollectionDetails.LogoImageUrl, LogoImage, 256, true, true, true);
+				}
+				else
+				{
+					LogoImage.transform.parent.gameObject.SetActive(false);
+				}
 
 				foreach (TransparentButton transparentButton in mTransparentButtons)
 				{
@@ -188,6 +198,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 					transparentButton.ImageBackgroundActive = false;
 				}
 
+				LogoImage.transform.parent.gameObject.SetActive(false);
 				CollectionNameText.color = Color.black;
 				NFTTabButton.gameObject.SetActive(false);
 			}
