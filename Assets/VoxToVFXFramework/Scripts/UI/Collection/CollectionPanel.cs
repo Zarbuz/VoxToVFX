@@ -184,11 +184,11 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		{
 			ShowSpinnerImage(true);
 			ListCollectionParent.DestroyAllChildren();
-			List<CollectionCreatedEvent> userContracts = await CollectionFactoryManager.Instance.GetUserListContract();
+			List<CollectionCreatedEvent> userContracts = await DataManager.Instance.GetUserListContractWithCache(UserManager.Instance.CurrentUser);
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
-				List<CollectionMintedEvent> list = await NFTManager.Instance.FetchNFTsForContract(collection.Creator, collection.CollectionContract);
+				List<CollectionMintedEvent> list = await DataManager.Instance.GetNFTForContractWithCache(collection.Creator, collection.CollectionContract);
 				item.Initialize(collection, list.Count, OnCollectionSelected);
 			}
 
@@ -251,9 +251,9 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			ContinueButton.interactable = CollectionNameInputField.text.Length > 0 && CollectionSymbolInputField.text.Length > 0;
 		}
 
-		private void OnContinueClicked()
+		private async void OnContinueClicked()
 		{
-			CreateCollection();
+			await CreateCollection();
 		}
 
 		private void OnOpenEtherscanClicked()
@@ -262,9 +262,9 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			Application.OpenURL(url);
 		}
 
-		private void OnRetryButtonClicked()
+		private async void OnRetryButtonClicked()
 		{
-			CreateCollection();
+			await CreateCollection();
 		}
 
 		private async UniTask CreateCollection()

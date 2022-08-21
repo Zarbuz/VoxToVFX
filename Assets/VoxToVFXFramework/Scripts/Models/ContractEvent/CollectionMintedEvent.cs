@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 {
@@ -23,4 +25,6 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 		public string Address { get; set; }
 
 	}
+
+
 }

@@ -67,12 +67,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
-		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract()
-		{
-			List<CollectionCreatedEvent> list = await GetUserListContract(UserManager.Instance.CurrentUser);
-			return list;
-		}
-
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(CustomUser user)
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
@@ -142,6 +136,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				if (user.ethAddress == item.Creator)
 				{
+					DataManager.Instance.AddCollectionCreated(item);
 					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 					{
 						CollectionCreatedEvent?.Invoke(item);
@@ -158,6 +153,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				if (user.ethAddress == item.Creator)
 				{
+					DataManager.Instance.AddCollectionMinted(item);
 					await NFTManager.Instance.SyncNFTContract(item.Address);
 					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 					{

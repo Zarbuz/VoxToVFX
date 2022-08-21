@@ -128,10 +128,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private async UniTask RefreshCreatedTab()
 		{
 			CreatedGridTransform.DestroyAllChildren();
-			List<CollectionCreatedEvent> list = await CollectionFactoryManager.Instance.GetUserListContract(mCustomUser);
+
+			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
-				List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(mCustomUser.EthAddress, collection.CollectionContract);
+				List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
 				foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);

@@ -53,7 +53,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			try
 			{
 				Button.onClick.AddListener(OnItemClicked);
-				Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: nft.Address, tokenId: nft.TokenID, ConfigManager.Instance.ChainList);
+				Nft tokenIdMetadata = await DataManager.Instance.GetTokenIdMetadataWithCache(address: nft.Address, tokenId: nft.TokenID);
 				mMetadata = tokenIdMetadata;
 				CollectionNameText.text = tokenIdMetadata.Name;
 				CreatorUsernameText.text = "@" + creatorUser.UserName;
@@ -65,7 +65,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
 					Title.text = metadataObject.Name;
-					await ImageUtils.DownloadAndApplyImage(metadataObject.Image, MainImage, 512, true, false, true);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, int.MaxValue, 512);
 				}
 				else
 				{
