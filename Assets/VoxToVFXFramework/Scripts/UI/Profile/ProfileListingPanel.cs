@@ -1,15 +1,12 @@
-using System;
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
-using VoxToVFXFramework.Scripts.UI.Collection;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
@@ -67,6 +64,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				CreatedPanel.SetActive(mEProfileListingState == eProfileListingState.CREATED);
 				CollectionPanel.SetActive(mEProfileListingState == eProfileListingState.COLLECTION);
 				OwnedPanel.SetActive(mEProfileListingState == eProfileListingState.OWNED);
+
+				CreatedButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.CREATED);
+				CollectionButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.COLLECTION);
+				OwnedButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.OWNED);
 			}
 		}
 
@@ -81,7 +82,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.COLLECTION));
 			OwnedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.OWNED));
 
-			OnSwitchTabClicked(eProfileListingState.CREATED);
+			ProfileListingState = eProfileListingState.CREATED;
 		}
 
 
@@ -110,10 +111,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void OnSwitchTabClicked(eProfileListingState profileListingState)
 		{
-			CreatedButton.transform.GetChild(0).gameObject.SetActive(profileListingState == eProfileListingState.CREATED);
-			CollectionButton.transform.GetChild(0).gameObject.SetActive(profileListingState == eProfileListingState.COLLECTION);
-			OwnedButton.transform.GetChild(0).gameObject.SetActive(profileListingState == eProfileListingState.OWNED);
-
 			ProfileListingState = profileListingState;
 		}
 

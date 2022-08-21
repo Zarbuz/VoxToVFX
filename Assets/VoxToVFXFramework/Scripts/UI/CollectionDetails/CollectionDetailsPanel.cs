@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -8,6 +10,8 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.UI.Popups;
+using VoxToVFXFramework.Scripts.UI.Profile;
+using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
@@ -40,6 +44,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[SerializeField] private Button ActivityTabButton;
 		[SerializeField] private Button DescriptionTabButton;
 		[SerializeField] private GameObject NoItemFoundPanel;
+		[SerializeField] private GameObject NoItemOwnerFoundPanel;
 		[SerializeField] private Button MintNftButton;
 
 		[SerializeField] private Button OpenSymbolButton;
@@ -48,6 +53,12 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[SerializeField] private GameObject NFTPanel;
 		[SerializeField] private GameObject ActivityPanel;
 		[SerializeField] private GameObject DescriptionPanel;
+
+		[Header("NFT")]
+		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
+		[SerializeField] private Transform NFTGridTransform;
+
+		[Header("Description")]
 		[SerializeField] private TextMeshProUGUI DescriptionText;
 
 		#endregion
@@ -55,10 +66,11 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		#region Fields
 
 		private CollectionCreatedEvent mCollectionCreated;
+		private CustomUser mCreatorUser;
 		private Models.CollectionDetails mCollectionDetails;
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
-
+		private VerticalLayoutGroup[] mVerticalLayoutGroups;
 		private eCollectionDetailsState CollectionDetailsState
 		{
 			get => mCollectionDetailsState;
@@ -87,8 +99,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			EditCollectionButton.onClick.AddListener(OnEditCollectionClicked);
 			MintNftButton.onClick.AddListener(OnMintNftClicked);
 			mTransparentButtons = GetComponentsInChildren<TransparentButton>();
+			mVerticalLayoutGroups = GetComponentsInChildren<VerticalLayoutGroup>();
 		}
-
 
 		private void OnDisable()
 		{
@@ -109,7 +121,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			mCollectionCreated = collection;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collection.Creator);
+			mCreatorUser = await UserManager.Instance.LoadUserFromEthAddress(collection.Creator);
 			mCollectionDetails = await CollectionDetailsManager.Instance.GetCollectionDetails(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
 			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
@@ -117,8 +129,11 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			CollectionNameText.text = collection.Name;
 			CollectionSymbolText.text = collection.Symbol;
 			CollectionDetailsState = eCollectionDetailsState.NFT;
-			OpenUserProfileButton.Initialize(creatorUser);
-			RefreshCollectionDetails();
+			OpenUserProfileButton.Initialize(mCreatorUser);
+			await RefreshCollectionDetails();
+			await RefreshNFTTab();
+			RebuildAllVerticalRect();
+			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
 
 		#endregion
@@ -134,6 +149,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private void OnSwitchTabClicked(eCollectionDetailsState collectionDetailsState)
 		{
 			CollectionDetailsState = collectionDetailsState;
+			RebuildAllVerticalRect();
 		}
 
 		private void OnEditCollectionClicked()
@@ -148,7 +164,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			}
 		}
 
-		private async void RefreshCollectionDetails()
+		private async UniTask RefreshCollectionDetails()
 		{
 			if (mCollectionDetails != null)
 			{
@@ -175,7 +191,35 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				CollectionNameText.color = Color.black;
 				NFTTabButton.gameObject.SetActive(false);
 			}
-			LoadingBackgroundImage.gameObject.SetActive(false);
+		}
+
+		private async UniTask RefreshNFTTab()
+		{
+			NFTGridTransform.DestroyAllChildren();
+			List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCreatorUser.EthAddress, mCollectionCreated.CollectionContract);
+			int countActive = 0;
+			foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
+			{
+				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
+				bool initSuccess = await item.Initialize(nft, mCreatorUser);
+				item.gameObject.SetActive(initSuccess);
+				if (initSuccess)
+				{
+					countActive++;
+				}
+			}
+
+			CollectionOfCountText.text = countActive.ToString();
+			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUser.EthAddress);
+			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUser.EthAddress);
+		}
+
+		private void RebuildAllVerticalRect()
+		{
+			foreach (VerticalLayoutGroup verticalLayoutGroup in mVerticalLayoutGroups.Reverse())
+			{
+				LayoutRebuilder.ForceRebuildLayoutImmediate(verticalLayoutGroup.GetComponent<RectTransform>());
+			}
 		}
 
 		private async void OnCollectionUpdated(Models.CollectionDetails collectionDetails)
@@ -183,7 +227,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			collectionDetails.CollectionContract = mCollectionCreated.CollectionContract;
 			mCollectionDetails = collectionDetails;
 			await CollectionDetailsManager.Instance.SaveCollectionDetails(mCollectionDetails);
-			RefreshCollectionDetails();
+			await RefreshCollectionDetails();
 		}
 
 		private void OnMintNftClicked()
