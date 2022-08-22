@@ -24,7 +24,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 			if (!string.IsNullOrEmpty(user.PictureUrl))
 			{
-				bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(user.PictureUrl, ProfileImage, 256);
+				bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(user.PictureUrl, ProfileImage, 256, 256);
 				if (success)
 				{
 					NoAvatarImage.gameObject.SetActive(false);

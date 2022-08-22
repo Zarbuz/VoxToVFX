@@ -12,7 +12,7 @@ using VoxToVFXFramework.Scripts.Singleton;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
-	public class DataManager: SimpleSingleton<DataManager>
+	public class DataManager : SimpleSingleton<DataManager>
 	{
 		#region Fields
 
@@ -20,6 +20,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Dictionary<string, MoralisDataCacheDTO> NFTPerContract = new Dictionary<string, MoralisDataCacheDTO>();
 		public Dictionary<string, Nft> NftMetadataPerAddressAndTokenId = new Dictionary<string, Nft>();
 		public Dictionary<string, CollectionDetails> CollectionDetails = new Dictionary<string, CollectionDetails>();
+		public Dictionary<string, CustomUser> Users = new Dictionary<string, CustomUser>();
+
 		#endregion
 
 		#region ConstStatic
@@ -61,7 +63,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					return dto.List.Cast<CollectionMintedEvent>().ToList();
 				}
 			}
-			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator,contract);
+			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator, contract);
 			NFTPerContract[contract] = new MoralisDataCacheDTO()
 			{
 				LastTimeUpdated = DateTime.UtcNow,
@@ -92,8 +94,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			CollectionDetails details = await CollectionDetailsManager.Instance.GetCollectionDetails(collectionContract);
-			CollectionDetails[collectionContract]= details;
+			CollectionDetails[collectionContract] = details;
 			return details;
+		}
+
+		public async UniTask<CustomUser> GetUserWithCache(string ethAddress)
+		{
+			if (Users.TryGetValue(ethAddress, out CustomUser user))
+			{
+				return user;
+			}
+
+			CustomUser userFromEth = await UserManager.Instance.LoadUserFromEthAddress(ethAddress);
+			if (userFromEth != user)
+			{
+				Users[ethAddress] = userFromEth;
+				return userFromEth;
+			}
+			return null;
 		}
 
 		public void SaveCollectionDetails(CollectionDetails collectionDetails)
@@ -107,7 +125,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				MoralisDataCacheDTO dto = ContractCreatedPerUsers[collectionCreated.Creator];
 				if (dto.List.Cast<CollectionCreatedEvent>()
-				    .All(t => t.CollectionContract != collectionCreated.CollectionContract))
+					.All(t => t.CollectionContract != collectionCreated.CollectionContract))
 				{
 					dto.List.Add(collectionCreated);
 					dto.LastTimeUpdated = DateTime.UtcNow;
@@ -131,7 +149,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				MoralisDataCacheDTO dto = NFTPerContract[collectionMinted.Address];
 				if (dto.List.Cast<CollectionMintedEvent>()
-				    .All(t => t.Address != collectionMinted.Address))
+					.All(t => t.Address != collectionMinted.Address))
 				{
 					dto.List.Add(collectionMinted);
 					dto.LastTimeUpdated = DateTime.UtcNow;

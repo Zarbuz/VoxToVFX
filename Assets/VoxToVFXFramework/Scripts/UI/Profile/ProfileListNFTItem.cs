@@ -16,7 +16,7 @@ using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
-	public class ProfileListNFTItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+	public class ProfileListNFTItem : AbstractCardItem
 	{
 		#region ScriptParameters
 
@@ -30,16 +30,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private AvatarImage BuyerAvatarImage;
 		[SerializeField] private TextMeshProUGUI BuyerUsernameText;
 
-		[SerializeField] private CanvasGroup CanvasGroup;
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 
 		#endregion
 
 		#region Fields
-
-		private Coroutine mCoroutineAlphaEnter;
-		private Coroutine mCoroutineAlphaExit;
+		
 		private CollectionMintedEvent mCollectionMintedEvent;
 		private Nft mMetadata;
 		private Models.CollectionDetails mCollectionDetails;
@@ -66,7 +63,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				{
 					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
 					Title.text = metadataObject.Name;
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
 
 					if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
 					{
@@ -75,7 +72,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 					else
 					{
 						CollectionLogoImage.gameObject.SetActive(true);
-						await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, CollectionLogoImage, 32);
+						await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
 					}
 				}
 				else
@@ -90,31 +87,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				Debug.LogError(e.Message);
 				return false;
 			}
-		}
-
-		#endregion
-
-		#region UnityMethods
-
-		public void OnPointerEnter(PointerEventData eventData)
-		{
-			if (mCoroutineAlphaExit != null)
-			{
-				StopCoroutine(mCoroutineAlphaExit);
-				mCoroutineAlphaExit = null;
-			}
-
-			mCoroutineAlphaEnter = StartCoroutine(CanvasGroup.AlphaFade(1, 0.05f));
-		}
-
-		public void OnPointerExit(PointerEventData eventData)
-		{
-			if (mCoroutineAlphaEnter != null)
-			{
-				StopCoroutine(mCoroutineAlphaEnter);
-				mCoroutineAlphaEnter = null;
-			}
-			mCoroutineAlphaExit = StartCoroutine(CanvasGroup.AlphaFade(0, 0.05f));
 		}
 
 		#endregion

@@ -46,6 +46,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		[Header("ProfileListNFTItem")]
 		[SerializeField] private ProfileListNFTItem ProfileListNftItemPrefab;
+		[SerializeField] private ProfileCollectionItem ProfileCollectionItemPrefab;
 
 		[SerializeField] private Image LoadingSpinner;
 
@@ -102,6 +103,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mCustomUser = user;
 			ShowSpinnerImage(true);
 			await RefreshCreatedTab();
+			await RefreshCollectionTab();
 			ShowSpinnerImage(false);
 		}
 
@@ -127,6 +129,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatedGridTransform.DestroyAllChildren();
 
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
+			int count = 0;
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
 				List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
@@ -135,10 +138,28 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
 					bool initSuccess = await item.Initialize(nft, mCustomUser);
 					item.gameObject.SetActive(initSuccess);
+					if (initSuccess)
+					{
+						count++;
+					}
 				}
 			}
 
-			CreatedCountText.text = CreatedGridTransform.CountActiveChild().ToString();
+			CreatedCountText.text = count.ToString();
+		}
+
+		private async UniTask RefreshCollectionTab()
+		{
+			CollectionGridTransform.DestroyAllChildren();
+			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
+
+			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
+			{
+				ProfileCollectionItem item = Instantiate(ProfileCollectionItemPrefab, CollectionGridTransform, false);
+				await item.Initialize(collection);
+			}
+
+			CollectionCountText.text = list.Count.ToString();
 		}
 
 		#endregion

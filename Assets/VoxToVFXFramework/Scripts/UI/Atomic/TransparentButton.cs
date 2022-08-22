@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -24,7 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 		#region Fields
 
 		private bool mImageBackgroundActive;
-
+		private Button mButton;
 		public bool ImageBackgroundActive
 		{
 			get => mImageBackgroundActive;
@@ -41,8 +42,18 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		#region UnityMethods
 
+		private void Awake()
+		{
+			mButton = GetComponent<Button>();
+		}
+
 		public void OnPointerEnter(PointerEventData eventData)
 		{
+			if (!mButton.interactable)
+			{
+				return;
+			}
+
 			if (mImageBackgroundActive)
 			{
 				ButtonText.color = Color.black;
@@ -61,6 +72,11 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		public void OnPointerExit(PointerEventData eventData)
 		{
+			if (!mButton.interactable)
+			{
+				return;
+			}
+
 			if (mImageBackgroundActive)
 			{
 				ButtonText.color = Color.white;

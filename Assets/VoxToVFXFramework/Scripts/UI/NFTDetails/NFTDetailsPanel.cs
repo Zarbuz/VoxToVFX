@@ -75,8 +75,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			CustomUser creatorUser = await UserManager.Instance.LoadUserFromEthAddress(collectionMinted.Creator);
-			Models.CollectionDetails details = await CollectionDetailsManager.Instance.GetCollectionDetails(collectionMinted.Address);
+			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(collectionMinted.Creator);
+			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(collectionMinted.Address);
 			OpenUserProfileButton.Initialize(creatorUser);
 			mCollectionCreated = await CollectionFactoryManager.Instance.GetCollection(collectionMinted.Address);
 			CollectionNameText.text = mCollectionCreated.Name;
@@ -99,12 +99,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			{
 				if (!string.IsNullOrEmpty(details.LogoImageUrl))
 				{
-					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32);
+					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32, 32);
 					if (!success)
 					{
-						CollectionImage.gameObject.SetActive(false);
+						CollectionImage.gameObject.SetActive(false);	
 					}
-				}
+				}	
 			}
 		
 

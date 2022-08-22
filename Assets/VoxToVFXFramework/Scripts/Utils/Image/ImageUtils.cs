@@ -26,14 +26,14 @@ namespace VoxToVFXFramework.Scripts.Utils.Image
 			return false;
 		}
 
-		public static async UniTask<bool> DownloadAndApplyImageAndCropAfter(string imageUrl, UnityEngine.UI.Image image, int sizeCrop, bool preserveAspect = true, bool keepPermanentMedia = true)
+		public static async UniTask<bool> DownloadAndApplyImageAndCropAfter(string imageUrl, UnityEngine.UI.Image image, int cropSizeWidth, int cropSizeHeight, bool preserveAspect = true, bool keepPermanentMedia = true)
 		{
 			if (!string.IsNullOrEmpty(imageUrl))
 			{
 				Texture2D texture = await MediaManager.Instance.DownloadImage(imageUrl, int.MaxValue, keepPermanentMedia, false);
 				if (texture != null)
 				{
-					texture = texture.ResampleAndCrop(sizeCrop, sizeCrop);
+					texture = texture.ResampleAndCrop(cropSizeWidth, cropSizeHeight);
 					image.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
 					image.preserveAspect = preserveAspect;
 					return true;

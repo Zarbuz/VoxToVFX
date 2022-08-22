@@ -122,7 +122,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			mCollectionCreated = collection;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			mCreatorUser = await UserManager.Instance.LoadUserFromEthAddress(collection.Creator);
+			mCreatorUser = await DataManager.Instance.GetUserWithCache(collection.Creator);
 			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
 			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
@@ -173,7 +173,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				if (!string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
 				{
 					LogoImage.transform.parent.gameObject.SetActive(true);
-					await ImageUtils.DownloadAndApplyImage(mCollectionDetails.LogoImageUrl, LogoImage, 256, true, true, true);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, LogoImage, 184,184);
 				}
 				else
 				{
