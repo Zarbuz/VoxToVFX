@@ -9,17 +9,21 @@ namespace VoxToVFXFramework.Scripts.ScriptableObjets
 		public string ExternalProxyCallAddress;
 		public string CollectionFactoryAddress;
 		public string CollectionContractAddress;
+		public string VoxETHAddress;
+		public string VoxToVFXMarketAddress;
+		public string VoxToVFXMiddlewareAddress;
 
-		[TextArea]
-		public string VoxToVFXTreasuryABI;
+		[TextArea] public string VoxToVFXTreasuryABI;
 
-		[TextArea]
-		public string ExternalProxyCallABI;
+		[TextArea] public string ExternalProxyCallABI;
 
-		[TextArea]
-		public string CollectionContractABI;
+		[TextArea] public string CollectionContractABI;
 
-		[TextArea]
-		public string CollectionFactoryABI;
+		[TextArea] public string CollectionFactoryABI;
+
+		[TextArea] public string VoxETHABI;
+
+		[TextArea] public string VoxToVFXMarketABI;
+		[TextArea] public string VoxToVFXMiddlewareABI;
 	}
 }

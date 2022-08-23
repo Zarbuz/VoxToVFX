@@ -33,11 +33,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region UnityMethods
 
-		protected override void OnAwake()
-		{
-			Moralis.Start();
-		}
-
 		protected override async void OnStart()
 		{
 			await SubscribeToDatabaseEvents();
@@ -111,7 +106,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			mCollectionMintedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionMintedEvent>();
 
 			mCollectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
-			mCollectionMintedQueryCallbacks.OnErrorEvent += delegate(ErrorMessage evt)
+			mCollectionMintedQueryCallbacks.OnErrorEvent += delegate (ErrorMessage evt)
 			{
 				Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
 			};
@@ -126,40 +121,33 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisLiveQueryController.AddSubscription<CollectionMintedEvent>("CollectionMintedEvent", mCollectionMintedQuery, mCollectionMintedQueryCallbacks);
 		}
 
-	
+
 
 		private async void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
 		{
 			Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);
-			MoralisUser user = await Moralis.GetUserAsync();
-			if (user != null)
+
+			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
-				if (user.ethAddress == item.Creator)
+				DataManager.Instance.AddCollectionCreated(item);
+				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 				{
-					DataManager.Instance.AddCollectionCreated(item);
-					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
-					{
-						CollectionCreatedEvent?.Invoke(item);
-					});
-				}
+					CollectionCreatedEvent?.Invoke(item);
+				});
 			}
 		}
 
 		private async void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
 		{
 			Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent " + item.Creator);
-			MoralisUser user = await Moralis.GetUserAsync();
-			if (user != null)
+			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
-				if (user.ethAddress == item.Creator)
+				DataManager.Instance.AddCollectionMinted(item);
+				await NFTManager.Instance.SyncNFTContract(item.Address);
+				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 				{
-					DataManager.Instance.AddCollectionMinted(item);
-					await NFTManager.Instance.SyncNFTContract(item.Address);
-					await UnityMainThreadManager.Instance.EnqueueAsync(() =>
-					{
-						CollectionMintedEvent?.Invoke(item);
-					});
-				}
+					CollectionMintedEvent?.Invoke(item);
+				});
 			}
 		}
 

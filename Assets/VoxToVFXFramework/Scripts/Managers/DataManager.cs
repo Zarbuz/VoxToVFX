@@ -106,7 +106,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 
 			CustomUser userFromEth = await UserManager.Instance.LoadUserFromEthAddress(ethAddress);
-			if (userFromEth != user)
+			if (userFromEth != null)
 			{
 				Users[ethAddress] = userFromEth;
 				return userFromEth;

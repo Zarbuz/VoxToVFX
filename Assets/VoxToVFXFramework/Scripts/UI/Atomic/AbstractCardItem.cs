@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 
@@ -20,6 +21,11 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 		#endregion
 
 		#region UnityMethods
+
+		private void Start()
+		{
+			CanvasGroup.alpha = 0;
+		}
 
 		public void OnPointerEnter(PointerEventData eventData)
 		{

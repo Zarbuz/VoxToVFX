@@ -79,8 +79,7 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		private async UniTask Refresh()
 		{
-			MoralisUser moralisUser = await Moralis.GetUserAsync();
-			CustomUser customUser = await UserManager.Instance.LoadFromUser(moralisUser);
+			CustomUser customUser = await UserManager.Instance.LoadCurrentUser();
 			if (customUser != null)
 			{
 				NameInputField.text = customUser.Name;

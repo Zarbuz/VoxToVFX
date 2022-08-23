@@ -1,6 +1,8 @@
-﻿using MoralisUnity.Web3Api.Models;
+﻿using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Localization;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
 
@@ -33,15 +35,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region UnityMethods
 
+		protected override void OnAwake()
+		{
+			Moralis.Start();
+		}
+
 		protected override async void OnStart()
 		{
 			SetConfig();
 			QualityManager.Instance.Initialize();
-
-			if (SkipFullReconnectEditor)
-			{
-				await UserManager.Instance.LoadCurrentUser();
-			}
+			await UserManager.Instance.LoadCurrentUser();
 		}
 
 		#endregion

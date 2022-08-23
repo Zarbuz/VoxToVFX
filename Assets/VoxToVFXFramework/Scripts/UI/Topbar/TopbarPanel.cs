@@ -1,3 +1,4 @@
+using System.Numerics;
 using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
@@ -119,11 +120,10 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 					UpdateAvatarDisplay(false);
 				}
 
-				MoralisUser moralisUser = await Moralis.GetUserAsync();
-				WalletAddressText.text = moralisUser.ethAddress.FormatEthAddress(4);
+				WalletAddressText.text = user.EthAddress.FormatEthAddress(4);
 
 				// Retrienve the user's native balance;
-				NativeBalance balanceResponse = await Moralis.Web3Api.Account.GetNativeBalance(moralisUser.ethAddress, Moralis.CurrentChain.EnumValue);
+				NativeBalance balanceResponse = await Moralis.Web3Api.Account.GetNativeBalance(user.EthAddress, Moralis.CurrentChain.EnumValue);
 
 				double balance = 0.0;
 				float decimals = Moralis.CurrentChain.Decimals * 1.0f;
@@ -139,8 +139,8 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 				// Display native token amount token in fractions of token.
 				// NOTE: May be better to link this to chain since some tokens may have
 				// more than 18 sigjnificant figures.
-				WalletBalanceText.text = $"{(balance / (double)Mathf.Pow(10.0f, decimals)):0.####} {sym}";
-
+				WalletBalanceText.text = $"{(balance / Mathf.Pow(10.0f, decimals)):0.####} {sym}";
+				MarketplaceBalanceText.text = $"{(UserManager.Instance.AccountInfoContractType.AvailableFethBalance / (BigInteger)Mathf.Pow(10.0f, decimals)):0.####} {sym}";
 				LockOpenProfileButton(false);
 			}
 			else

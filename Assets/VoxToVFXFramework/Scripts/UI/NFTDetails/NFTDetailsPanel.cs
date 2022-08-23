@@ -18,9 +18,14 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 	{
 		#region ScriptParameters
 
+		[Header("Global")]
 		[SerializeField] private VerticalLayoutGroup VerticalLayoutGroup;
-		[SerializeField] private Image MainImage;
 		[SerializeField] private Image LoadingBackgroundImage;
+
+		[Header("Top")]
+		[SerializeField] private Image MainImage;
+
+		[Header("Left")]
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI DescriptionLabel;
 		[SerializeField] private TextMeshProUGUI Description;
@@ -32,8 +37,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Button ViewEtherscanButton;
 		[SerializeField] private Button ViewMetadataButton;
 		[SerializeField] private Button ViewIpfsButton;
-		[SerializeField] private Button LoadVoxModelButton;
 		[SerializeField] private Button OpenCollectionButton;
+
+		[Header("Right")]
+		[SerializeField] private Button LoadVoxModelButton;
 		#endregion
 
 		#region Fields
