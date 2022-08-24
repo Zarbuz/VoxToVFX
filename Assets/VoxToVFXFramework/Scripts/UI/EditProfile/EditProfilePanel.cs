@@ -54,11 +54,11 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		#region UnityMethods
 
-		private async void OnEnable()
+		private void OnEnable()
 		{
 			SaveButton.onClick.AddListener(OnSaveClicked);
 			UserManager.Instance.OnUserInfoUpdated += OnUserInfoUpdated;
-			await Refresh();
+			Refresh();
 		}
 
 		private void OnDisable()
@@ -77,9 +77,9 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 
 		#region PrivateMethods
 
-		private async UniTask Refresh()
+		private void Refresh()
 		{
-			CustomUser customUser = await UserManager.Instance.LoadCurrentUser();
+			CustomUser customUser = UserManager.Instance.CurrentUser;
 			if (customUser != null)
 			{
 				NameInputField.text = customUser.Name;
@@ -103,9 +103,9 @@ namespace VoxToVFXFramework.Scripts.UI.EditProfile
 			}
 		}
 
-		private async void OnUserInfoUpdated(CustomUser customUser)
+		private void OnUserInfoUpdated(CustomUser customUser)
 		{
-			await Refresh();
+			Refresh();
 		}
 
 		private async void OnSaveClicked()
