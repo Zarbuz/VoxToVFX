@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Globalization;
+using System.Numerics;
 using MoralisUnity;
+using Nethereum.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
+using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 {
@@ -36,6 +42,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		#region Fields
 
 		private eUpdateTargetType mTargetType;
+		private CollectionMintedEvent mCollectionItem;
 
 		#endregion
 
@@ -67,9 +74,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public void Initialize(eUpdateTargetType updateTargetType)
+		public void Initialize(eUpdateTargetType updateTargetType, CollectionMintedEvent collectionMintedItem)
 		{
 			mTargetType = updateTargetType;
+			mCollectionItem = collectionMintedItem;
 			switch (updateTargetType)
 			{
 				case eUpdateTargetType.SET_BUY_PRICE:
@@ -125,6 +133,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			switch (mTargetType)
 			{
 				case eUpdateTargetType.SET_BUY_PRICE:
+					OnSetBuyPrice();
 					break;
 				case eUpdateTargetType.CHANGE_RESERVE:
 					break;
@@ -133,6 +142,13 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		private async void OnSetBuyPrice()
+		{
+			float price = float.Parse(PriceInputField.text);
+			BigInteger priceInWei = UnitConversion.Convert.ToWei(price, 18);
+			string result = await NFTMarketManager.Instance.SetBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID, priceInWei);
 		}
 
 		private void OnMarketplaceValueChanged(bool active)

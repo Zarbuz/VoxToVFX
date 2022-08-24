@@ -10,6 +10,7 @@ using UnityEngine;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.Utils.ContractFunction;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -59,7 +60,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			HexBigInteger value = new HexBigInteger(0);
 			HexBigInteger gas = new HexBigInteger(0);
 			HexBigInteger gasPrice = new HexBigInteger(0); //useless
-			string resp = await Moralis.ExecuteContractFunction(contractAddress, SmartContractAddressConfig.CollectionContractABI, "mint", parameters, value, gas, gasPrice);
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(contractAddress, SmartContractAddressConfig.CollectionContractABI, "mint", parameters, value, gas, gasPrice);
 
 			Debug.Log("[NFTManager] MintNft: " + resp);
 			return resp;

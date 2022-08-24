@@ -118,7 +118,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		#region PublicMethods
 
-		public async UniTask Initialize(CollectionCreatedEvent collection)
+		public async void Initialize(CollectionCreatedEvent collection)
 		{
 			mCollectionCreated = collection;
 			LoadingBackgroundImage.gameObject.SetActive(true);

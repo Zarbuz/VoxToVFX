@@ -66,7 +66,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async UniTask Initialize(CustomUser user)
+		public async void Initialize(CustomUser user)
 		{
 			ProfileListingPanel.Initialize(user);
 

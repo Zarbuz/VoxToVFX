@@ -66,8 +66,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			try
 			{
-				NFTDetailsContractType result = await moralisClient.Web3Api.Native.RunContractFunction<NFTDetailsContractType>(SmartContractAddressConfig.VoxToVFXMiddlewareAddress, "getNFTDetails",
-					runContractDto, ConfigManager.Instance.ChainList);
+				NFTDetailsContractType result = await moralisClient.Web3Api.Native.RunContractFunction<NFTDetailsContractType>(SmartContractAddressConfig.VoxToVFXMiddlewareAddress, "getNFTDetails", runContractDto, ConfigManager.Instance.ChainList);
 
 				return result;
 			}

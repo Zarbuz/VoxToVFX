@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using MoralisUnity;
+﻿using MoralisUnity;
 using MoralisUnity.Kits.AuthenticationKit;
-using MoralisUnity.Platform.Objects;
+using System;
+using System.Collections;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
-using WalletConnectSharp.Core.Models;
-using WalletConnectSharp.Unity;
 
 namespace VoxToVFXFramework.Scripts.UI.Login
 {
@@ -26,7 +23,8 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 
 		#region Fields
 
-		public static event Action OnWalletConnected; 
+		public static event Action OnWalletConnected;
+		private bool mIsConnected;
 
 		#endregion
 
@@ -42,6 +40,16 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 		{
 			OnStateChanged(AuthenticationKit.State);
 			StartCoroutine(ConnectCo());
+		}
+
+		#endregion
+
+		#region PublicMethods
+
+		public async UniTask Initialize()
+		{
+			mIsConnected = false;
+			await UniTask.WaitUntil(() => mIsConnected);
 		}
 
 		#endregion
@@ -68,7 +76,7 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 				CanvasPlayerPCManager.Instance.GenericClosePanel();
 			}
 
-
+			mIsConnected = true;
 			Debug.Log("CurrentChainId: " + Moralis.CurrentChain.ChainId);
 			OnWalletConnected?.Invoke();
 		}

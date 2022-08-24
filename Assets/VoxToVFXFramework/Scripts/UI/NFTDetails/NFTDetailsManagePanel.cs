@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTDetails
@@ -15,6 +16,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private GameObject SubPanelManager;
 		[SerializeField] private Button TransferNFTButton;
 		[SerializeField] private Button BurnNFTButton;
+
+		#endregion
+
+		#region Fields
+
+		private CollectionMintedEvent mCollectionItem;
 
 		#endregion
 
@@ -40,11 +47,20 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#endregion
 
+		#region PublicMethods
+
+		public void Initialize(CollectionMintedEvent collectionItem)
+		{
+			mCollectionItem = collectionItem;
+		}
+
+		#endregion
+
 		#region PrivateMethods
 
 		private void OnSetPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenNFTUpdatePanel(eUpdateTargetType.SET_BUY_PRICE);
+			CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionItem);
 		}
 
 		private void OnSetListClicked()

@@ -12,6 +12,7 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.Utils.ContractFunction;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -56,7 +57,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			HexBigInteger value = new HexBigInteger(0);
 			HexBigInteger gas = new HexBigInteger(100000);
 			HexBigInteger gasPrice = new HexBigInteger(0); //useless
-			string resp = await Moralis.ExecuteContractFunction(SmartContractAddressConfig.CollectionFactoryAddress, SmartContractAddressConfig.CollectionFactoryABI, "createCollection", parameters, value, gas, gasPrice);
+
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(SmartContractAddressConfig.CollectionFactoryAddress, SmartContractAddressConfig.CollectionFactoryABI, "createCollection", parameters, value, gas, gasPrice);
 
 			Debug.Log("[CollectionFactoryManager] CreateCollection: " + resp);
 			return resp;

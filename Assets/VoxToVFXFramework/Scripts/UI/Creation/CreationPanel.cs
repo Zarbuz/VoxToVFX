@@ -85,6 +85,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		#region Fields
 
 		private CollectionCreatedEvent mCollectionCreated;
+		private CollectionMintedEvent mCollectionMintedItem;
 		private List<string> mIpfsFiles;
 		private string mZipLocalPath;
 		private string mTransactionId;
@@ -121,9 +122,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.AddListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.AddListener(OnPreviewClicked);
-			
 
-			CreationState = eCreationState.SELECT;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
 			CollectionFactoryManager.Instance.CollectionMintedEvent += OnCollectionMinted;
@@ -139,7 +138,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.RemoveListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.RemoveListener(OnPreviewClicked);
-		
 
 			if (VoxelDataCreatorManager.Instance != null)
 			{
@@ -161,6 +159,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		public void Initialize(CollectionCreatedEvent collectionCreated)
 		{
+			CreationState = eCreationState.SELECT;
 			mCollectionCreated = collectionCreated;
 			CollectionNameText.text = collectionCreated.Name;
 			CollectionSymbolText.text = collectionCreated.Symbol;
@@ -290,6 +289,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		private void OnCollectionMinted(CollectionMintedEvent collectionMinted)
 		{
 			Debug.Log("[CollectionPanel OnCollectionMinted received!");
+			mCollectionMintedItem = collectionMinted;
 			CreationState = eCreationState.CONGRATULATIONS;
 		}
 
@@ -305,7 +305,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnOpenSetBuyPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenNFTUpdatePanel(eUpdateTargetType.SET_BUY_PRICE);
+			CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionMintedItem);
 		}
 
 		private void OnOpenEtherscanClicked()

@@ -1,6 +1,11 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Numerics;
+using Cysharp.Threading.Tasks;
+using MoralisUnity;
+using Nethereum.Hex.HexTypes;
+using UnityEngine;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.Utils.ContractFunction;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -14,9 +19,20 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region PublicMethods
 
-		public async UniTask SetBuyPrice(string nftContract, int tokenId, int price)
+		public async UniTask<string> SetBuyPrice(string nftContract, string tokenId, BigInteger price)
 		{
+			object[] parameters = {
+				nftContract, tokenId, price
+			};
 
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(0);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(SmartContractAddressConfig.VoxToVFXMarketAddress, SmartContractAddressConfig.VoxToVFXMarketABI, "setBuyPrice", parameters, value, gas, gasPrice);
+
+			Debug.Log("[NFTManager] SetBuyPrice: " + resp);
+			return resp;
 		}
 		
 

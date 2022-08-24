@@ -12,9 +12,6 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 		[JsonProperty("tokenId")]
 		public string TokenID { get; set; }
 
-		//[JsonProperty("tokenId_decimal")]
-		//public int TokenIdDecimal { get; set; }
-
 		[JsonProperty("creator")]
 		public string Creator { get; set; }
 
@@ -23,7 +20,6 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 
 		[JsonProperty("address")]
 		public string Address { get; set; }
-
 	}
 
 

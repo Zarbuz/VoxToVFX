@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -212,10 +213,22 @@ namespace VoxToVFXFramework.Scripts.UI
 			PreviewPanel.Initialize(title, description, onBackCallback);
 		}
 
-		public void OpenNFTUpdatePanel(eUpdateTargetType updateTargetType)
+		public void OpenSetBuyPricePanel(CollectionMintedEvent collectionMinted)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(updateTargetType);
+			NFTUpdatePanel.Initialize(eUpdateTargetType.SET_BUY_PRICE, collectionMinted);
+		}
+
+		public async UniTask OpenLoginPanel()
+		{
+			CanvasPlayerPcState = CanvasPlayerPCState.Login;
+			await LoginPanel.Initialize();
+		}
+
+		public void OpenCollectionPanel()
+		{
+			CanvasPlayerPcState = CanvasPlayerPCState.Collection;
+			CollectionPanel.Initialize();
 		}
 
 		#endregion

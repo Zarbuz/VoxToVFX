@@ -44,7 +44,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			SetConfig();
 			QualityManager.Instance.Initialize();
-			await UserManager.Instance.LoadCurrentUser();
+			var user = await UserManager.Instance.LoadCurrentUser();
 		}
 
 		#endregion

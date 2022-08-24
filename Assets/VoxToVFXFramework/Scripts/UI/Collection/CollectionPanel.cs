@@ -123,7 +123,6 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 
 		private void OnEnable()
 		{
-			CollectionPanelState = eCollectionPanelState.LIST;
 			HelpInfoButton.onClick.AddListener(OnHelpInfoClicked);
 			BackButton.onClick.AddListener(OnBackClicked);
 			CreateCollectionButton.onClick.AddListener(OnCreateCollectionClicked);
@@ -134,10 +133,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			OpenEtherscanButton.onClick.AddListener(OnOpenEtherscanClicked);
 			BackCongratulationsButton.onClick.AddListener(OnBackCongratulationsClicked);
 			RetryButton.onClick.AddListener(OnRetryButtonClicked);
-			ContinueButton.interactable = false;
 
 			CollectionFactoryManager.Instance.CollectionCreatedEvent += OnCollectionCreated;
-			RefreshCollectionList();
 		}
 
 		private void OnDisable()
@@ -163,6 +160,13 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		#endregion
 
 		#region PublicMethods
+
+		public void Initialize()
+		{
+			CollectionPanelState = eCollectionPanelState.LIST;
+			ContinueButton.interactable = false;
+			RefreshCollectionList();
+		}
 
 		public void ClosePanel()
 		{

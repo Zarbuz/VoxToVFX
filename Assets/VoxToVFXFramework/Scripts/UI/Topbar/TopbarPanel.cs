@@ -46,7 +46,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		#region UnityMethods
 
-		private async void OnEnable()
+		private void OnEnable()
 		{
 			HomeButton.onClick.AddListener(OnHomeClicked);
 			OpenProfilePopupButton.onClick.AddListener(OnOpenPopupProfileClicked);
@@ -59,7 +59,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			UserManager.Instance.OnUserInfoUpdated += OnUserInfoRefresh;
 			ProfilePopup.gameObject.SetActive(false);
 
-			await RefreshToolbar();
+			RefreshToolbar();
 		}
 
 		private void OnDisable()
@@ -84,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		#region PrivateMethods
 
-		private async UniTask RefreshToolbar()
+		private async void RefreshToolbar()
 		{
 			CustomUser user = UserManager.Instance.CurrentUser;
 			ConnectWalletButton.gameObject.SetActive(user == null);
@@ -220,7 +220,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 		private void OnCreateItemClicked()
 		{
-			CanvasPlayerPCManager.Instance.SetCanvasPlayerState(CanvasPlayerPCState.Collection);
+			CanvasPlayerPCManager.Instance.OpenCollectionPanel();
 		}
 
 		#endregion
