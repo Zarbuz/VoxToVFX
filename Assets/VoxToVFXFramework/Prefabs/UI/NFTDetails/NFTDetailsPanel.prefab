@@ -792,6 +792,7 @@ MonoBehaviour:
   ViewIpfsButton: {fileID: 7324412139554981507}
   OpenCollectionButton: {fileID: 2609122651477296901}
   LoadVoxModelButton: {fileID: 3704322449514853918}
+  NFTDetailsManagePanel: {fileID: 5345878599716689600}
 --- !u!1 &1981687892350547467
 GameObject:
   m_ObjectHideFlags: 0
@@ -1518,7 +1519,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 24, y: 24}
+  m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &2511497120818088639
 CanvasRenderer:
@@ -3692,8 +3693,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 17.5, y: 0}
-  m_SizeDelta: {x: -35, y: 0}
+  m_AnchoredPosition: {x: 20, y: 0}
+  m_SizeDelta: {x: -40, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1507758494471181866
 CanvasRenderer:
@@ -4433,12 +4434,12 @@ PrefabInstance:
     - target: {fileID: 1571887378118160259, guid: 1c1462e8cba8c034b8f9619c9e1de545,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 24
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 1571887378118160259, guid: 1c1462e8cba8c034b8f9619c9e1de545,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 24
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 1571887378118160259, guid: 1c1462e8cba8c034b8f9619c9e1de545,
         type: 3}
@@ -4478,7 +4479,7 @@ PrefabInstance:
     - target: {fileID: 1571887378118160259, guid: 1c1462e8cba8c034b8f9619c9e1de545,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1571887378118160259, guid: 1c1462e8cba8c034b8f9619c9e1de545,
         type: 3}
@@ -4536,6 +4537,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: NFTDetailsManagePanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4032741082307293871, guid: 70cafe8fd797238429acc14549e2760c,
+        type: 3}
+      propertyPath: m_Name
+      value: OpenManageToggle
       objectReference: {fileID: 0}
     - target: {fileID: 4352618386747202608, guid: 70cafe8fd797238429acc14549e2760c,
         type: 3}
@@ -4642,6 +4648,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6103180203566470175, guid: 70cafe8fd797238429acc14549e2760c,
+        type: 3}
+      propertyPath: m_text
+      value: List
+      objectReference: {fileID: 0}
     - target: {fileID: 6792470177727594206, guid: 70cafe8fd797238429acc14549e2760c,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -4701,6 +4712,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9078385423955347878, guid: 70cafe8fd797238429acc14549e2760c,
+        type: 3}
+      propertyPath: m_text
+      value: Set Price
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 70cafe8fd797238429acc14549e2760c, type: 3}
@@ -4710,6 +4726,18 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 3736457828881056996}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5345878599716689600 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8785098842448532004, guid: 70cafe8fd797238429acc14549e2760c,
+    type: 3}
+  m_PrefabInstance: {fileID: 3736457828881056996}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38153250443bb144bc0acba895d2c1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &5428836568236163213
 PrefabInstance:
   m_ObjectHideFlags: 0

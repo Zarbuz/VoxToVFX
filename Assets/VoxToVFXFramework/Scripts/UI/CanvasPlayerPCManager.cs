@@ -17,6 +17,7 @@ using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Loading;
 using VoxToVFXFramework.Scripts.UI.Login;
 using VoxToVFXFramework.Scripts.UI.NFTDetails;
+using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Preview;
 using VoxToVFXFramework.Scripts.UI.Profile;
@@ -44,7 +45,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Creation,
 		Loading,
 		NftDetails,
-		CollectionDetails
+		CollectionDetails,
+		NftUpdate
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -69,6 +71,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private PreviewPanel PreviewPanel;
 		[SerializeField] private NFTDetailsPanel NFTDetailsPanel;
 		[SerializeField] private CollectionDetailsPanel CollectionDetailsPanel;
+		[SerializeField] private NFTUpdatePanel NFTUpdatePanel;
+
 		#endregion
 
 		#region Fields
@@ -94,6 +98,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				LoadingPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
 				NFTDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftDetails);
 				CollectionDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionDetails);
+				NFTUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftUpdate);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -205,6 +210,12 @@ namespace VoxToVFXFramework.Scripts.UI
 		public void OpenPreviewPanel(string title, string description, Action onBackCallback)
 		{
 			PreviewPanel.Initialize(title, description, onBackCallback);
+		}
+
+		public void OpenNFTUpdatePanel(eUpdateTargetType updateTargetType)
+		{
+			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
+			NFTUpdatePanel.Initialize(updateTargetType);
 		}
 
 		#endregion

@@ -79,7 +79,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public Wrapped<bool> DebugLod = new Wrapped<bool>(false);
 		//public Wrapped<float> ExposureWeight = new Wrapped<float>(-15);
-		public Wrapped<float> ColliderDistance = new Wrapped<float>(10);
+		public Wrapped<float> ColliderDistance = new Wrapped<float>(5);
 		public Wrapped<int> LodDistanceLod0 = new Wrapped<int>(300);
 		public Wrapped<int> LodDistanceLod1 = new Wrapped<int>(600);
 		public Wrapped<int> ExposureWeight = new Wrapped<int>(-15);

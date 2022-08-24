@@ -16,6 +16,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
+using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.Utils.MetadataBuilder;
 
@@ -34,7 +35,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			CONFIRMATION_WALLET,
 			CONFIRMATION_BLOCKCHAIN,
 			CONGRATULATIONS,
-			SET_BUY_PRICE
 		}
 
 		#endregion
@@ -49,7 +49,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private GameObject WaitingConfirmationWalletPanel;
 		[SerializeField] private GameObject MintInProgressPanel;
 		[SerializeField] private GameObject CongratulationsPanel;
-		[SerializeField] private GameObject SetBuyPricePanel;
 
 		[Header("SelectFile")]
 		[SerializeField] private Button SelectFileButton;
@@ -81,23 +80,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private Button ViewCollectionButton;
 		[SerializeField] private Button OpenSetBuyPricePanelButton;
 
-		[Header("SetBuyPrice")]
-		[SerializeField] private RectTransform BuyPricePanelRectTransform;
-		[SerializeField] private TMP_InputField PriceInputField;
-		[SerializeField] private Button SetBuyPriceButton;
-		[SerializeField] private TextMeshProUGUI SetBuyPriceButtonText;
-		[SerializeField] private Toggle MarketplaceToggle;
-		[SerializeField] private GameObject MarketplacePanel;
-		[SerializeField] private TextMeshProUGUI MarketplaceFeeCountText;
-		[SerializeField] private TextMeshProUGUI ReceiveCountText;
-		[SerializeField] private Image ArrowIcon;
-
-		#endregion
-
-		#region ConstStatic
-
-		public const int MARKETPLACE_FEES = 5;
-
 		#endregion
 
 		#region Fields
@@ -122,7 +104,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 				WaitingConfirmationWalletPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_WALLET);
 				MintInProgressPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_BLOCKCHAIN);
 				CongratulationsPanel.SetActive(mCreationState == eCreationState.CONGRATULATIONS);
-				SetBuyPricePanel.SetActive(mCreationState == eCreationState.SET_BUY_PRICE);
 			}
 		}
 
@@ -140,11 +121,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.AddListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.AddListener(OnPreviewClicked);
-			PriceInputField.onValueChanged.AddListener(OnPriceValueChanged);
-			SetBuyPriceButton.onClick.AddListener(OnSetBuyPriceClicked);
-			MarketplaceToggle.onValueChanged.AddListener(OnMarketplaceValueChanged);
-
-			SetBuyPriceButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
+			
 
 			CreationState = eCreationState.SELECT;
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
@@ -162,9 +139,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.RemoveListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.RemoveListener(OnPreviewClicked);
-			PriceInputField.onValueChanged.RemoveListener(OnPriceValueChanged);
-			SetBuyPriceButton.onClick.RemoveListener(OnSetBuyPriceClicked);
-			MarketplaceToggle.onValueChanged.RemoveListener(OnMarketplaceValueChanged);
+		
 
 			if (VoxelDataCreatorManager.Instance != null)
 			{
@@ -330,7 +305,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnOpenSetBuyPriceClicked()
 		{
-			CreationState = eCreationState.SET_BUY_PRICE;
+			CanvasPlayerPCManager.Instance.OpenNFTUpdatePanel(eUpdateTargetType.SET_BUY_PRICE);
 		}
 
 		private void OnOpenEtherscanClicked()
@@ -339,49 +314,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Application.OpenURL(url);
 		}
 
-		private void OnPriceValueChanged(string text)
-		{
-			bool success = float.TryParse(text, NumberStyles.Any, LocalizationManager.Instance.CurrentCultureInfo, out float value);
-			if (!success)
-			{
-				SetBuyPriceButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
-				SetBuyPriceButton.interactable = false;
-				ReceiveCountText.text = "0.00 ETH";
-				MarketplaceFeeCountText.text = "0.00 ETH";
-			}
-			else
-			{
-				if (value < 0.01)
-				{
-					SetBuyPriceButtonText.text = LocalizationKeys.SET_BUY_AT_LEAST_0_01ETH.Translate();
-					SetBuyPriceButton.interactable = false;
-					MarketplaceFeeCountText.text = "0.00 ETH";
-					ReceiveCountText.text = "0.00 ETH";
-				}
-				else
-				{
-					SetBuyPriceButtonText.text = LocalizationKeys.SET_BUY_PRICE.Translate();
-					SetBuyPriceButton.interactable = true;
-					float marketplaceFees = value * (MARKETPLACE_FEES / (float)100);
-					float willReceiveCount = value - marketplaceFees;
-					MarketplaceFeeCountText.text = marketplaceFees + " ETH";
-					ReceiveCountText.text = willReceiveCount + " ETH";
-				}
-			}
-		}
-
-		private void OnSetBuyPriceClicked()
-		{
-
-		}
-
-		private void OnMarketplaceValueChanged(bool active)
-		{
-			Vector2 size = BuyPricePanelRectTransform.sizeDelta;
-			ArrowIcon.transform.eulerAngles = active ? new Vector3(0, 0, 90) : new Vector3(0, 0, 270);
-			BuyPricePanelRectTransform.sizeDelta = new Vector2(size.x, active ? 443 : 390);
-			MarketplacePanel.SetActive(active);
-		}
+		
 
 		#endregion
 	}

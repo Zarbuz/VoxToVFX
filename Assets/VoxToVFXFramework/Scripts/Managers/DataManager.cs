@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
 using MoralisUnity.Web3Api.Models;
+using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -21,7 +22,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public Dictionary<string, Nft> NftMetadataPerAddressAndTokenId = new Dictionary<string, Nft>();
 		public Dictionary<string, CollectionDetails> CollectionDetails = new Dictionary<string, CollectionDetails>();
 		public Dictionary<string, CustomUser> Users = new Dictionary<string, CustomUser>();
-
+		public Dictionary<string, AccountInfoContractType> AccountDetails = new Dictionary<string, AccountInfoContractType>();
 		#endregion
 
 		#region ConstStatic

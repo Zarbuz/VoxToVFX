@@ -41,6 +41,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		[Header("Right")]
 		[SerializeField] private Button LoadVoxModelButton;
+		[SerializeField] private NFTDetailsManagePanel NFTDetailsManagePanel;
+
 		#endregion
 
 		#region Fields
@@ -82,6 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			mCollectionMinted = collectionMinted;
 			mNft = metadata;
 			LoadingBackgroundImage.gameObject.SetActive(true);
+			NFTDetailsManagePanel.gameObject.SetActive(collectionMinted.Creator == UserManager.Instance.CurrentUser?.EthAddress);
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(collectionMinted.Creator);
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(collectionMinted.Address);
 			OpenUserProfileButton.Initialize(creatorUser);
