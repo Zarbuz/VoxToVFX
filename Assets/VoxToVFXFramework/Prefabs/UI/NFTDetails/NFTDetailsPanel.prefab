@@ -1492,7 +1492,7 @@ GameObject:
   - component: {fileID: 6484517894284339866}
   - component: {fileID: 2511497120818088639}
   - component: {fileID: 3916127808986093594}
-  - component: {fileID: 4341823863392308422}
+  - component: {fileID: 142357245828151673}
   m_Layer: 5
   m_Name: Mask
   m_TagString: Untagged
@@ -1559,7 +1559,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 5
---- !u!114 &4341823863392308422
+--- !u!114 &142357245828151673
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1568,10 +1568,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 3946497739032588079}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
+  m_Script: {fileID: 11500000, guid: 0bac33ade27cf4542bd53b1b13d90941, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
+  _source: 0
+  _separateMask: {fileID: 0}
+  _sprite: {fileID: 0}
+  _spriteBorderMode: 0
+  _spritePixelsPerUnitMultiplier: 1
+  _texture: {fileID: 0}
+  _textureUVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  _channelWeights: {r: 0, g: 0, b: 0, a: 1}
+  _raycastThreshold: 0
+  _invertMask: 0
+  _invertOutsides: 0
 --- !u!1 &4069481874103111050
 GameObject:
   m_ObjectHideFlags: 0

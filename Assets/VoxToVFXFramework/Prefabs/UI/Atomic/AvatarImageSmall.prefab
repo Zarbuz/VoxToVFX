@@ -240,8 +240,8 @@ GameObject:
   - component: {fileID: 1571887378118160259}
   - component: {fileID: 7995988056351641510}
   - component: {fileID: 8824017218195512579}
-  - component: {fileID: 8101012945561733599}
   - component: {fileID: 4920090467175638696}
+  - component: {fileID: 1705158760775831863}
   m_Layer: 5
   m_Name: AvatarImageSmall
   m_TagString: Untagged
@@ -309,19 +309,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 5
---- !u!114 &8101012945561733599
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8856631437222685238}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
 --- !u!114 &4920090467175638696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -336,3 +323,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ProfileImage: {fileID: 8231594658382045768}
   NoAvatarImage: {fileID: 615295930824411208}
+--- !u!114 &1705158760775831863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8856631437222685238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bac33ade27cf4542bd53b1b13d90941, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _source: 0
+  _separateMask: {fileID: 0}
+  _sprite: {fileID: 0}
+  _spriteBorderMode: 0
+  _spritePixelsPerUnitMultiplier: 1
+  _texture: {fileID: 0}
+  _textureUVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  _channelWeights: {r: 0, g: 0, b: 0, a: 1}
+  _raycastThreshold: 0
+  _invertMask: 0
+  _invertOutsides: 0
