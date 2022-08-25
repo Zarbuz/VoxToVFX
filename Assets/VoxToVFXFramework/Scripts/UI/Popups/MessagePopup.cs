@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using VoxToVFXFramework.Scripts.Localization;
@@ -25,6 +26,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 		[SerializeField] private GameObject MessagePrefab;
 		[SerializeField] private GameObject BlockingConfirmPopup;
 		[SerializeField] private GameObject EditCollectionPopup;
+		[SerializeField] private GameObject ConfirmatioWalletPopup;
 
 		#endregion
 
@@ -81,6 +83,22 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 			Instance.CreateAndShow<EditCollectionPopup, EditCollectionDescriptor>(
 				Instance.EditCollectionPopup,
+				Instance.BlockingConfirmPanel,
+				popupDescriptor);
+		}
+
+		public static void ShowConfirmationWalletPopup(UniTask<string> execute, Action<string> onCallback)
+		{
+			var popupDescriptor = new ConfirmationWalletDescriptor()
+			{
+				UnicityTag = MessagePopupUnicityTag.CONFIRMATION_WALLET,
+				ActionToExecute = execute,
+				OnActionSuccessful = onCallback,
+				
+			};
+
+			Instance.CreateAndShow<ConfirmationWalletPopup, ConfirmationWalletDescriptor>(
+				Instance.ConfirmatioWalletPopup,
 				Instance.BlockingConfirmPanel,
 				popupDescriptor);
 		}

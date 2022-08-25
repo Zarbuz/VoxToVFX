@@ -4,6 +4,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 	{
 		DUPLICATE_ALLOWED,
 		// ---------------------------------------------
-		EDIT_COLLECTION
+		EDIT_COLLECTION,
+		CONFIRMATION_WALLET
 	}
 }

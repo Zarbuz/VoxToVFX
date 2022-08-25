@@ -32,7 +32,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			CONVERSION,
 			UPLOAD,
 			DETAILS,
-			CONFIRMATION_WALLET,
 			CONFIRMATION_BLOCKCHAIN,
 			CONGRATULATIONS,
 		}
@@ -46,7 +45,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private GameObject ConversionPanel;
 		[SerializeField] private GameObject UploadPanel;
 		[SerializeField] private GameObject AddDetailsPanel;
-		[SerializeField] private GameObject WaitingConfirmationWalletPanel;
 		[SerializeField] private GameObject MintInProgressPanel;
 		[SerializeField] private GameObject CongratulationsPanel;
 
@@ -72,8 +70,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 		[SerializeField] private Button MintButton;
 
 		[Header("MintInProgress")]
-		[SerializeField] private Image MintSpinner;
-		[SerializeField] private Button RetryButton;
 		[SerializeField] private Button OpenEtherscanButton;
 
 		[Header("Congratulations")]
@@ -102,7 +98,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 				ConversionPanel.SetActive(mCreationState == eCreationState.CONVERSION);
 				UploadPanel.SetActive(mCreationState == eCreationState.UPLOAD);
 				AddDetailsPanel.SetActive(mCreationState == eCreationState.DETAILS);
-				WaitingConfirmationWalletPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_WALLET);
 				MintInProgressPanel.SetActive(mCreationState == eCreationState.CONFIRMATION_BLOCKCHAIN);
 				CongratulationsPanel.SetActive(mCreationState == eCreationState.CONGRATULATIONS);
 			}
@@ -118,7 +113,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			DescriptionInputField.onValueChanged.AddListener(OnDescriptionValueChanged);
 			MintButton.onClick.AddListener(OnMintClicked);
 			OpenEtherscanButton.onClick.AddListener(OnOpenEtherscanClicked);
-			RetryButton.onClick.AddListener(OnRetryClicked);
 			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.AddListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.AddListener(OnPreviewClicked);
@@ -134,7 +128,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			DescriptionInputField.onValueChanged.RemoveListener(OnDescriptionValueChanged);
 			MintButton.onClick.RemoveListener(OnMintClicked);
 			OpenEtherscanButton.onClick.RemoveListener(OnOpenEtherscanClicked);
-			RetryButton.onClick.RemoveListener(OnRetryClicked);
 			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
 			OpenSetBuyPricePanelButton.onClick.RemoveListener(OnOpenSetBuyPriceClicked);
 			PreviewButton.onClick.RemoveListener(OnPreviewClicked);
@@ -163,6 +156,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			mCollectionCreated = collectionCreated;
 			CollectionNameText.text = collectionCreated.Name;
 			CollectionSymbolText.text = collectionCreated.Symbol;
+			MintButton.interactable = true;
 			CanvasPlayerPCManager.Instance.GenericTogglePanel(CanvasPlayerPCState.Creation);
 		}
 
@@ -250,7 +244,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 			//TODO: Handle Split
 
-			CreationState = eCreationState.CONFIRMATION_WALLET;
+			MintButton.interactable = false;
 			OpenEtherscanButton.gameObject.SetActive(false);
 
 			MetadataObject metadata = MetadataBuilder.BuildMetadata(NameInputField.text, DescriptionInputField.text, ImageSelectImage.ImageUrl, mIpfsFiles);
@@ -268,22 +262,15 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Mint();
 		}
 
-		private async void Mint()
+		private void Mint()
 		{
-			mTransactionId = await NFTManager.Instance.MintNft(mIpfsMetadataPath, mCollectionCreated.CollectionContract);
-
-			if (string.IsNullOrEmpty(mTransactionId))
-			{
-				//error
-				MessagePopup.Show(LocalizationKeys.COLLECTION_EXECUTE_CONTRACT_ERROR.Translate());
-				MintSpinner.gameObject.SetActive(false);
-				RetryButton.gameObject.SetActive(true);
-			}
-			else
-			{
-				CreationState = eCreationState.CONFIRMATION_BLOCKCHAIN;
-				OpenEtherscanButton.gameObject.SetActive(true);
-			}
+			MessagePopup.ShowConfirmationWalletPopup(NFTManager.Instance.MintNftAndApprove(mIpfsMetadataPath, mCollectionCreated.CollectionContract),
+				(transactionId) =>
+				{
+					mTransactionId = transactionId;
+					CreationState = eCreationState.CONFIRMATION_BLOCKCHAIN;
+					OpenEtherscanButton.gameObject.SetActive(true);
+				});
 		}
 
 		private void OnCollectionMinted(CollectionMintedEvent collectionMinted)
@@ -291,11 +278,6 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Debug.Log("[CollectionPanel OnCollectionMinted received!");
 			mCollectionMintedItem = collectionMinted;
 			CreationState = eCreationState.CONGRATULATIONS;
-		}
-
-		private void OnRetryClicked()
-		{
-			Mint();
 		}
 
 		private void OnViewCollectionClicked()
@@ -314,7 +296,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			Application.OpenURL(url);
 		}
 
-		
+
 
 		#endregion
 	}

@@ -149,8 +149,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (NFTPerContract.ContainsKey(collectionMinted.Address))
 			{
 				MoralisDataCacheDTO dto = NFTPerContract[collectionMinted.Address];
-				if (dto.List.Cast<CollectionMintedEvent>()
-					.All(t => t.Address != collectionMinted.Address))
+				if (dto.List.Cast<CollectionMintedEvent>().All(t => t.TokenID != collectionMinted.TokenID))
 				{
 					dto.List.Add(collectionMinted);
 					dto.LastTimeUpdated = DateTime.UtcNow;

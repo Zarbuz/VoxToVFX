@@ -27,7 +27,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			// Set gas estimate
 			HexBigInteger value = new HexBigInteger(0);
-			HexBigInteger gas = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(100000);
 			HexBigInteger gasPrice = new HexBigInteger(0); //useless
 			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(SmartContractAddressConfig.VoxToVFXMarketAddress, SmartContractAddressConfig.VoxToVFXMarketABI, "setBuyPrice", parameters, value, gas, gasPrice);
 

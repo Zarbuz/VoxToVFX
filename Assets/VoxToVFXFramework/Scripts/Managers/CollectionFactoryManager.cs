@@ -132,9 +132,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
 				DataManager.Instance.AddCollectionCreated(item);
+				CollectionCreatedEvent?.Invoke(item);
+
 				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 				{
-					CollectionCreatedEvent?.Invoke(item);
 				});
 			}
 		}
@@ -146,9 +147,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				DataManager.Instance.AddCollectionMinted(item);
 				await NFTManager.Instance.SyncNFTContract(item.Address);
+				CollectionMintedEvent?.Invoke(item);
 				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
 				{
-					CollectionMintedEvent?.Invoke(item);
 				});
 			}
 		}

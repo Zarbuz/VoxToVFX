@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
+using VoxToVFXFramework.Scripts.UI.Popups;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
@@ -59,8 +60,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			PriceInputField.onValueChanged.AddListener(OnPriceValueChanged);
 			SetButton.onClick.AddListener(OnSetClicked);
 			MarketplaceToggle.onValueChanged.AddListener(OnMarketplaceValueChanged);
-
-			SetButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
 		}
 
 		private void OnDisable()
@@ -83,6 +82,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				case eUpdateTargetType.SET_BUY_PRICE:
 					Title.text = LocalizationKeys.SET_BUY_PRICE_TITLE.Translate();
 					Description.text = LocalizationKeys.SET_BUY_PRICE_DESCRIPTION.Translate();
+					SetButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
 					break;
 				case eUpdateTargetType.CHANGE_RESERVE:
 					break;
@@ -144,11 +144,15 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 		}
 
-		private async void OnSetBuyPrice()
+		private void OnSetBuyPrice()
 		{
 			float price = float.Parse(PriceInputField.text);
 			BigInteger priceInWei = UnitConversion.Convert.ToWei(price, 18);
-			string result = await NFTMarketManager.Instance.SetBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID, priceInWei);
+			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.SetBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID, priceInWei),
+				(transactionId) =>
+				{
+
+				});
 		}
 
 		private void OnMarketplaceValueChanged(bool active)

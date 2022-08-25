@@ -47,20 +47,21 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return success;
 		}
 
-		public async UniTask<string> MintNft(string tokenCID, string contractAddress)
+		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
 		{
 			string token = tokenCID.Replace("https://", string.Empty);
 			Debug.Log(token);
 
 			object[] parameters = {
-				token
+				token,
+				SmartContractAddressConfig.VoxToVFXMarketAddress
 			};
 
 			// Set gas estimate
 			HexBigInteger value = new HexBigInteger(0);
 			HexBigInteger gas = new HexBigInteger(0);
 			HexBigInteger gasPrice = new HexBigInteger(0); //useless
-			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(contractAddress, SmartContractAddressConfig.CollectionContractABI, "mint", parameters, value, gas, gasPrice);
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(contractAddress, SmartContractAddressConfig.CollectionContractABI, "mintAndApprove", parameters, value, gas, gasPrice);
 
 			Debug.Log("[NFTManager] MintNft: " + resp);
 			return resp;
