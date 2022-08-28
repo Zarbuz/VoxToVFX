@@ -30,8 +30,6 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		private enum eCollectionLeftPartState
 		{
 			CREATION,
-			CONFIRMATION_WALLET,
-			CONFIRMATION_BLOCKCHAIN
 		}
 
 		#endregion
@@ -60,8 +58,6 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		[Header("CreateCollection")]
 
 		[SerializeField] private GameObject LeftCreationPanel;
-		[SerializeField] private GameObject LeftConfirmationPanel;
-		[SerializeField] private GameObject LeftWaitingBlockchainPanel;
 
 		[Space(10)]
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
@@ -69,12 +65,9 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		[SerializeField] private TMP_InputField CollectionNameInputField;
 		[SerializeField] private TMP_InputField CollectionSymbolInputField;
 		[SerializeField] private TextMeshProUGUI SubTitleCreateCollection;
-		[SerializeField] private Image CreateSpinner;
-		[SerializeField] private Button RetryButton;
 
 		[SerializeField] private Button ContinueButton;
 		[SerializeField] private Button HelpSmartContractButton;
-		[SerializeField] private Button OpenEtherscanButton;
 
 		[Header("Congratulations")]
 		[SerializeField] private Button BackCongratulationsButton;
@@ -109,13 +102,9 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			{
 				mCollectionLeftPartState = value;
 				LeftCreationPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CREATION);
-				LeftConfirmationPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CONFIRMATION_WALLET);
 				SubTitleCreateCollection.gameObject.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CREATION);
-				LeftWaitingBlockchainPanel.SetActive(mCollectionLeftPartState == eCollectionLeftPartState.CONFIRMATION_BLOCKCHAIN);
 			}
 		}
-
-		private string mTransactionId;
 
 		#endregion
 
@@ -130,11 +119,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			CollectionSymbolInputField.onValueChanged.AddListener(OnCollectionSymbolValueChanged);
 			HelpSmartContractButton.onClick.AddListener(OnHelpSmartContractClicked);
 			ContinueButton.onClick.AddListener(OnContinueClicked);
-			OpenEtherscanButton.onClick.AddListener(OnOpenEtherscanClicked);
 			BackCongratulationsButton.onClick.AddListener(OnBackCongratulationsClicked);
-			RetryButton.onClick.AddListener(OnRetryButtonClicked);
-
-			CollectionFactoryManager.Instance.CollectionCreatedEvent += OnCollectionCreated;
 		}
 
 		private void OnDisable()
@@ -144,17 +129,9 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			CreateCollectionButton.onClick.RemoveListener(OnCreateCollectionClicked);
 			HelpSmartContractButton.onClick.RemoveListener(OnHelpSmartContractClicked);
 			ContinueButton.onClick.RemoveListener(OnContinueClicked);
-			OpenEtherscanButton.onClick.RemoveListener(OnOpenEtherscanClicked);
 			BackCongratulationsButton.onClick.RemoveListener(OnBackCongratulationsClicked);
-			RetryButton.onClick.RemoveListener(OnRetryButtonClicked);
-
 			CollectionNameInputField.onValueChanged.RemoveListener(OnCollectionNameValueChanged);
 			CollectionSymbolInputField.onValueChanged.RemoveListener(OnCollectionSymbolValueChanged);
-
-			if (CollectionFactoryManager.Instance != null)
-			{
-				CollectionFactoryManager.Instance.CollectionCreatedEvent -= OnCollectionCreated;
-			}
 		}
 
 		#endregion
@@ -187,7 +164,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 		private async void RefreshCollectionList()
 		{
 			ShowSpinnerImage(true);
-			ListCollectionParent.DestroyAllChildren();
+			ListCollectionParent.DestroyAllChildren(true);
 			List<CollectionCreatedEvent> userContracts = await DataManager.Instance.GetUserListContractWithCache(UserManager.Instance.CurrentUser);
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
@@ -255,41 +232,26 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			ContinueButton.interactable = CollectionNameInputField.text.Length > 0 && CollectionSymbolInputField.text.Length > 0;
 		}
 
-		private async void OnContinueClicked()
+		private void OnContinueClicked()
 		{
-			await CreateCollection();
+			CreateCollection();
 		}
 
-		private void OnOpenEtherscanClicked()
+		private void CreateCollection()
 		{
-			string url = ConfigManager.Instance.EtherScanBaseUrl + "tx/" + mTransactionId;
-			Application.OpenURL(url);
+			MessagePopup.ShowConfirmationWalletPopup((CollectionFactoryManager.Instance.CreateCollection(CollectionNameInputField.text, CollectionSymbolInputField.text.ToUpperInvariant())).Preserve(),
+				(transactionId) =>
+				{
+					//CollectionLeftPartState = eCollectionLeftPartState.CONFIRMATION_BLOCKCHAIN;
+					MessagePopup.ShowConfirmationBlockchainPopup(
+						LocalizationKeys.COLLECTION_WAITING_CONFIRMATION_TITLE.Translate(),
+						LocalizationKeys.COLLECTION_SMART_CONTRACT_DEPLOYMENT_TITLE.Translate(),
+						transactionId,
+						OnCollectionCreated);
+				});
 		}
 
-		private async void OnRetryButtonClicked()
-		{
-			await CreateCollection();
-		}
-
-		private async UniTask CreateCollection()
-		{
-			CreateSpinner.gameObject.SetActive(true);
-			RetryButton.gameObject.SetActive(false);
-			CollectionLeftPartState = eCollectionLeftPartState.CONFIRMATION_WALLET;
-			mTransactionId = await CollectionFactoryManager.Instance.CreateCollection(CollectionNameInputField.text, CollectionSymbolInputField.text.ToUpperInvariant());
-			if (!string.IsNullOrEmpty(mTransactionId))
-			{
-				CollectionLeftPartState = eCollectionLeftPartState.CONFIRMATION_BLOCKCHAIN;
-			}
-			else
-			{
-				MessagePopup.Show(LocalizationKeys.COLLECTION_EXECUTE_CONTRACT_ERROR.Translate());
-				CreateSpinner.gameObject.SetActive(false);
-				RetryButton.gameObject.SetActive(true);
-			}
-		}
-
-		private void OnCollectionCreated(CollectionCreatedEvent collectionCreated)
+		private void OnCollectionCreated(AbstractContractEvent collectionCreated)
 		{
 			Debug.Log("[CollectionPanel] OnCollectionCreated received!");
 			CollectionPanelState = eCollectionPanelState.CONGRATULATIONS;

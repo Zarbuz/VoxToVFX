@@ -21,8 +21,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region Fields
 
 		public SmartContractAddressConfig SmartContractAddressConfig => ConfigManager.Instance.SmartContractAddress;
-		public event Action<CollectionCreatedEvent> CollectionCreatedEvent;
-		public event Action<CollectionMintedEvent> CollectionMintedEvent;
 
 		//Database Queries
 		private MoralisQuery<CollectionCreatedEvent> mCollectionCreatedQuery;
@@ -101,6 +99,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private async UniTask SubscribeToDatabaseEvents()
 		{
+			await UniTask.WaitWhile(() => UserManager.Instance.CurrentUser == null);
 			mCollectionCreatedQuery = await Moralis.GetClient().Query<CollectionCreatedEvent>();
 			mCollectionCreatedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionCreatedEvent>();
 
@@ -123,34 +122,27 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisLiveQueryController.AddSubscription<CollectionMintedEvent>("CollectionMintedEvent", mCollectionMintedQuery, mCollectionMintedQueryCallbacks);
 		}
 
-
-
-		private async void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
+		private void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
 		{
 			Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);
 
 			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
+				Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent is for current user");
 				DataManager.Instance.AddCollectionCreated(item);
-				CollectionCreatedEvent?.Invoke(item);
-
-				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
-				{
-				});
+				EventDatabaseManager.Instance.OnEventReceived(item);
 			}
 		}
 
-		private async void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
+		private void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
 		{
 			Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent " + item.Creator);
 			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
+				Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent is for current user");
+
 				DataManager.Instance.AddCollectionMinted(item);
-				await NFTManager.Instance.SyncNFTContract(item.Address);
-				CollectionMintedEvent?.Invoke(item);
-				await UnityMainThreadManager.Instance.EnqueueAsync(() =>
-				{
-				});
+				EventDatabaseManager.Instance.OnEventReceived(item);
 			}
 		}
 

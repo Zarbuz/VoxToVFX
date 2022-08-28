@@ -4,10 +4,13 @@ namespace VoxToVFXFramework.Scripts.Utils.Extensions
 {
 	public static class ExtensionsTransform
 	{
-		public static void DestroyAllChildren(this Transform parent)
+		public static void DestroyAllChildren(this Transform parent, bool ignoreFirst = false)
 		{
 			for (int i = 0; i < parent.childCount; ++i)
 			{
+				if (ignoreFirst && i == 0)
+					continue;
+
 				Transform child = parent.GetChild(i);
 				Object.Destroy(child.gameObject);
 			}

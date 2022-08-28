@@ -1,12 +1,15 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using VoxToVFXFramework.Scripts.Localization;
+using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups.Descriptor;
 using VoxToVFXFramework.Scripts.UI.Popups.Popup;
+using static UnityEngine.Application;
 
 namespace VoxToVFXFramework.Scripts.UI.Popups
 {
@@ -27,6 +30,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 		[SerializeField] private GameObject BlockingConfirmPopup;
 		[SerializeField] private GameObject EditCollectionPopup;
 		[SerializeField] private GameObject ConfirmatioWalletPopup;
+		[SerializeField] private GameObject ConfirmationBlockchainPopup;
 
 		#endregion
 
@@ -99,6 +103,23 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 			Instance.CreateAndShow<ConfirmationWalletPopup, ConfirmationWalletDescriptor>(
 				Instance.ConfirmatioWalletPopup,
+				Instance.BlockingConfirmPanel,
+				popupDescriptor);
+		}
+
+		public static void ShowConfirmationBlockchainPopup(string title, string description, string transactionId, Action<AbstractContractEvent> onSuccessCallback)
+		{
+			var popupDescriptor = new ConfirmationBlockchainDescriptor()
+			{
+				UnicityTag = MessagePopupUnicityTag.CONFIRMATION_BLOCKCHAIN,
+				OnActionSuccessful = onSuccessCallback,
+				Title = title,
+				Description = description,
+				TransactionId = transactionId
+			};
+
+			Instance.CreateAndShow<ConfirmationBlockchainPopup, ConfirmationBlockchainDescriptor>(
+				Instance.ConfirmationBlockchainPopup,
 				Instance.BlockingConfirmPanel,
 				popupDescriptor);
 		}
