@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Numerics;
 using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
 using Nethereum.Util;
 using TMPro;
 using UnityEngine;
@@ -26,6 +27,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 	{
 		#region ScriptParameters
 
+		[Header("Panels")]
+		[SerializeField] private GameObject MainPanel;
+		[SerializeField] private GameObject SetBuyPriceCongratulationsPanel;
+
+		[Header("Main")]
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI Description;
 		[SerializeField] private RectTransform BuyPricePanelRectTransform;
@@ -38,12 +44,39 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		[SerializeField] private TextMeshProUGUI ReceiveCountText;
 		[SerializeField] private Image ArrowIcon;
 
+		[Header("Set Buy Price Congratulations")]
+		[SerializeField] private TextMeshProUGUI BuyPriceDescription;
+		[SerializeField] private Button ViewNFTButton;
+		[SerializeField] private Button ViewCollectionButton;
+
+		#endregion
+
+		#region Enum
+
+		private enum eNFTUpdatePanelState
+		{
+			MAIN,
+			SET_BUY_PRICE_CONGRATULATIONS
+		}
+
 		#endregion
 
 		#region Fields
 
 		private eUpdateTargetType mTargetType;
 		private CollectionMintedEvent mCollectionItem;
+
+		private eNFTUpdatePanelState mPanelState;
+		private eNFTUpdatePanelState NftUpdatePanelState
+		{
+			get => mPanelState;
+			set
+			{
+				mPanelState = value;
+				MainPanel.SetActive(mPanelState == eNFTUpdatePanelState.MAIN);
+				SetBuyPriceCongratulationsPanel.SetActive(mPanelState == eNFTUpdatePanelState.SET_BUY_PRICE_CONGRATULATIONS);
+			}
+		}
 
 		#endregion
 
@@ -60,6 +93,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			PriceInputField.onValueChanged.AddListener(OnPriceValueChanged);
 			SetButton.onClick.AddListener(OnSetClicked);
 			MarketplaceToggle.onValueChanged.AddListener(OnMarketplaceValueChanged);
+			ViewNFTButton.onClick.AddListener(OnViewNFTClicked);
+			ViewCollectionButton.onClick.AddListener(OnViewCollectionClicked);
 		}
 
 		private void OnDisable()
@@ -67,6 +102,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			PriceInputField.onValueChanged.RemoveListener(OnPriceValueChanged);
 			SetButton.onClick.RemoveListener(OnSetClicked);
 			MarketplaceToggle.onValueChanged.RemoveListener(OnMarketplaceValueChanged);
+			ViewNFTButton.onClick.RemoveListener(OnViewNFTClicked);
+			ViewCollectionButton.onClick.RemoveListener(OnViewCollectionClicked);
 		}
 
 		#endregion
@@ -75,6 +112,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		public void Initialize(eUpdateTargetType updateTargetType, CollectionMintedEvent collectionMintedItem)
 		{
+			NftUpdatePanelState = eNFTUpdatePanelState.MAIN;
 			mTargetType = updateTargetType;
 			mCollectionItem = collectionMintedItem;
 			switch (updateTargetType)
@@ -151,8 +189,21 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.SetBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID, priceInWei),
 				(transactionId) =>
 				{
-
+					MessagePopup.ShowConfirmationBlockchainPopup(
+						LocalizationKeys.SET_BUY_PRICE_WAITING_TITLE.Translate(),
+						LocalizationKeys.SET_BUY_PRICE_WAITING_DESCRIPTION.Translate(),
+						transactionId,
+						OnBuyPriceSet);
 				});
+		}
+
+		private void OnBuyPriceSet(AbstractContractEvent obj)
+		{
+			NftUpdatePanelState = eNFTUpdatePanelState.SET_BUY_PRICE_CONGRATULATIONS;
+			BuyPriceSetEvent buyPriceSetEvent = obj as BuyPriceSetEvent;
+			var priceInWei = BigInteger.Parse(buyPriceSetEvent.Price);
+			var price = UnitConversion.Convert.FromWei(priceInWei);
+			BuyPriceDescription.text = string.Format(LocalizationKeys.SET_BUY_PRICE_SUCCESS_DESCRIPTION.Translate(), price);
 		}
 
 		private void OnMarketplaceValueChanged(bool active)
@@ -161,6 +212,18 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			ArrowIcon.transform.eulerAngles = active ? new Vector3(0, 0, 90) : new Vector3(0, 0, 270);
 			BuyPricePanelRectTransform.sizeDelta = new Vector2(size.x, active ? 443 : 390);
 			MarketplacePanel.SetActive(active);
+		}
+
+		private async void OnViewNFTClicked()
+		{
+			Nft metadata = await DataManager.Instance.GetTokenIdMetadataWithCache(mCollectionItem.Address, mCollectionItem.TokenID);
+			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionItem, metadata);
+		}
+
+		private async void OnViewCollectionClicked()
+		{
+			CollectionCreatedEvent collection  = await DataManager.Instance.GetCollectionWithCache(mCollectionItem.Address);
+			CanvasPlayerPCManager.Instance.OpenCollectionDetailsPanel(collection);
 		}
 
 		#endregion

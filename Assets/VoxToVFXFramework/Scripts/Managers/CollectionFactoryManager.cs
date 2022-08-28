@@ -1,44 +1,25 @@
 ﻿using Cysharp.Threading.Tasks;
-using MoralisUnity;
-using MoralisUnity.Platform.Objects;
 using MoralisUnity.Platform.Queries;
-using MoralisUnity.Platform.Queries.Live;
+using MoralisUnity;
 using Nethereum.Hex.HexTypes;
-using System;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEngine;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.Utils.ContractFunction;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
-	public class CollectionFactoryManager : ModuleSingleton<CollectionFactoryManager>
+	public class CollectionFactoryManager : SimpleSingleton<CollectionFactoryManager>
 	{
 		#region Fields
-
 		public SmartContractAddressConfig SmartContractAddressConfig => ConfigManager.Instance.SmartContractAddress;
 
-		//Database Queries
-		private MoralisQuery<CollectionCreatedEvent> mCollectionCreatedQuery;
-		private MoralisLiveQueryCallbacks<CollectionCreatedEvent> mCollectionCreatedQueryCallbacks;
-
-		private MoralisQuery<CollectionMintedEvent> mCollectionMintedQuery;
-		private MoralisLiveQueryCallbacks<CollectionMintedEvent> mCollectionMintedQueryCallbacks;
 		#endregion
-
-		#region UnityMethods
-
-		protected override async void OnStart()
-		{
-			await SubscribeToDatabaseEvents();
-		}
-
-		#endregion
-
 		#region PublicMethods
 
 		public async UniTask<string> CreateCollection(string collectionName, string collectionSymbol)
@@ -90,59 +71,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			catch (Exception e)
 			{
 				Debug.LogError(e.Message + " " + e.StackTrace);
-			}
-		}
-
-		#endregion
-
-		#region PrivateMethods
-
-		private async UniTask SubscribeToDatabaseEvents()
-		{
-			await UniTask.WaitWhile(() => UserManager.Instance.CurrentUser == null);
-			mCollectionCreatedQuery = await Moralis.GetClient().Query<CollectionCreatedEvent>();
-			mCollectionCreatedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionCreatedEvent>();
-
-			mCollectionMintedQuery = await Moralis.GetClient().Query<CollectionMintedEvent>();
-			mCollectionMintedQueryCallbacks = new MoralisLiveQueryCallbacks<CollectionMintedEvent>();
-
-			mCollectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
-			mCollectionMintedQueryCallbacks.OnErrorEvent += delegate (ErrorMessage evt)
-			{
-				Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
-			};
-
-			mCollectionCreatedQueryCallbacks.OnUpdateEvent += HandleOnCollectionCreatedEvent;
-			//mQueryCallbacks.OnCreateEvent += HandleOnCollectionCreatedEvent;
-			mCollectionCreatedQueryCallbacks.OnErrorEvent += delegate (ErrorMessage evt)
-			{
-				Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
-			};
-			MoralisLiveQueryController.AddSubscription<CollectionCreatedEvent>("CollectionCreatedEvent", mCollectionCreatedQuery, mCollectionCreatedQueryCallbacks);
-			MoralisLiveQueryController.AddSubscription<CollectionMintedEvent>("CollectionMintedEvent", mCollectionMintedQuery, mCollectionMintedQueryCallbacks);
-		}
-
-		private void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
-		{
-			Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent: " + item.Creator);
-
-			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
-			{
-				Debug.Log("[CollectionFactoryManager] HandleOnCollectionCreatedEvent is for current user");
-				DataManager.Instance.AddCollectionCreated(item);
-				EventDatabaseManager.Instance.OnEventReceived(item);
-			}
-		}
-
-		private void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
-		{
-			Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent " + item.Creator);
-			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
-			{
-				Debug.Log("[CollectionFactoryManager] HandleOnCollectionMintedEvent is for current user");
-
-				DataManager.Instance.AddCollectionMinted(item);
-				EventDatabaseManager.Instance.OnEventReceived(item);
 			}
 		}
 

@@ -89,7 +89,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(collectionItem.Creator);
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(collectionItem.Address);
 			OpenUserProfileButton.Initialize(creatorUser);
-			mCollectionCreated = await CollectionFactoryManager.Instance.GetCollection(collectionItem.Address);
+			mCollectionCreated = await DataManager.Instance.GetCollectionWithCache(collectionItem.Address);
 			CollectionNameText.text = mCollectionCreated.Name;
 			try
 			{

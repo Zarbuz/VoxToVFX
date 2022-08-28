@@ -54,6 +54,39 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return list;
 		}
 
+		public bool IsCollectionCreatedByCurrentUser(string address)
+		{
+			CustomUser currentUser = UserManager.Instance.CurrentUser;
+			if (currentUser == null)
+				return false;
+
+			if (ContractCreatedPerUsers.ContainsKey(currentUser.EthAddress))
+			{
+				return ContractCreatedPerUsers[currentUser.EthAddress].List.Cast<CollectionCreatedEvent>()
+					.Any(t => t.CollectionContract == address);
+			}
+
+			return false;
+		}
+
+		public async UniTask<CollectionCreatedEvent> GetCollectionWithCache(string address)
+		{
+			foreach (MoralisDataCacheDTO moralisCache in ContractCreatedPerUsers.Values)
+			{
+				foreach (CollectionCreatedEvent collection in moralisCache.List.Cast<CollectionCreatedEvent>())
+				{
+					if (collection.CollectionContract == address)
+					{
+						return collection;
+					}
+				}
+			}
+
+			CollectionCreatedEvent collectionCreated = await CollectionFactoryManager.Instance.GetCollection(address);
+			AddCollectionCreated(collectionCreated);
+			return collectionCreated;
+		}
+
 		public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
 		{
 			if (NFTPerContract.ContainsKey(contract))

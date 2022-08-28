@@ -28,7 +28,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 		public override void Init(ConfirmationBlockchainDescriptor descriptor)
 		{
 			mConfirmationBlockchainDescriptor = descriptor;
-			EventDatabaseManager.Instance.OnDatabaseEventReceived += OnDatabaseEventReceived;
+			DatabaseEventManager.Instance.OnDatabaseEventReceived += OnDatabaseEventReceived;
 			base.Init(descriptor);
 			Title.text = descriptor.Title;
 			Description.text = descriptor.Description;
