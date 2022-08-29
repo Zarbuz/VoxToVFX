@@ -72,6 +72,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 		}
 
+		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
 		private CustomUser mCustomUser;
 		#endregion
 
@@ -102,8 +103,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			mCustomUser = user;
 			ShowSpinnerImage(true);
-			await RefreshCreatedTab();
-			await RefreshCollectionTab();
+			UniTask task1 = RefreshCreatedTab();
+			UniTask task2 = RefreshCollectionTab();
+
+			await (task1, task2);
 			ShowSpinnerImage(false);
 		}
 
@@ -128,24 +131,22 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			CreatedGridTransform.DestroyAllChildren();
 
+			mItems.Clear();
+			List<UniTask> tasks = new List<UniTask>();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
-			int count = 0;
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
 				List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
 				foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
-					bool initSuccess = await item.Initialize(nft, mCustomUser);
-					item.gameObject.SetActive(initSuccess);
-					if (initSuccess)
-					{
-						count++;
-					}
+					tasks.Add(item.Initialize(nft, mCustomUser));
+					mItems.Add(item);
 				}
 			}
 
-			CreatedCountText.text = count.ToString();
+			await UniTask.WhenAll(tasks);
+			CreatedCountText.text = mItems.Count(i => i.InitSuccess).ToString();
 		}
 
 		private async UniTask RefreshCollectionTab()
@@ -153,12 +154,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionGridTransform.DestroyAllChildren();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
 
+			List<UniTask> tasks	= new List<UniTask>();
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
 				ProfileCollectionItem item = Instantiate(ProfileCollectionItemPrefab, CollectionGridTransform, false);
-				await item.Initialize(collection);
+				tasks.Add(item.Initialize(collection));
 			}
-
+			await UniTask.WhenAll(tasks);
 			CollectionCountText.text = list.Count.ToString();
 		}
 

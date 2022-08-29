@@ -217,7 +217,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		private async void OnViewNFTClicked()
 		{
 			Nft metadata = await DataManager.Instance.GetTokenIdMetadataWithCache(mCollectionItem.Address, mCollectionItem.TokenID);
-			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionItem, metadata);
+			if (metadata != null)
+			{
+				CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionItem, metadata);
+			}
 		}
 
 		private async void OnViewCollectionClicked()

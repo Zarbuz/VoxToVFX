@@ -6,10 +6,12 @@ using Cysharp.Threading.Tasks;
 using MoralisUnity;
 using MoralisUnity.Platform.Objects;
 using MoralisUnity.Web3Api.Models;
+using UnityEngine;
 using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -115,9 +117,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return nft;
 			}
 
-			Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: address, tokenId: tokenId, ConfigManager.Instance.ChainList);
-			NftMetadataPerAddressAndTokenId[key] = tokenIdMetadata;
-			return tokenIdMetadata;
+			try
+			{
+				Nft tokenIdMetadata = await Moralis.Web3Api.Token.GetTokenIdMetadata(address: address, tokenId: tokenId, ConfigManager.Instance.ChainList);
+				NftMetadataPerAddressAndTokenId[key] = tokenIdMetadata;
+				return tokenIdMetadata;
+			}
+			catch (Exception e)
+			{
+				Debug.LogError("[DataManager] Failed to get NFT metadata: " + e.Message);
+				MessagePopup.Show(e.Message, LogType.Error);
+			}
+			
+			return null;
 		}
 
 		public async UniTask<CollectionDetails> GetCollectionDetailsWithCache(string collectionContract)

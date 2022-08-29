@@ -37,6 +37,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region Fields
 		
+		public bool InitSuccess { get; private set; }
+
 		private CollectionMintedEvent mCollectionMintedEvent;
 		private Nft mMetadata;
 		private Models.CollectionDetails mCollectionDetails;
@@ -45,13 +47,18 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async UniTask<bool> Initialize(CollectionMintedEvent nft, CustomUser creatorUser)
+		public async UniTask Initialize(CollectionMintedEvent nft, CustomUser creatorUser)
 		{
 			mCollectionMintedEvent = nft;
 			try
 			{
 				Button.onClick.AddListener(OnItemClicked);
 				Nft tokenIdMetadata = await DataManager.Instance.GetTokenIdMetadataWithCache(address: nft.Address, tokenId: nft.TokenID);
+				if (tokenIdMetadata == null)
+				{
+					gameObject.SetActive(false);
+					return;
+				}
 				mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
 
 				mMetadata = tokenIdMetadata;
@@ -77,15 +84,16 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				}
 				else
 				{
-					return false;
+					gameObject.SetActive(false);
+					return;
 				}
 
-				return true;
+				InitSuccess = true;
 			}
 			catch (Exception e)
 			{
+				gameObject.SetActive(false);
 				Debug.LogError(e.Message);
-				return false;
 			}
 		}
 

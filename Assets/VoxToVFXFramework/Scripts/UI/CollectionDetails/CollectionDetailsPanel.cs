@@ -72,6 +72,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
 		private VerticalLayoutGroup[] mVerticalLayoutGroups;
+		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
 		private eCollectionDetailsState CollectionDetailsState
 		{
 			get => mCollectionDetailsState;
@@ -131,8 +132,10 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			CollectionSymbolText.text = collection.Symbol;
 			CollectionDetailsState = eCollectionDetailsState.NFT;
 			OpenUserProfileButton.Initialize(mCreatorUser);
-			await RefreshCollectionDetails();
-			await RefreshNFTTab();
+			UniTask task1 = RefreshCollectionDetails();
+			UniTask task2 =  RefreshNFTTab();
+			await (task1, task2);
+
 			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
@@ -207,19 +210,19 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private async UniTask RefreshNFTTab()
 		{
 			NFTGridTransform.DestroyAllChildren();
+			mItems.Clear();
 			List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCreatorUser.EthAddress, mCollectionCreated.CollectionContract);
-			int countActive = 0;
+			List<UniTask> tasks = new List<UniTask>();
 			foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
-				bool initSuccess = await item.Initialize(nft, mCreatorUser);
-				item.gameObject.SetActive(initSuccess);
-				if (initSuccess)
-				{
-					countActive++;
-				}
+				mItems.Add(item);
+				tasks.Add(item.Initialize(nft, mCreatorUser));
 			}
 
+			await UniTask.WhenAll(tasks);
+
+			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUser.EthAddress);
 			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUser.EthAddress);
