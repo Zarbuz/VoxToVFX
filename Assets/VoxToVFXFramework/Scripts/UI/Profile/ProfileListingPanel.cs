@@ -141,7 +141,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
-					tasks.Add(item.Initialize(nft, mCustomUser));
+					tasks.Add(item.Initialize(nft));
 					mItems.Add(item);
 				}
 			}

@@ -14,6 +14,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
+using VoxToVFXFramework.Scripts.UI.Profile;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
@@ -36,11 +37,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		[SerializeField] private GameObject MainPanel;
 		[SerializeField] private GameObject CongratulationsPanel;
 		[SerializeField] private GameObject RemoveBuyPricePanel;
+		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
 
 		[Header("Main")]
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI Description;
-		[SerializeField] private RectTransform BuyPricePanelRectTransform;
 		[SerializeField] private TMP_InputField PriceInputField;
 		[SerializeField] private Button SetButton;
 		[SerializeField] private TextMeshProUGUI SetButtonText;
@@ -87,6 +88,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				MainPanel.SetActive(mPanelState == eNFTUpdatePanelState.MAIN);
 				CongratulationsPanel.SetActive(mPanelState == eNFTUpdatePanelState.CONGRATULATIONS);
 				RemoveBuyPricePanel.SetActive(mPanelState == eNFTUpdatePanelState.REMOVE_BUY_PRICE);
+				ProfileListNftItem.gameObject.SetActive(mPanelState != eNFTUpdatePanelState.CONGRATULATIONS);
 			}
 		}
 
@@ -153,6 +155,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				default:
 					throw new ArgumentOutOfRangeException(nameof(updateTargetType), updateTargetType, null);
 			}
+
+			ProfileListNftItem.IsReadyOnly = true;
+			await ProfileListNftItem.Initialize(collectionMintedItem);
+
 		}
 
 		#endregion
@@ -235,9 +241,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		private void OnMarketplaceValueChanged(bool active)
 		{
-			Vector2 size = BuyPricePanelRectTransform.sizeDelta;
 			ArrowIcon.transform.eulerAngles = active ? new Vector3(0, 0, 90) : new Vector3(0, 0, 270);
-			BuyPricePanelRectTransform.sizeDelta = new Vector2(size.x, active ? 443 : 390);
 			MarketplacePanel.SetActive(active);
 		}
 

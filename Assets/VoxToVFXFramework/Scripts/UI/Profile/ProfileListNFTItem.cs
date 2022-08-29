@@ -37,6 +37,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region Fields
 
 		public bool InitSuccess { get; private set; }
+		public bool IsReadyOnly { get; set; }
 
 		private CollectionMintedEvent mCollectionMintedEvent;
 		private Nft mMetadata;
@@ -46,76 +47,74 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async UniTask Initialize(CollectionMintedEvent nft, CustomUser creatorUser)
+		public async UniTask Initialize(CollectionMintedEvent nft)
 		{
 			mCollectionMintedEvent = nft;
-			try
-			{
-				Button.onClick.AddListener(OnItemClicked);
-				Nft tokenIdMetadata = await DataManager.Instance.GetTokenIdMetadataWithCache(address: nft.Address, tokenId: nft.TokenID);
-				if (tokenIdMetadata == null)
-				{
-					gameObject.SetActive(false);
-					return;
-				}
-				mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
-
-				NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.Address, nft.TokenID);
-
-				BuyerAvatarImage.gameObject.SetActive(false);
-				BuyerUsernameText.text = string.Empty;
-				if (details != null)
-				{
-					ActionText.text = details.TargetAction;
-					if (details.BuyPriceInEther != 0)
-					{
-						PriceText.text = details.BuyPriceInEtherFixedPoint + " ETH";
-					}
-					else
-					{
-						PriceText.text = string.Empty;
-						ActionText.text = string.Empty;// Sure ?
-					}
-				}
-				else
-				{
-					ActionText.text = string.Empty;
-					PriceText.text = string.Empty;
-				}
-				mMetadata = tokenIdMetadata;
-				CollectionNameText.text = tokenIdMetadata.Name;
-				CreatorUsernameText.text = "@" + creatorUser.UserName;
-
-				await CreatorAvatarImage.Initialize(creatorUser);
-				if (tokenIdMetadata.Metadata == null)
-				{
-					gameObject.SetActive(false);
-					return;
-				}
-
-				MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
-				Title.text = metadataObject.Name;
-				await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
-
-				if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
-				{
-					CollectionLogoImage.gameObject.SetActive(false);
-				}
-				else
-				{
-					CollectionLogoImage.gameObject.SetActive(true);
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl,
-						CollectionLogoImage, 32, 32);
-				}
-
-				InitSuccess = true;
-			}
-			catch (Exception e)
+			Button.onClick.AddListener(OnItemClicked);
+			Nft tokenIdMetadata = await DataManager.Instance.GetTokenIdMetadataWithCache(address: nft.Address, tokenId: nft.TokenID);
+			if (tokenIdMetadata == null)
 			{
 				gameObject.SetActive(false);
-				Debug.LogError(e.Message);
+				return;
 			}
+			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
+
+			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.Address, nft.TokenID);
+
+			BuyerAvatarImage.gameObject.SetActive(false);
+			BuyerUsernameText.text = string.Empty;
+			if (details != null)
+			{
+				ActionText.text = details.TargetAction;
+				if (details.BuyPriceInEther != 0)
+				{
+					PriceText.text = details.BuyPriceInEtherFixedPoint + " ETH";
+				}
+				else
+				{
+					PriceText.text = string.Empty;
+					ActionText.text = string.Empty;// Sure ?
+				}
+			}
+			else
+			{
+				ActionText.text = string.Empty;
+				PriceText.text = string.Empty;
+			}
+
+			mMetadata = tokenIdMetadata;
+			CollectionNameText.text = tokenIdMetadata.Name;
+			
+			if (tokenIdMetadata.Metadata == null)
+			{
+				gameObject.SetActive(false);
+				return;
+			}
+
+			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(nft.Creator);
+			CreatorUsernameText.text = "@" + creatorUser.UserName;
+			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
+
+			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
+			Title.text = metadataObject.Name;
+			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
+
+			if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
+			{
+				CollectionLogoImage.gameObject.SetActive(false);
+				await UniTask.WhenAll(task1, task2);
+			}
+			else
+			{
+				CollectionLogoImage.gameObject.SetActive(true);
+				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl,
+					CollectionLogoImage, 32, 32);
+				await UniTask.WhenAll(task1, task2, task3);
+			}
+
+			InitSuccess = true;
 		}
+
 
 		#endregion
 
@@ -123,7 +122,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void OnItemClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionMintedEvent, mMetadata);
+			if (!IsReadyOnly)
+			{
+				CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionMintedEvent, mMetadata);
+			}
 		}
 
 		#endregion

@@ -218,7 +218,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
-				tasks.Add(item.Initialize(nft, mCreatorUser));
+				tasks.Add(item.Initialize(nft));
 			}
 
 			await UniTask.WhenAll(tasks);
