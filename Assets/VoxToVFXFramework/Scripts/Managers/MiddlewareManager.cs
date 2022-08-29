@@ -41,7 +41,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 				if (result != null)
 				{
-					DataManager.Instance.AccountDetails[account] = result;
+					DataManager.DataManager.Instance.AccountDetails[account] = result;
 				}
 				return result;
 			}
@@ -52,7 +52,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public async UniTask<NFTDetailsContractType> GetNFTDetails(string nftContract, int tokenId)
+		public async UniTask<NFTDetailsContractType> GetNFTDetails(string nftContract, string tokenId)
 		{
 			MoralisClient moralisClient = Moralis.GetClient();
 

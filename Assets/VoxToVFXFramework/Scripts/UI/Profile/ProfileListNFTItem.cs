@@ -1,17 +1,15 @@
 ﻿using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
-using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
@@ -61,31 +59,31 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				}
 				mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
 
+				var nftDetails = await MiddlewareManager.Instance.GetNFTDetails(nft.Address, nft.TokenID);
 				mMetadata = tokenIdMetadata;
 				CollectionNameText.text = tokenIdMetadata.Name;
 				CreatorUsernameText.text = "@" + creatorUser.UserName;
 
 				await CreatorAvatarImage.Initialize(creatorUser);
-				if (tokenIdMetadata.Metadata != null)
-				{
-					MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
-					Title.text = metadataObject.Name;
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
-
-					if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
-					{
-						CollectionLogoImage.gameObject.SetActive(false);
-					}
-					else
-					{
-						CollectionLogoImage.gameObject.SetActive(true);
-						await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
-					}
-				}
-				else
+				if (tokenIdMetadata.Metadata == null)
 				{
 					gameObject.SetActive(false);
 					return;
+				}
+
+				MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(tokenIdMetadata.Metadata);
+				Title.text = metadataObject.Name;
+				await ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
+
+				if (mCollectionDetails == null || string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
+				{
+					CollectionLogoImage.gameObject.SetActive(false);
+				}
+				else
+				{
+					CollectionLogoImage.gameObject.SetActive(true);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl,
+						CollectionLogoImage, 32, 32);
 				}
 
 				InitSuccess = true;

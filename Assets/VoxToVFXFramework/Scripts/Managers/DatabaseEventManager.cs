@@ -68,7 +68,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionCreatedEvent is for current user");
-				DataManager.Instance.AddCollectionCreated(item);
+				DataManager.DataManager.Instance.AddCollectionCreated(item);
 				OnEventReceived(item);
 			}
 		}
@@ -80,7 +80,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent is for current user");
 
-				DataManager.Instance.AddCollectionMinted(item);
+				DataManager.DataManager.Instance.AddCollectionMinted(item);
 				OnEventReceived(item);
 			}
 		}
@@ -88,7 +88,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void HandleOnBuyPriceSetEvent(BuyPriceSetEvent item, int requestid)
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent " + item.NFTContract);
-			if (DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
+			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent is for current user");
 				OnEventReceived(item);
