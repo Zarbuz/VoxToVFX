@@ -34,7 +34,23 @@ namespace VoxToVFXFramework.Scripts.Managers
 			Debug.Log("[NFTManager] SetBuyPrice: " + resp);
 			return resp;
 		}
-		
+
+
+		public async UniTask<string> CancelBuyPrice(string nftContract, string tokenId)
+		{
+			object[] parameters = {
+				nftContract, tokenId
+			};
+
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(100000);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(SmartContractAddressConfig.VoxToVFXMarketAddress, SmartContractAddressConfig.VoxToVFXMarketABI, "cancelBuyPrice", parameters, value, gas, gasPrice);
+
+			Debug.Log("[NFTManager] CancelBuyPrice: " + resp);
+			return resp;
+		}
 
 		#endregion
 	}

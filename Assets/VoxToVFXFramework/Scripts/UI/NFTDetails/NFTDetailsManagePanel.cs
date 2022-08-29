@@ -1,6 +1,10 @@
-﻿using System;
+﻿using MoralisUnity.Web3Api.Models;
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.ContractTypes;
+using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 
@@ -10,14 +14,24 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 	{
 		#region ScriptParameters
 
+		[Header("BuyNow")]
 		[SerializeField] private Button SetPriceButton;
-		[SerializeField] private Button ListButton;
-		[SerializeField] private Toggle OpenManagerToggle;
-		[SerializeField] private GameObject SubPanelManager;
 		[SerializeField] private Button TransferNFTButton;
 		[SerializeField] private Button BurnNFTButton;
+		[SerializeField] private GameObject SetBuyNowPanel;
+		[SerializeField] private GameObject ChangePricePanel;
+		[SerializeField] private TextMeshProUGUI CurrentPriceText;
+		[SerializeField] private Button ChangePriceButton;
+		[SerializeField] private Button RemoveBuyNowButton;
 
+		[Header("Auction")]
+		[SerializeField] private Button ListButton;
+
+
+		[Header("Manager")]
+		[SerializeField] private Toggle ManageToggle;
 		#endregion
+
 
 		#region Fields
 
@@ -31,27 +45,35 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		{
 			SetPriceButton.onClick.AddListener(OnSetPriceClicked);
 			ListButton.onClick.AddListener(OnSetListClicked);
-			OpenManagerToggle.onValueChanged.AddListener(OnOpenManagerValueChanged);
 			TransferNFTButton.onClick.AddListener(OnTransferNFTClicked);
 			BurnNFTButton.onClick.AddListener(OnBurnNFTClicked);
+			ChangePriceButton.onClick.AddListener(OnChangePriceClicked);
+			RemoveBuyNowButton.onClick.AddListener(OnRemoveBuyNowClicked);
 		}
 
 		private void OnDisable()
 		{
 			SetPriceButton.onClick.RemoveListener(OnSetPriceClicked);
 			ListButton.onClick.RemoveListener(OnSetListClicked);
-			OpenManagerToggle.onValueChanged.RemoveListener(OnOpenManagerValueChanged);
 			TransferNFTButton.onClick.RemoveListener(OnTransferNFTClicked);
 			BurnNFTButton.onClick.RemoveListener(OnBurnNFTClicked);
+			ChangePriceButton.onClick.RemoveListener(OnChangePriceClicked);
+			RemoveBuyNowButton.onClick.RemoveListener(OnRemoveBuyNowClicked);
+
 		}
 
 		#endregion
 
 		#region PublicMethods
 
-		public void Initialize(CollectionMintedEvent collectionItem)
+		public async void Initialize(CollectionMintedEvent collectionItem)
 		{
 			mCollectionItem = collectionItem;
+			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(collectionItem.Address, collectionItem.TokenID);
+			ManageToggle.gameObject.SetActive(details is not { IsInEscrow: true });
+			SetBuyNowPanel.SetActive(details == null || !details.IsInEscrow);
+			ChangePricePanel.SetActive(details != null && details.IsInEscrow);
+			CurrentPriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " ETH" : string.Empty;
 		}
 
 		#endregion
@@ -68,11 +90,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		}
 
-		private void OnOpenManagerValueChanged(bool isOn)
-		{
-			SubPanelManager.SetActive(isOn);
-		}
-
 		private void OnTransferNFTClicked()
 		{
 
@@ -81,6 +98,16 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private void OnBurnNFTClicked()
 		{
 
+		}
+
+		private void OnChangePriceClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenChangeBuyPricePanel(mCollectionItem);
+		}
+
+		private void OnRemoveBuyNowClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenRemoveBuyPricePanel(mCollectionItem);
 		}
 
 		#endregion

@@ -26,8 +26,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#endregion
 
-
-
 		#region PrivateMethods
 
 		private async UniTask SubscribeToDatabaseEvents()
@@ -42,6 +40,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<BuyPriceSetEvent> setBuyPriceQuery = await Moralis.GetClient().Query<BuyPriceSetEvent>();
 			MoralisLiveQueryCallbacks<BuyPriceSetEvent> setBuyPriceQueryCallbacks = new MoralisLiveQueryCallbacks<BuyPriceSetEvent>();
 
+			MoralisQuery<BuyPriceCanceledEvent> cancelBuyPriceQuery = await Moralis.GetClient().Query<BuyPriceCanceledEvent>();
+			MoralisLiveQueryCallbacks<BuyPriceCanceledEvent> cancelBuyPriceQueryCallbacks = new MoralisLiveQueryCallbacks<BuyPriceCanceledEvent>();
+
 			collectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
 			collectionMintedQueryCallbacks.OnErrorEvent += OnError;
 
@@ -51,9 +52,13 @@ namespace VoxToVFXFramework.Scripts.Managers
 			setBuyPriceQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceSetEvent;
 			setBuyPriceQueryCallbacks.OnErrorEvent += OnError;
 
+			cancelBuyPriceQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceCanceledEvent;
+			cancelBuyPriceQueryCallbacks.OnErrorEvent += OnError;
+
 			MoralisLiveQueryController.AddSubscription("CollectionCreatedEvent", collectionCreatedQuery, collectionCreatedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("CollectionMintedEvent", collectionMintedQuery, collectionMintedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceSetEvent", setBuyPriceQuery, setBuyPriceQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("BuyPriceCanceledEvent", cancelBuyPriceQuery, cancelBuyPriceQueryCallbacks);
 		}
 
 		private void OnError(ErrorMessage evt)
@@ -80,7 +85,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent is for current user");
 
-				DataManager.DataManager.Instance.AddCollectionMinted(item);
+				DataManager.DataManager.Instance.AddOrUpdateCollectionItem(item);
 				OnEventReceived(item);
 			}
 		}
@@ -91,6 +96,28 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent is for current user");
+				string key = item.NFTContract + "_" + item.TokenId;
+				//Will force refresh the next time it's called
+				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
+				{
+					DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
+				}
+				OnEventReceived(item);
+			}
+		}
+
+		private void HandleOnBuyPriceCanceledEvent(BuyPriceCanceledEvent item, int requestid)
+		{
+			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent " + item.NFTContract);
+			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
+			{
+				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent is for current user");
+				string key = item.NFTContract + "_" + item.TokenId;
+				//Will force refresh the next time it's called
+				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
+				{
+					DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
+				}
 				OnEventReceived(item);
 			}
 		}

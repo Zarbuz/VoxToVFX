@@ -1,5 +1,8 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using Nethereum.Util;
 using Newtonsoft.Json;
+using VoxToVFXFramework.Scripts.Localization;
 
 namespace VoxToVFXFramework.Scripts.ContractTypes
 {
@@ -34,5 +37,50 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 		
 		[JsonProperty("offerExpiration")]
 		public BigInteger OfferExpiration { get; set; }
+
+		[JsonIgnore]
+		public string TargetAction
+		{
+			get
+			{
+				if (BuyPrice != 0)
+				{
+					return LocalizationKeys.PROFILE_BUY_NOW.Translate();
+				}
+
+				//TODO To COMPLETE
+				return string.Empty;
+			}
+		}
+
+		[JsonIgnore]
+		public decimal BuyPriceInEther
+		{
+			get
+			{
+				if (BuyPrice != 0)
+				{
+					try
+					{
+						return UnitConversion.Convert.FromWei(BuyPrice);
+					}
+					catch
+					{
+						return 0;
+					}
+				}
+
+				return 0;
+			}
+		}
+
+		[JsonIgnore]
+		public string BuyPriceInEtherFixedPoint => BuyPriceInEther.ToString("F2");
+	}
+
+	public class NFTDetailsCacheDTO
+	{
+		public NFTDetailsContractType ContractType { get; set; }
+		public DateTime LastTimeUpdated { get; set; }
 	}
 }

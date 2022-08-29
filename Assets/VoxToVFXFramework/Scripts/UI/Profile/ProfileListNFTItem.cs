@@ -5,6 +5,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
@@ -34,7 +35,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#endregion
 
 		#region Fields
-		
+
 		public bool InitSuccess { get; private set; }
 
 		private CollectionMintedEvent mCollectionMintedEvent;
@@ -59,7 +60,28 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				}
 				mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.Address);
 
-				var nftDetails = await MiddlewareManager.Instance.GetNFTDetails(nft.Address, nft.TokenID);
+				NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.Address, nft.TokenID);
+
+				BuyerAvatarImage.gameObject.SetActive(false);
+				BuyerUsernameText.text = string.Empty;
+				if (details != null)
+				{
+					ActionText.text = details.TargetAction;
+					if (details.BuyPriceInEther != 0)
+					{
+						PriceText.text = details.BuyPriceInEtherFixedPoint + " ETH";
+					}
+					else
+					{
+						PriceText.text = string.Empty;
+						ActionText.text = string.Empty;// Sure ?
+					}
+				}
+				else
+				{
+					ActionText.text = string.Empty;
+					PriceText.text = string.Empty;
+				}
 				mMetadata = tokenIdMetadata;
 				CollectionNameText.text = tokenIdMetadata.Name;
 				CreatorUsernameText.text = "@" + creatorUser.UserName;
