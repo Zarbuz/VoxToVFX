@@ -88,7 +88,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				MainPanel.SetActive(mPanelState == eNFTUpdatePanelState.MAIN);
 				CongratulationsPanel.SetActive(mPanelState == eNFTUpdatePanelState.CONGRATULATIONS);
 				RemoveBuyPricePanel.SetActive(mPanelState == eNFTUpdatePanelState.REMOVE_BUY_PRICE);
-				ProfileListNftItem.gameObject.SetActive(mPanelState != eNFTUpdatePanelState.CONGRATULATIONS);
+				ProfileListNftItem.transform.parent.gameObject.SetActive(mPanelState != eNFTUpdatePanelState.CONGRATULATIONS);
 			}
 		}
 

@@ -126,6 +126,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.COLLECTION);
 			CreatedPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.CREATED);
 			OwnedPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.OWNED);
+
+			CreatedButton.interactable = !showSpinner;
+			CollectionButton.interactable = !showSpinner;
+			OwnedButton.interactable = !showSpinner;
 		}
 
 		private async UniTask RefreshCreatedTab()
