@@ -48,6 +48,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region Fields
 
+		private CollectionMintedEvent mCollectionMinted;
 		private CollectionCreatedEvent mCollectionCreated;
 		private Nft mNft;
 		private MetadataObject mMetadataObject;
@@ -88,6 +89,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			OpenUserProfileButton.Initialize(creatorUser);
 			mCollectionCreated = await DataManager.Instance.GetCollectionWithCache(nft.TokenAddress);
+			mCollectionMinted = await DataManager.Instance.GetCollectionMintedWithCache(nft.TokenAddress, nft.TokenId);
 			CollectionNameText.text = mCollectionCreated.Name;
 			try
 			{
@@ -103,7 +105,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				throw;
 			}
 
-			CollectionImage.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
+			CollectionImage.transform.parent.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
 			if (details != null)
 			{
 				if (!string.IsNullOrEmpty(details.LogoImageUrl))
@@ -111,15 +113,15 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32, 32);
 					if (!success)
 					{
-						CollectionImage.gameObject.SetActive(false);	
+						CollectionImage.transform.parent.gameObject.SetActive(false);	
 					}
 				}	
 			}
 
-			//if (collectionItem.createdAt != null)
-			//{
-			//	MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), collectionItem.createdAt.Value.ToShortDateString());
-			//}
+			if (mCollectionMinted.createdAt != null)
+			{
+				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
+			}
 
 			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage, int.MaxValue);
 			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
@@ -154,25 +156,25 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnOpenTransactionClicked()
 		{
-			//string url = ConfigManager.Instance.EtherScanBaseUrl + "tx/" + mCollectionItem.TransactionHash;
-			//Application.OpenURL(url);
+			string url = ConfigManager.Instance.EtherScanBaseUrl + "tx/" + mCollectionMinted.TransactionHash;
+			Application.OpenURL(url);
 		}
 
 		private async void OnLoadVoxModelClicked()
 		{
-			//string fileName = mCollectionItem.TransactionHash + ".zip";
-			//string zipPath = Path.Combine(Application.persistentDataPath, fileName);
+			string fileName = mCollectionMinted.TransactionHash + ".zip";
+			string zipPath = Path.Combine(Application.persistentDataPath, fileName);
 
-			//if (File.Exists(zipPath))
-			//{
-			//	ReadZipPath(zipPath);
-			//}
-			//else
-			//{
-			//	CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_DOWNLOAD_MODEL.Translate());
-			//	string path = await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, fileName);
-			//	ReadZipPath(path);
-			//}
+			if (File.Exists(zipPath))
+			{
+				ReadZipPath(zipPath);
+			}
+			else
+			{
+				CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_DOWNLOAD_MODEL.Translate());
+				string path = await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, fileName);
+				ReadZipPath(path);
+			}
 		}
 
 		private void ReadZipPath(string zipPath)
