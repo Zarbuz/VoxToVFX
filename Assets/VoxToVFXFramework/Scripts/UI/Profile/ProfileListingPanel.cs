@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -141,11 +142,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser);
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
-				List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
-				foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
+				NftCollection nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
+
+				//List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
+				foreach (Nft nft in nftCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
-					tasks.Add(item.Initialize(nft));
+					tasks.Add(item.Initialize(nft, mCustomUser));
 					mItems.Add(item);
 				}
 			}

@@ -12,7 +12,6 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 	{
 		public Dictionary<string, MoralisDataCacheDTO> ContractCreatedPerUsers = new Dictionary<string, MoralisDataCacheDTO>();
 
-
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContractWithCache(CustomUser user)
 		{
 			if (ContractCreatedPerUsers.ContainsKey(user.EthAddress))

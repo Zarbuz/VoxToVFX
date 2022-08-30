@@ -155,7 +155,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 
 		#region PrivateMethods
 
-	
+
 		private void ShowSpinnerImage(bool showSpinner)
 		{
 			Spinner.gameObject.SetActive(showSpinner);
@@ -170,8 +170,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
-				List<CollectionMintedEvent> list = await DataManager.Instance.GetNFTForContractWithCache(collection.Creator, collection.CollectionContract);
-				item.Initialize(collection, list.Count, OnCollectionSelected);
+				var nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
+				item.Initialize(collection, nftCollection.Total.Value, OnCollectionSelected);
 			}
 
 			ShowSpinnerImage(false);

@@ -14,25 +14,25 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 		public Dictionary<string, MoralisDataCacheDTO> NFTPerContract = new Dictionary<string, MoralisDataCacheDTO>();
 		public Dictionary<string, NFTDetailsCacheDTO> NFTDetailsCache = new Dictionary<string, NFTDetailsCacheDTO>();
 
-		public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
-		{
-			if (NFTPerContract.ContainsKey(contract))
-			{
-				MoralisDataCacheDTO dto = NFTPerContract[contract];
-				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
-				{
-					return dto.List.Cast<CollectionMintedEvent>().ToList();
-				}
-			}
-			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator, contract);
-			NFTPerContract[contract] = new MoralisDataCacheDTO()
-			{
-				LastTimeUpdated = DateTime.UtcNow,
-				List = listNfTsForContract.Cast<MoralisObject>().ToList()
-			};
+		//public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
+		//{
+		//	if (NFTPerContract.ContainsKey(contract))
+		//	{
+		//		MoralisDataCacheDTO dto = NFTPerContract[contract];
+		//		if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
+		//		{
+		//			return dto.List.Cast<CollectionMintedEvent>().ToList();
+		//		}
+		//	}
+		//	List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator, contract);
+		//	NFTPerContract[contract] = new MoralisDataCacheDTO()
+		//	{
+		//		LastTimeUpdated = DateTime.UtcNow,
+		//		List = listNfTsForContract.Cast<MoralisObject>().ToList()
+		//	};
 
-			return listNfTsForContract;
-		}
+		//	return listNfTsForContract;
+		//}
 
 		public async UniTask<NFTDetailsContractType> GetNFTDetailsWithCache(string address, string tokenId)
 		{

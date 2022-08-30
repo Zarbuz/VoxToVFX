@@ -34,6 +34,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return result.ToList();
 		}
 
+		public async UniTask<CollectionMintedEvent> GetCollectionMintedItem(string creator, string contract, string tokenId)
+		{
+			MoralisQuery<CollectionMintedEvent> q = await Moralis.Query<CollectionMintedEvent>();
+			q = q.WhereEqualTo("creator", creator);
+			q = q.WhereEqualTo("address", contract);
+			q = q.WhereEqualTo("tokenId", tokenId);
+			return await q.FirstOrDefaultAsync();
+		}
+
 		public async UniTask<NftCollection> GetAllTokenIds(string address)
 		{
 			NftCollection collection = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList, null);

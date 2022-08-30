@@ -181,10 +181,10 @@ namespace VoxToVFXFramework.Scripts.UI
 			ProfilePanel.Initialize(user);
 		}
 
-		public void OpenNftDetailsPanel(CollectionMintedEvent collectionMinted, Nft metadata)
+		public void OpenNftDetailsPanel(Nft nft, CustomUser creatorUser)
 		{
 			SetCanvasPlayerState(CanvasPlayerPCState.NftDetails);
-			NFTDetailsPanel.Initialize(collectionMinted, metadata);
+			NFTDetailsPanel.Initialize(nft, creatorUser);
 		}
 
 		public void OpenCollectionDetailsPanel(CollectionCreatedEvent collectionCreated)
@@ -213,22 +213,22 @@ namespace VoxToVFXFramework.Scripts.UI
 			PreviewPanel.Initialize(title, description, onBackCallback);
 		}
 
-		public void OpenSetBuyPricePanel(CollectionMintedEvent collectionItem)
+		public void OpenSetBuyPricePanel(Nft nft, CustomUser creatorUser)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.SET_BUY_PRICE, collectionItem);
+			NFTUpdatePanel.Initialize(eUpdateTargetType.SET_BUY_PRICE, nft, creatorUser);
 		}
 
-		public void OpenChangeBuyPricePanel(CollectionMintedEvent collectionItem)
+		public void OpenChangeBuyPricePanel(Nft nft, CustomUser creatorUser)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.CHANGE_BUY_PRICE, collectionItem);
+			NFTUpdatePanel.Initialize(eUpdateTargetType.CHANGE_BUY_PRICE, nft, creatorUser);
 		}
 
-		public void OpenRemoveBuyPricePanel(CollectionMintedEvent collectionItem)
+		public void OpenRemoveBuyPricePanel(Nft nft, CustomUser creatorUser)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.REMOVE_BUY_PRICE, collectionItem);
+			NFTUpdatePanel.Initialize(eUpdateTargetType.REMOVE_BUY_PRICE, nft, creatorUser);
 		}
 
 		public async UniTask OpenLoginPanel()
