@@ -48,7 +48,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region Fields
 
-		private CollectionMintedEvent mCollectionItem;
+		private CollectionMintedEvent mCollectionMinted;
 		private CollectionCreatedEvent mCollectionCreated;
 		private Nft mNft;
 		private MetadataObject mMetadataObject;
@@ -80,21 +80,20 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(CollectionMintedEvent collectionItem, Nft metadata)
+		public async void Initialize(Nft nft, CustomUser creatorUser)
 		{
-			mCollectionItem = collectionItem;
-			mNft = metadata;
+			mNft = nft;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			NFTDetailsManagePanel.gameObject.SetActive(collectionItem.Creator == UserManager.Instance.CurrentUser?.EthAddress);
-			NFTDetailsManagePanel.Initialize(collectionItem);
-			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(collectionItem.Creator);
-			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(collectionItem.Address);
+			NFTDetailsManagePanel.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUser?.EthAddress);
+			NFTDetailsManagePanel.Initialize(nft, creatorUser);
+			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			OpenUserProfileButton.Initialize(creatorUser);
-			mCollectionCreated = await DataManager.Instance.GetCollectionWithCache(collectionItem.Address);
+			mCollectionCreated = await DataManager.Instance.GetCollectionWithCache(nft.TokenAddress);
+			mCollectionMinted = await DataManager.Instance.GetCollectionMintedWithCache(nft.TokenAddress, nft.TokenId);
 			CollectionNameText.text = mCollectionCreated.Name;
 			try
 			{
-				mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(metadata.Metadata);
+				mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
 				Title.text = mMetadataObject.Name;
 				DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
 				Description.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
@@ -106,7 +105,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				throw;
 			}
 
-			CollectionImage.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
+			CollectionImage.transform.parent.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
 			if (details != null)
 			{
 				if (!string.IsNullOrEmpty(details.LogoImageUrl))
@@ -114,16 +113,16 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32, 32);
 					if (!success)
 					{
-						CollectionImage.gameObject.SetActive(false);	
+						CollectionImage.transform.parent.gameObject.SetActive(false);	
 					}
 				}	
 			}
-		
 
-			if (collectionItem.createdAt != null)
+			if (mCollectionMinted.createdAt != null)
 			{
-				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), collectionItem.createdAt.Value.ToShortDateString());
+				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
 			}
+
 			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage, int.MaxValue);
 			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
 			LoadingBackgroundImage.gameObject.SetActive(false);
@@ -141,7 +140,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnViewEtherscanClicked()
 		{
-			string url = ConfigManager.Instance.EtherScanBaseUrl + "nft/" + mCollectionItem.Address + "/" + mCollectionItem.TokenID;
+			string url = ConfigManager.Instance.EtherScanBaseUrl + "nft/" + mNft.TokenAddress + "/" + mNft.TokenId;
 			Application.OpenURL(url);
 		}
 
@@ -157,13 +156,13 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnOpenTransactionClicked()
 		{
-			string url = ConfigManager.Instance.EtherScanBaseUrl + "tx/" + mCollectionItem.TransactionHash;
+			string url = ConfigManager.Instance.EtherScanBaseUrl + "tx/" + mCollectionMinted.TransactionHash;
 			Application.OpenURL(url);
 		}
 
 		private async void OnLoadVoxModelClicked()
 		{
-			string fileName = mCollectionItem.TransactionHash + ".zip";
+			string fileName = mCollectionMinted.TransactionHash + ".zip";
 			string zipPath = Path.Combine(Application.persistentDataPath, fileName);
 
 			if (File.Exists(zipPath))

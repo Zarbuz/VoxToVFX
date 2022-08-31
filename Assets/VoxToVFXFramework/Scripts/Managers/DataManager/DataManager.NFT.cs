@@ -11,27 +11,26 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 {
 	public partial class DataManager
 	{
-		public Dictionary<string, MoralisDataCacheDTO> NFTPerContract = new Dictionary<string, MoralisDataCacheDTO>();
+		public Dictionary<string, CollectionMintedEvent> CollectionMintedCache = new Dictionary<string, CollectionMintedEvent>();
 		public Dictionary<string, NFTDetailsCacheDTO> NFTDetailsCache = new Dictionary<string, NFTDetailsCacheDTO>();
 
-		public async UniTask<List<CollectionMintedEvent>> GetNFTForContractWithCache(string creator, string contract)
+		public async UniTask<CollectionMintedEvent> GetCollectionMintedWithCache(string contract, string tokenId)
 		{
-			if (NFTPerContract.ContainsKey(contract))
-			{
-				MoralisDataCacheDTO dto = NFTPerContract[contract];
-				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
-				{
-					return dto.List.Cast<CollectionMintedEvent>().ToList();
-				}
-			}
-			List<CollectionMintedEvent> listNfTsForContract = await NFTManager.Instance.FetchNFTsForContract(creator, contract);
-			NFTPerContract[contract] = new MoralisDataCacheDTO()
-			{
-				LastTimeUpdated = DateTime.UtcNow,
-				List = listNfTsForContract.Cast<MoralisObject>().ToList()
-			};
+			string key = contract + "_" + tokenId;
 
-			return listNfTsForContract;
+			if (CollectionMintedCache.ContainsKey(key))
+			{
+				return CollectionMintedCache[key];
+			}
+
+			CollectionMintedEvent collectionMinted = await NFTManager.Instance.GetCollectionMintedItem(contract, tokenId);
+			if (collectionMinted != null)
+			{
+				CollectionMintedCache[key] = collectionMinted;
+				return collectionMinted;
+			}
+
+			return null;
 		}
 
 		public async UniTask<NFTDetailsContractType> GetNFTDetailsWithCache(string address, string tokenId)
@@ -61,25 +60,8 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		public void AddOrUpdateCollectionItem(CollectionMintedEvent collectionMinted)
 		{
-			if (NFTPerContract.ContainsKey(collectionMinted.Address))
-			{
-				MoralisDataCacheDTO dto = NFTPerContract[collectionMinted.Address];
-				if (dto.List.Cast<CollectionMintedEvent>().All(t => t.TokenID != collectionMinted.TokenID))
-				{
-					dto.List.Add(collectionMinted);
-					dto.LastTimeUpdated = DateTime.UtcNow;
-				}
-			}
-			else
-			{
-				MoralisDataCacheDTO cache = new MoralisDataCacheDTO();
-				cache.List = new List<MoralisObject>()
-				{
-					collectionMinted
-				};
-				cache.LastTimeUpdated = DateTime.UtcNow;
-				NFTPerContract[collectionMinted.Address] = cache;
-			}
+			string key = collectionMinted.Address + "_" + collectionMinted.TokenID;
+			CollectionMintedCache[key] = collectionMinted;
 		}
 	}
 }

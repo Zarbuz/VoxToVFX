@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -201,7 +202,9 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				{
 					transparentButton.ImageBackgroundActive = false;
 				}
-
+				
+				MainImage.sprite = null;
+				LogoImage.sprite = null;
 				LogoImage.transform.parent.gameObject.SetActive(false);
 				CollectionNameText.color = Color.black;
 				NFTTabButton.gameObject.SetActive(false);
@@ -212,13 +215,13 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			NFTGridTransform.DestroyAllChildren();
 			mItems.Clear();
-			List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCreatorUser.EthAddress, mCollectionCreated.CollectionContract);
+			NftCollection collection = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
 			List<UniTask> tasks = new List<UniTask>();
-			foreach (CollectionMintedEvent nft in listNfTsForContract.OrderBy(t => t.createdAt))
+			foreach (Nft nft in collection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
-				tasks.Add(item.Initialize(nft));
+				tasks.Add(item.Initialize(nft, mCreatorUser));
 			}
 
 			await UniTask.WhenAll(tasks);

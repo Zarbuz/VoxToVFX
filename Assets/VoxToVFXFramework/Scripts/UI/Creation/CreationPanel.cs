@@ -266,7 +266,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnOpenSetBuyPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionMintedItem);
+			//CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionMintedItem);
 		}
 
 		#endregion

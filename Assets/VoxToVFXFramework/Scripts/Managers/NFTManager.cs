@@ -24,14 +24,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region PublicMethods
 
-		public async UniTask<List<CollectionMintedEvent>> FetchNFTsForContract(string creator, string contract)
+		public async UniTask<CollectionMintedEvent> GetCollectionMintedItem(string contract, string tokenId)
 		{
 			MoralisQuery<CollectionMintedEvent> q = await Moralis.Query<CollectionMintedEvent>();
-			q = q.WhereEqualTo("creator", creator);
 			q = q.WhereEqualTo("address", contract);
-
-			IEnumerable<CollectionMintedEvent> result = await q.FindAsync();
-			return result.ToList();
+			q = q.WhereEqualTo("tokenId", tokenId);
+			return await q.FirstOrDefaultAsync();
 		}
 
 		public async UniTask<NftCollection> GetAllTokenIds(string address)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using VoxToVFXFramework.Scripts.Models;
 
 namespace VoxToVFXFramework.Scripts.Utils.MetadataBuilder
@@ -12,7 +13,7 @@ namespace VoxToVFXFramework.Scripts.Utils.MetadataBuilder
 				Description = description,
 				Name = name,
 				FilesUrl = files,
-				Image = imageUrl
+				Image = imageUrl,
 			};
 			return metadata;
 		}

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 
@@ -35,8 +36,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region Fields
 
-		private CollectionMintedEvent mCollectionItem;
-
+		private Nft mNft;
+		private CustomUser mCreatorUser;
+		
 		#endregion
 
 		#region UnityMethods
@@ -66,10 +68,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(CollectionMintedEvent collectionItem)
+		public async void Initialize(Nft nft, CustomUser creatorUser)
 		{
-			mCollectionItem = collectionItem;
-			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(collectionItem.Address, collectionItem.TokenID);
+			mNft = nft;
+			mCreatorUser = creatorUser;
+			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 			ManageToggle.gameObject.SetActive(details is not { IsInEscrow: true });
 			SetBuyNowPanel.SetActive(details == null || !details.IsInEscrow);
 			ChangePricePanel.SetActive(details != null && details.IsInEscrow);
@@ -82,7 +85,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnSetPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionItem);
+			CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mNft, mCreatorUser);
 		}
 
 		private void OnSetListClicked()
@@ -102,12 +105,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnChangePriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenChangeBuyPricePanel(mCollectionItem);
+			CanvasPlayerPCManager.Instance.OpenChangeBuyPricePanel(mNft, mCreatorUser);
 		}
 
 		private void OnRemoveBuyNowClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenRemoveBuyPricePanel(mCollectionItem);
+			CanvasPlayerPCManager.Instance.OpenRemoveBuyPricePanel(mNft, mCreatorUser);
 		}
 
 		#endregion

@@ -12,6 +12,7 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.UI.Profile;
@@ -76,7 +77,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		#region Fields
 
 		private eUpdateTargetType mTargetType;
-		private CollectionMintedEvent mCollectionItem;
+		private Nft mNft;
+		private CustomUser mCreatorUser;
 
 		private eNFTUpdatePanelState mPanelState;
 		private eNFTUpdatePanelState NftUpdatePanelState
@@ -126,11 +128,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public async void Initialize(eUpdateTargetType updateTargetType, CollectionMintedEvent collectionMintedItem)
+		public async void Initialize(eUpdateTargetType updateTargetType, Nft nft, CustomUser creatorUser)
 		{
 			NftUpdatePanelState = eNFTUpdatePanelState.MAIN;
 			mTargetType = updateTargetType;
-			mCollectionItem = collectionMintedItem;
+			mNft = nft;
+			mCreatorUser = creatorUser;
 			switch (updateTargetType)
 			{
 				case eUpdateTargetType.SET_BUY_PRICE:
@@ -146,7 +149,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 					Title.text = LocalizationKeys.CHANGE_BUY_NOW_PRICE_TITLE.Translate();
 					Description.text = LocalizationKeys.SET_BUY_PRICE_DESCRIPTION.Translate();
 					SetButtonText.text = LocalizationKeys.SET_BUY_PRICE.Translate();
-					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(collectionMintedItem.Address, collectionMintedItem.TokenID);
+					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 					PriceInputField.text = details.BuyPriceInEtherFixedPoint;
 					break;
 				case eUpdateTargetType.REMOVE_BUY_PRICE:
@@ -157,7 +160,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;
-			await ProfileListNftItem.Initialize(collectionMintedItem);
+			await ProfileListNftItem.Initialize(nft, creatorUser);
 
 		}
 
@@ -218,7 +221,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		{
 			float price = float.Parse(PriceInputField.text);
 			BigInteger priceInWei = UnitConversion.Convert.ToWei(price, 18);
-			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.SetBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID, priceInWei),
+			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.SetBuyPrice(mNft.TokenAddress, mNft.TokenId, priceInWei),
 				(transactionId) =>
 				{
 					MessagePopup.ShowConfirmationBlockchainPopup(
@@ -245,24 +248,20 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			MarketplacePanel.SetActive(active);
 		}
 
-		private async void OnViewNFTClicked()
+		private void OnViewNFTClicked()
 		{
-			Nft metadata = await DataManager.Instance.GetTokenIdMetadataWithCache(mCollectionItem.Address, mCollectionItem.TokenID);
-			if (metadata != null)
-			{
-				CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mCollectionItem, metadata);
-			}
+			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mNft, mCreatorUser);
 		}
 
 		private async void OnViewCollectionClicked()
 		{
-			CollectionCreatedEvent collection  = await DataManager.Instance.GetCollectionWithCache(mCollectionItem.Address);
+			CollectionCreatedEvent collection = await DataManager.Instance.GetCollectionWithCache(mNft.TokenAddress);
 			CanvasPlayerPCManager.Instance.OpenCollectionDetailsPanel(collection);
 		}
 
 		private void OnRemoveBuyPriceClicked()
 		{
-			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.CancelBuyPrice(mCollectionItem.Address, mCollectionItem.TokenID),
+			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.CancelBuyPrice(mNft.TokenAddress, mNft.TokenId),
 				(transactionId) =>
 				{
 					MessagePopup.ShowConfirmationBlockchainPopup(
