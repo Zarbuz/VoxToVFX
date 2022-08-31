@@ -167,13 +167,15 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			ShowSpinnerImage(true);
 			ListCollectionParent.DestroyAllChildren(true);
 			List<CollectionCreatedEvent> userContracts = await DataManager.Instance.GetUserListContractWithCache(UserManager.Instance.CurrentUser);
+			List<UniTask> tasks = new List<UniTask>(); 
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
-				var nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
-				item.Initialize(collection, nftCollection.Total.Value, OnCollectionSelected);
+				NftCollection nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
+				tasks.Add(item.Initialize(collection, nftCollection.Total.Value, OnCollectionSelected));
 			}
 
+			await UniTask.WhenAll(tasks);
 			ShowSpinnerImage(false);
 		}
 
