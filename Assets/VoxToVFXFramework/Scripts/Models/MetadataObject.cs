@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
 
 namespace VoxToVFXFramework.Scripts.Models
 {
@@ -17,5 +17,6 @@ namespace VoxToVFXFramework.Scripts.Models
 
 		[JsonProperty("files_url")]
 		public List<string> FilesUrl { get; set; }
+
 	}
 }

@@ -85,6 +85,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent is for current user");
 
+				DataManager.DataManager.Instance.NftCollection.Remove(item.Address);
 				DataManager.DataManager.Instance.AddOrUpdateCollectionItem(item);
 				OnEventReceived(item);
 			}
