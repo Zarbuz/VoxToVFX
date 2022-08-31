@@ -1,8 +1,7 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
@@ -97,25 +96,80 @@ namespace VoxToVFXFramework.Scripts.Managers
 				mCachedTexture.Remove(imageUrl);
 			}
 
-			Texture2D textRes = await BackendMediaManager.Instance.DownloadTexture(imageUrl);
-			textRes = CheckMaxSize(textRes, maxWidth);
-			textRes.name = "hello";
+
+			Texture2D texture;
+			if (File.Exists(GetLocalFilePath(imageUrl)))
+			{
+				texture = await BackendMediaManager.Instance.DownloadTexture("file:///" + GetLocalFilePath(imageUrl));
+			}
+			else
+			{
+				texture = await BackendMediaManager.Instance.DownloadTexture(imageUrl);
+				SaveTexture(texture, imageUrl);
+			}
+
+			texture = CheckMaxSize(texture, maxWidth);
+			texture.name = "hello";
 
 			if (cropToCenter)
 			{
-				textRes = textRes.ResampleAndCrop(maxWidth, maxWidth);
+				texture = texture.ResampleAndCrop(maxWidth, maxWidth);
 			}
 
 			if (!mCachedTexture.ContainsKey(imageUrl) && keepPermanent)
 			{
 				mCachedTexture.Add(imageUrl, new RefTexture()
 				{
-					Texture = textRes,
+					Texture = texture,
 				});
 			}
 		
 
-			return textRes;
+			return texture;
+		}
+
+		private void SaveTexture(Texture2D text, string imageUrl)
+		{
+			string path = GetLocalFilePath(imageUrl);
+			if (!Directory.Exists(Path.Combine(Application.persistentDataPath, "ImgCache")))
+			{
+				Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "ImgCache"));
+			}
+
+			if (imageUrl.EndsWith("png"))
+			{
+				SaveTextureAsPNG(text, path);
+			}
+			else
+			{
+				SaveTextureAsJPG(text, path);
+			}
+		}
+
+		private static void SaveTextureAsPNG(Texture2D texture, string fullPath)
+		{
+			byte[] bytes = texture.EncodeToPNG();
+			File.WriteAllBytes(fullPath, bytes);
+		}
+
+		private static void SaveTextureAsJPG(Texture2D texture, string fullPath)
+		{
+			byte[] bytes = texture.EncodeToJPG();
+			File.WriteAllBytes(fullPath, bytes);
+		}
+
+		private static string GetCleanImageNameFromUrl(string imageUrl)
+		{
+			string cleanImageName = imageUrl.Replace("https://", string.Empty);
+			cleanImageName = cleanImageName.Replace("/", string.Empty);
+			cleanImageName = cleanImageName.Replace("ipfs.moralis.io:2053", string.Empty);
+			return cleanImageName;
+		}
+
+		private static string GetLocalFilePath(string imageUrl)
+		{
+			string cleanImageName = GetCleanImageNameFromUrl(imageUrl);
+			return Path.Combine(Application.persistentDataPath, "ImgCache", cleanImageName);
 		}
 		
 	
