@@ -1,4 +1,8 @@
-﻿using TMPro;
+﻿using System.Linq;
+using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
+using MoralisUnity;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 using UnityEngine.UI;
@@ -39,6 +43,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 		#endregion
 
 		#region PrivateMethods
+
 
 		private void OnOpenEtherscanClicked()
 		{

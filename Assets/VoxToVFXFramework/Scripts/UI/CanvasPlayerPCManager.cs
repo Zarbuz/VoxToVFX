@@ -213,22 +213,10 @@ namespace VoxToVFXFramework.Scripts.UI
 			PreviewPanel.Initialize(title, description, onBackCallback);
 		}
 
-		public void OpenSetBuyPricePanel(Nft nft, CustomUser creatorUser)
+		public void OpenUpdateNftPanel(eUpdateTargetType targetType, Nft nft, CustomUser creatorUser)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.SET_BUY_PRICE, nft, creatorUser);
-		}
-
-		public void OpenChangeBuyPricePanel(Nft nft, CustomUser creatorUser)
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.CHANGE_BUY_PRICE, nft, creatorUser);
-		}
-
-		public void OpenRemoveBuyPricePanel(Nft nft, CustomUser creatorUser)
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(eUpdateTargetType.REMOVE_BUY_PRICE, nft, creatorUser);
+			NFTUpdatePanel.Initialize(targetType, nft, creatorUser);
 		}
 
 		public async UniTask OpenLoginPanel()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -41,9 +42,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public async UniTask<bool> SyncNFTContract(string address)
 		{
 			bool success = await Moralis.Web3Api.Token.SyncNFTContract(address, ConfigManager.Instance.ChainList);
-			Debug.Log("[NFTManager] SyncNFTContract: " +success);
+			Debug.Log("[NFTManager] SyncNFTContract: " + success);
 			return success;
 		}
+
+
 
 		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
 		{
@@ -65,6 +68,70 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
+
+		public async UniTask<string> TransferItem(string address, string tokenId, string to)
+		{
+			object[] parameters = {
+				UserManager.Instance.CurrentUser.EthAddress,
+				to,
+				tokenId
+			};
+
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(100000);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(address, SmartContractAddressConfig.CollectionContractABI, "transferFrom", parameters, value, gas, gasPrice);
+
+			Debug.Log("[CollectionFactoryManager] CreateCollection: " + resp);
+			return resp;
+		}
+
+		#endregion
+
+		#region EditorMethods
+
+#if UNITY_EDITOR
+		public async UniTask WatchMintedEventContract()
+		{
+			try
+			{
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				await Moralis.Cloud.RunAsync<object>("watchMintedEventContract", parameters);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message + " " + e.StackTrace);
+			}
+		}
+
+		public async UniTask WatchTransferEventContract()
+		{
+			try
+			{
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				await Moralis.Cloud.RunAsync<object>("watchTransferEventContract", parameters);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message + " " + e.StackTrace);
+			}
+		}
+
+		public async UniTask UnWatchTransferEventContract()
+		{
+			try
+			{
+				Dictionary<string, object> parameters = new Dictionary<string, object>();
+				await Moralis.Cloud.RunAsync<object>("unwatchTransferEventContract", parameters);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message + " " + e.StackTrace);
+			}
+		}
+#endif
 		#endregion
 	}
 }

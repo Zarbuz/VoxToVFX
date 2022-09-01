@@ -43,6 +43,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
+		
+
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(CustomUser user)
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
@@ -59,20 +61,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return collection;
 		}
 
-		public async UniTask WatchMintedEventContract(CollectionCreatedEvent collectionCreated)
-		{
-			try
-			{
-				Dictionary<string, object> parameters = new Dictionary<string, object>();
-				//parameters.Add("address", collectionCreated.CollectionContract);
-				//parameters.Add("chainId", ConfigManager.Instance.ChainListString);
-				await Moralis.Cloud.RunAsync<object>("watchMintedEventContract", parameters);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError(e.Message + " " + e.StackTrace);
-			}
-		}
+		
 
 		#endregion
 	}

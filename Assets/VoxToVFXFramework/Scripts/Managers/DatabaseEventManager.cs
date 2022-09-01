@@ -43,6 +43,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<BuyPriceCanceledEvent> cancelBuyPriceQuery = await Moralis.GetClient().Query<BuyPriceCanceledEvent>();
 			MoralisLiveQueryCallbacks<BuyPriceCanceledEvent> cancelBuyPriceQueryCallbacks = new MoralisLiveQueryCallbacks<BuyPriceCanceledEvent>();
 
+			MoralisQuery<EthNFTTransfers> transferQuery = await Moralis.GetClient().Query<EthNFTTransfers>();
+			MoralisLiveQueryCallbacks<EthNFTTransfers> transferQueryCallbacks = new MoralisLiveQueryCallbacks<EthNFTTransfers>();
+
 			collectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
 			collectionMintedQueryCallbacks.OnErrorEvent += OnError;
 
@@ -55,11 +58,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 			cancelBuyPriceQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceCanceledEvent;
 			cancelBuyPriceQueryCallbacks.OnErrorEvent += OnError;
 
+			transferQueryCallbacks.OnUpdateEvent += HandleTransferEvent;
+			transferQueryCallbacks.OnErrorEvent += OnError;
+
 			MoralisLiveQueryController.AddSubscription("CollectionCreatedEvent", collectionCreatedQuery, collectionCreatedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("CollectionMintedEvent", collectionMintedQuery, collectionMintedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceSetEvent", setBuyPriceQuery, setBuyPriceQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceCanceledEvent", cancelBuyPriceQuery, cancelBuyPriceQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("EthNFTTransfers", transferQuery, transferQueryCallbacks);
 		}
+
+		
 
 		private void OnError(ErrorMessage evt)
 		{
@@ -119,6 +128,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 				{
 					DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
 				}
+				OnEventReceived(item);
+			}
+		}
+
+		private void HandleTransferEvent(EthNFTTransfers item, int requestid)
+		{
+			Debug.Log("[DatabaseEventManager] HandleTransferEvent " + item.TokenAddress);
+			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.TokenAddress))
+			{
+				Debug.Log("[DatabaseEventManager] HandleTransferEvent is for current user");
+				//string key = item.NFTContract + "_" + item.TokenId;
+				////Will force refresh the next time it's called
+				//if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
+				//{
+				//	DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
+				//}
 				OnEventReceived(item);
 			}
 		}

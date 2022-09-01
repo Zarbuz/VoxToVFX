@@ -115,7 +115,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 				OnActionSuccessful = onSuccessCallback,
 				Title = title,
 				Description = description,
-				TransactionId = transactionId
+				TransactionId = transactionId,
 			};
 
 			Instance.CreateAndShow<ConfirmationBlockchainPopup, ConfirmationBlockchainDescriptor>(
