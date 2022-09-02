@@ -149,7 +149,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
 					NftOwner nftOwner = nftCollection.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
-					tasks.Add(item.Initialize(nft,nftOwner, mCustomUser));
+					tasks.Add(item.Initialize(nft,nftOwner));
 					mItems.Add(item);
 				}
 			}

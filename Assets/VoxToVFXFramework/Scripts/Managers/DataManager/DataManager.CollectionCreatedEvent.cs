@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using MoralisUnity.Platform.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +9,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 {
 	public partial class DataManager
 	{
-		public Dictionary<string, MoralisDataCacheDTO> ContractCreatedPerUsers = new Dictionary<string, MoralisDataCacheDTO>();
+		public Dictionary<string, CollectionCreatedEventCache> ContractCreatedPerUsers = new Dictionary<string, CollectionCreatedEventCache>();
 
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContractWithCache(string userAddress)
 		{
@@ -21,18 +20,18 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 			if (ContractCreatedPerUsers.ContainsKey(userAddress))
 			{
-				MoralisDataCacheDTO dto = ContractCreatedPerUsers[userAddress];
+				CollectionCreatedEventCache dto = ContractCreatedPerUsers[userAddress];
 				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
 				{
-					return dto.List.Cast<CollectionCreatedEvent>().ToList();
+					return dto.List;
 				}
 			}
 
 			List<CollectionCreatedEvent> list = await CollectionFactoryManager.Instance.GetUserListContract(userAddress);
-			ContractCreatedPerUsers[userAddress] = new MoralisDataCacheDTO()
+			ContractCreatedPerUsers[userAddress] = new CollectionCreatedEventCache()
 			{
 				LastTimeUpdated = DateTime.UtcNow,
-				List = list.Cast<MoralisObject>().ToList()
+				List = list
 			};
 
 			return list;
@@ -46,24 +45,17 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 			if (ContractCreatedPerUsers.ContainsKey(currentUser))
 			{
-				return ContractCreatedPerUsers[currentUser].List.Cast<CollectionCreatedEvent>()
-					.Any(t => t.CollectionContract == address);
+				return ContractCreatedPerUsers[currentUser].List.Any(t => t.CollectionContract == address);
 			}
 
 			return false;
 		}
 
-		public async UniTask<CollectionCreatedEvent> GetCollectionWithCache(string address)
+		public async UniTask<CollectionCreatedEvent> GetCollectionCreatedEventWithCache(string address)
 		{
-			foreach (MoralisDataCacheDTO moralisCache in ContractCreatedPerUsers.Values)
+			foreach (CollectionCreatedEvent collection in ContractCreatedPerUsers.Values.SelectMany(moralisCache => moralisCache.List.Where(collection => collection.CollectionContract == address)))
 			{
-				foreach (CollectionCreatedEvent collection in moralisCache.List.Cast<CollectionCreatedEvent>())
-				{
-					if (collection.CollectionContract == address)
-					{
-						return collection;
-					}
-				}
+				return collection;
 			}
 
 			CollectionCreatedEvent collectionCreated = await CollectionFactoryManager.Instance.GetCollection(address);
@@ -71,12 +63,26 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return collectionCreated;
 		}
 
+		public async UniTask<string> GetCreatorOfCollection(string address)
+		{
+			foreach (KeyValuePair<string, CollectionCreatedEventCache> item in ContractCreatedPerUsers)
+			{
+				if (item.Value.List.Any(t => t.CollectionContract == address))
+				{
+					return item.Key;
+				}
+			}
+
+			CollectionCreatedEvent collection = await GetCollectionCreatedEventWithCache(address);
+			return collection.Creator;
+		}
+
 		public void AddCollectionCreated(CollectionCreatedEvent collectionCreated)
 		{
 			if (ContractCreatedPerUsers.ContainsKey(collectionCreated.Creator))
 			{
-				MoralisDataCacheDTO dto = ContractCreatedPerUsers[collectionCreated.Creator];
-				if (dto.List.Cast<CollectionCreatedEvent>()
+				CollectionCreatedEventCache dto = ContractCreatedPerUsers[collectionCreated.Creator];
+				if (dto.List
 				    .All(t => t.CollectionContract != collectionCreated.CollectionContract))
 				{
 					dto.List.Add(collectionCreated);
@@ -85,14 +91,20 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			}
 			else
 			{
-				MoralisDataCacheDTO cache = new MoralisDataCacheDTO();
-				cache.List = new List<MoralisObject>()
+				CollectionCreatedEventCache cache = new CollectionCreatedEventCache();
+				cache.List = new List<CollectionCreatedEvent>()
 				{
 					collectionCreated
 				};
 				cache.LastTimeUpdated = DateTime.UtcNow;
 				ContractCreatedPerUsers[collectionCreated.Creator] = cache;
 			}
+		}
+
+		public class CollectionCreatedEventCache
+		{
+			public List<CollectionCreatedEvent> List { get; set; }
+			public DateTime LastTimeUpdated { get; set; }
 		}
 	}
 }

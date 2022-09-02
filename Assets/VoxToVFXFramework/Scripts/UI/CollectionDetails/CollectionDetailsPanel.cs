@@ -222,7 +222,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
 				NftOwner nftOwner = collection.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
-				tasks.Add(item.Initialize(nft, nftOwner, mCreatorUser));
+				tasks.Add(item.Initialize(nft, nftOwner));
 			}
 
 			await UniTask.WhenAll(tasks);

@@ -16,9 +16,5 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 	
 	}
 
-	public class MoralisDataCacheDTO
-	{
-		public List<MoralisObject> List { get; set; }
-		public DateTime LastTimeUpdated { get; set; }
-	}
+	
 }

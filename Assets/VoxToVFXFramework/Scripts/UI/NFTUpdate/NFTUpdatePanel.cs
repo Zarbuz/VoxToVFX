@@ -86,7 +86,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		private eUpdateTargetType mTargetType;
 		private Nft mNft;
-		private CustomUser mCreatorUser;
 
 		private eNFTUpdatePanelState mPanelState;
 		private eNFTUpdatePanelState NftUpdatePanelState
@@ -141,11 +140,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public async void Initialize(eUpdateTargetType updateTargetType, Nft nft, CustomUser creatorUser)
+		public async void Initialize(eUpdateTargetType updateTargetType, Nft nft)
 		{
 			mTargetType = updateTargetType;
 			mNft = nft;
-			mCreatorUser = creatorUser;
 			switch (updateTargetType)
 			{
 				case eUpdateTargetType.SET_BUY_PRICE:
@@ -178,7 +176,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;
-			await ProfileListNftItem.Initialize(nft, null, creatorUser);
+			await ProfileListNftItem.Initialize(nft, null);
 
 		}
 
@@ -257,12 +255,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		private void OnViewNFTClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mNft, mCreatorUser);
+			CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mNft);
 		}
 
 		private async void OnViewCollectionClicked()
 		{
-			CollectionCreatedEvent collection = await DataManager.Instance.GetCollectionWithCache(mNft.TokenAddress);
+			CollectionCreatedEvent collection = await DataManager.Instance.GetCollectionCreatedEventWithCache(mNft.TokenAddress);
 			CanvasPlayerPCManager.Instance.OpenCollectionDetailsPanel(collection);
 		}
 

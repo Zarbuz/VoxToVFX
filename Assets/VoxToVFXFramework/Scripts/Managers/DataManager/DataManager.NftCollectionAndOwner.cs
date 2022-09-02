@@ -2,6 +2,7 @@
 using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VoxToVFXFramework.Scripts.Managers.DataManager
 {
@@ -37,6 +38,12 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			NftCollection[address] = collectionAndOwner;
 
 			return collectionAndOwner;
+		}
+
+		public async UniTask<NftOwner> GetOwnerOfNft(Nft nft)
+		{
+			NftCollectionAndOwner collection = await GetNftCollectionWithCache(nft.TokenAddress);
+			return collection is { NftOwnerCollection: { } } ? collection.NftOwnerCollection.Result.FirstOrDefault(nftOwner => nftOwner.TokenId == nft.TokenId) : null;
 		}
 
 		public class NftCollectionAndOwner

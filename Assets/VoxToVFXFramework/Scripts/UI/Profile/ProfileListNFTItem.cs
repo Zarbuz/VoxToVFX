@@ -42,16 +42,14 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public bool IsReadyOnly { get; set; }
 
 		private Nft mNft;
-		private CustomUser mCreatorUser;
 
 		#endregion
 
 		#region PublicMethods
 
-		public async UniTask Initialize(Nft nft, NftOwner owner, CustomUser creatorUser)
+		public async UniTask Initialize(Nft nft, NftOwner owner)
 		{
 			mNft = nft;
-			mCreatorUser = creatorUser;
 			Button.onClick.AddListener(OnItemClicked);
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
@@ -108,6 +106,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			CollectionNameText.text = nft.Name;
 
+			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
+			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
 			CreatorUsernameText.text = "@" + creatorUser.UserName;
 			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
 			CreatorTrigger.Initialize(creatorUser.EthAddress);
@@ -141,7 +141,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			if (!IsReadyOnly)
 			{
-				CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mNft, mCreatorUser);
+				CanvasPlayerPCManager.Instance.OpenNftDetailsPanel(mNft);
 			}
 		}
 

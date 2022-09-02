@@ -80,16 +80,22 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(Nft nft, CustomUser creatorUser)
+		public async void Initialize(Nft nft)
 		{
 			mNft = nft;
+
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			NFTDetailsManagePanel.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
-			NFTDetailsManagePanel.Initialize(nft, creatorUser);
+
+			string creatorAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
+			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(creatorAddress);
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
-			OpenUserProfileButton.Initialize(creatorUser);
-			mCollectionCreated = await DataManager.Instance.GetCollectionWithCache(nft.TokenAddress);
+			mCollectionCreated = await DataManager.Instance.GetCollectionCreatedEventWithCache(nft.TokenAddress);
 			mCollectionMinted = await DataManager.Instance.GetCollectionMintedWithCache(nft.TokenAddress, nft.TokenId);
+			NftOwner nftOwner = await DataManager.Instance.GetOwnerOfNft(nft);
+
+			NFTDetailsManagePanel.gameObject.SetActive(nftOwner != null && nftOwner.OwnerOf == UserManager.Instance.CurrentUserAddress);
+			NFTDetailsManagePanel.Initialize(nft, creatorUser);
+			OpenUserProfileButton.Initialize(creatorUser);
 			CollectionNameText.text = mCollectionCreated.Name;
 			try
 			{
