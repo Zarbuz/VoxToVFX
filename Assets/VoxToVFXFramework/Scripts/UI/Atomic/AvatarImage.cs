@@ -19,10 +19,10 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		public async UniTask Initialize(CustomUser user)
 		{
-			NoAvatarImage.gameObject.SetActive(true);
-			ProfileImage.gameObject.SetActive(false);
+			NoAvatarImage.gameObject.SetActive(user == null || string.IsNullOrEmpty(user.PictureUrl));
+			ProfileImage.gameObject.SetActive(user != null && !string.IsNullOrEmpty(user.PictureUrl));
 
-			if (!string.IsNullOrEmpty(user.PictureUrl))
+			if (user != null && !string.IsNullOrEmpty(user.PictureUrl))
 			{
 				bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(user.PictureUrl, ProfileImage, 256, 256);
 				if (success)

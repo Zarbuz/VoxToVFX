@@ -31,6 +31,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 
+		[SerializeField] private ButtonTriggerUserDetailsPopup CreatorTrigger;
+		[SerializeField] private ButtonTriggerUserDetailsPopup OwnerTrigger;
+
 		#endregion
 
 		#region Fields
@@ -51,7 +54,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mCreatorUser = creatorUser;
 			Button.onClick.AddListener(OnItemClicked);
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
-
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 
 			if (owner != null)
@@ -64,8 +66,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				else
 				{
 					CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(owner.OwnerOf);
+					OwnerTrigger.Initialize(owner.OwnerOf);
 					if (ownerUser != null)
 					{
+
 						OwnerUsernameText.text = "@" + ownerUser.UserName;
 						OwnerAvatarImage.gameObject.SetActive(true);
 						await OwnerAvatarImage.Initialize(ownerUser);
@@ -73,7 +77,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 					else
 					{
 						OwnerUsernameText.text = owner.OwnerOf.FormatEthAddress(6);
-						OwnerAvatarImage.gameObject.SetActive(false);
+						await OwnerAvatarImage.Initialize(null);
 					}
 				}
 			}
@@ -106,6 +110,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			CreatorUsernameText.text = "@" + creatorUser.UserName;
 			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
+			CreatorTrigger.Initialize(creatorUser.EthAddress);
 
 			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
 			Title.text = metadataObject.Name;

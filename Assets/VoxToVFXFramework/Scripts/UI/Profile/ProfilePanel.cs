@@ -70,6 +70,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			ProfileListingPanel.Initialize(user);
 
+			BannerImage.sprite = null;
 			UserNameText.text = "@" + user.UserName;
 			NameText.text = user.Name;
 
