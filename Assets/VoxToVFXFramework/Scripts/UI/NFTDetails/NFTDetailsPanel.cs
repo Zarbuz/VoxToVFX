@@ -84,7 +84,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		{
 			mNft = nft;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			NFTDetailsManagePanel.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUser?.EthAddress);
+			NFTDetailsManagePanel.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
 			NFTDetailsManagePanel.Initialize(nft, creatorUser);
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			OpenUserProfileButton.Initialize(creatorUser);

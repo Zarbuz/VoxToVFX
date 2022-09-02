@@ -45,10 +45,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		
 
-		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(CustomUser user)
+		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(string userAddress)
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
-			q = q.WhereEqualTo("creator", user.EthAddress);
+			q = q.WhereEqualTo("creator", userAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
 			return result.ToList();
 		}

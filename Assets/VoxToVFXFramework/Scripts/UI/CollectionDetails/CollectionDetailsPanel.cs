@@ -128,8 +128,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			mCreatorUser = await DataManager.Instance.GetUserWithCache(collection.Creator);
 			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
-			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
-			EditCollectionButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUser.EthAddress);
+			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUserAddress);
+			EditCollectionButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUserAddress);
 			CollectionNameText.text = collection.Name;
 			CollectionSymbolText.text = collection.Symbol;
 			CollectionDetailsState = eCollectionDetailsState.NFT;
@@ -215,21 +215,22 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			NFTGridTransform.DestroyAllChildren();
 			mItems.Clear();
-			NftCollection collection = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
+			var collection = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
 			List<UniTask> tasks = new List<UniTask>();
-			foreach (Nft nft in collection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
+			foreach (Nft nft in collection.NftCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
-				tasks.Add(item.Initialize(nft, mCreatorUser));
+				NftOwner nftOwner = collection.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
+				tasks.Add(item.Initialize(nft, nftOwner, mCreatorUser));
 			}
 
 			await UniTask.WhenAll(tasks);
 
 			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
-			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUser.EthAddress);
-			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUser.EthAddress);
+			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
+			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUserAddress);
 		}
 
 		private void RebuildAllVerticalRect()

@@ -79,7 +79,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnCollectionCreatedEvent: " + item.Creator);
 
-			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
+			if (UserManager.Instance.CurrentUserAddress == item.Creator)
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionCreatedEvent is for current user");
 				DataManager.DataManager.Instance.AddCollectionCreated(item);
@@ -90,7 +90,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent " + item.Creator);
-			if (UserManager.Instance.CurrentUser != null && UserManager.Instance.CurrentUser.EthAddress == item.Creator)
+			if (UserManager.Instance.CurrentUserAddress == item.Creator)
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent is for current user");
 
@@ -138,12 +138,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.TokenAddress))
 			{
 				Debug.Log("[DatabaseEventManager] HandleTransferEvent is for current user");
-				//string key = item.NFTContract + "_" + item.TokenId;
 				////Will force refresh the next time it's called
-				//if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
-				//{
-				//	DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
-				//}
+				if (DataManager.DataManager.Instance.NftCollection.ContainsKey(item.TokenAddress))
+				{
+					DataManager.DataManager.Instance.NFTDetailsCache.Remove(item.TokenAddress);
+				}
 				OnEventReceived(item);
 			}
 		}

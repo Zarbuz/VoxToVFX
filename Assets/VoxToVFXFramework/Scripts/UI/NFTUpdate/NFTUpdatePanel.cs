@@ -178,7 +178,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;
-			await ProfileListNftItem.Initialize(nft, creatorUser);
+			await ProfileListNftItem.Initialize(nft, null, creatorUser);
 
 		}
 

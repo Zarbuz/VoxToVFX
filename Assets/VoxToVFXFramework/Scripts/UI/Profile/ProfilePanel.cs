@@ -108,7 +108,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			SnapChatText.gameObject.SetActive(!string.IsNullOrEmpty(user.SnapchatUsername));
 			SnapChatText.text = user.SnapchatUsername;
 
-			EditProfileButton.gameObject.SetActive(user.UserId == UserManager.Instance.CurrentUser.UserId);
+			EditProfileButton.gameObject.SetActive(user.EthAddress == UserManager.Instance.CurrentUserAddress);
 
 			JoinedText.gameObject.SetActive(user.createdAt.HasValue);
 			if (user.createdAt != null)

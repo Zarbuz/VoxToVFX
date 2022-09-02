@@ -12,19 +12,24 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 	{
 		public Dictionary<string, MoralisDataCacheDTO> ContractCreatedPerUsers = new Dictionary<string, MoralisDataCacheDTO>();
 
-		public async UniTask<List<CollectionCreatedEvent>> GetUserListContractWithCache(CustomUser user)
+		public async UniTask<List<CollectionCreatedEvent>> GetUserListContractWithCache(string userAddress)
 		{
-			if (ContractCreatedPerUsers.ContainsKey(user.EthAddress))
+			if (string.IsNullOrEmpty(userAddress))
 			{
-				MoralisDataCacheDTO dto = ContractCreatedPerUsers[user.EthAddress];
+				return new List<CollectionCreatedEvent>();
+			}
+
+			if (ContractCreatedPerUsers.ContainsKey(userAddress))
+			{
+				MoralisDataCacheDTO dto = ContractCreatedPerUsers[userAddress];
 				if ((DateTime.UtcNow - dto.LastTimeUpdated).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
 				{
 					return dto.List.Cast<CollectionCreatedEvent>().ToList();
 				}
 			}
 
-			List<CollectionCreatedEvent> list = await CollectionFactoryManager.Instance.GetUserListContract(user);
-			ContractCreatedPerUsers[user.EthAddress] = new MoralisDataCacheDTO()
+			List<CollectionCreatedEvent> list = await CollectionFactoryManager.Instance.GetUserListContract(userAddress);
+			ContractCreatedPerUsers[userAddress] = new MoralisDataCacheDTO()
 			{
 				LastTimeUpdated = DateTime.UtcNow,
 				List = list.Cast<MoralisObject>().ToList()
@@ -35,13 +40,13 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		public bool IsCollectionCreatedByCurrentUser(string address)
 		{
-			CustomUser currentUser = UserManager.Instance.CurrentUser;
-			if (currentUser == null)
+			string currentUser = UserManager.Instance.CurrentUserAddress;
+			if (string.IsNullOrEmpty(currentUser))
 				return false;
 
-			if (ContractCreatedPerUsers.ContainsKey(currentUser.EthAddress))
+			if (ContractCreatedPerUsers.ContainsKey(currentUser))
 			{
-				return ContractCreatedPerUsers[currentUser.EthAddress].List.Cast<CollectionCreatedEvent>()
+				return ContractCreatedPerUsers[currentUser].List.Cast<CollectionCreatedEvent>()
 					.Any(t => t.CollectionContract == address);
 			}
 

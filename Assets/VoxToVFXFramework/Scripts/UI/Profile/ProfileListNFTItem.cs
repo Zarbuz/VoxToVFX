@@ -5,9 +5,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
+using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Atomic;
+using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
@@ -23,8 +25,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private TextMeshProUGUI CreatorUsernameText;
 		[SerializeField] private TextMeshProUGUI ActionText;
 		[SerializeField] private TextMeshProUGUI PriceText;
-		[SerializeField] private AvatarImage BuyerAvatarImage;
-		[SerializeField] private TextMeshProUGUI BuyerUsernameText;
+		[SerializeField] private AvatarImage OwnerAvatarImage;
+		[SerializeField] private TextMeshProUGUI OwnerUsernameText;
 
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
@@ -43,7 +45,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region PublicMethods
 
-		public async UniTask Initialize(Nft nft, CustomUser creatorUser)
+		public async UniTask Initialize(Nft nft, NftOwner owner, CustomUser creatorUser)
 		{
 			mNft = nft;
 			mCreatorUser = creatorUser;
@@ -52,8 +54,35 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 
-			BuyerAvatarImage.gameObject.SetActive(false);
-			BuyerUsernameText.text = string.Empty;
+			if (owner != null)
+			{
+				if (owner.OwnerOf == UserManager.Instance.CurrentUserAddress)
+				{
+					OwnerAvatarImage.gameObject.SetActive(false);
+					OwnerUsernameText.text = string.Empty;
+				}
+				else
+				{
+					CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(owner.OwnerOf);
+					if (ownerUser != null)
+					{
+						OwnerUsernameText.text = "@" + ownerUser.UserName;
+						OwnerAvatarImage.gameObject.SetActive(true);
+						await OwnerAvatarImage.Initialize(ownerUser);
+					}
+					else
+					{
+						OwnerUsernameText.text = owner.OwnerOf.FormatEthAddress(6);
+						OwnerAvatarImage.gameObject.SetActive(false);
+					}
+				}
+			}
+			else
+			{
+				OwnerAvatarImage.gameObject.SetActive(false);
+				OwnerUsernameText.text = string.Empty;
+			}
+
 			if (details != null)
 			{
 				ActionText.text = details.TargetAction;

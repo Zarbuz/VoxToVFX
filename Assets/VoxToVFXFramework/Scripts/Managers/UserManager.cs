@@ -24,6 +24,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public AccountInfoContractType AccountInfoContractType { get; private set; }
 		public event Action<CustomUser> OnUserInfoUpdated;
 
+
+		public string CurrentUserAddress => CurrentUser != null ? CurrentUser.EthAddress : string.Empty;
+
 		#endregion
 
 		#region PublicMethods
