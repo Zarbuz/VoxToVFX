@@ -35,7 +35,7 @@ namespace VoxToVFXFramework.Scripts.Utils
 			return outputList;
 		}
 
-		public static string Combine(byte[][] arrays, string filename)
+		public static void Combine(byte[][] arrays, string targetFilePath)
 		{
 			byte[] bytes = new byte[arrays.Sum(a => a.Length)];
 			int offset = 0;
@@ -46,10 +46,7 @@ namespace VoxToVFXFramework.Scripts.Utils
 				offset += array.Length;
 			}
 
-			string path = Path.Combine(Application.persistentDataPath, filename);
-			File.WriteAllBytes(path, bytes); 
-
-			return path;
+			File.WriteAllBytes(targetFilePath, bytes); 
 		}
 	}
 }

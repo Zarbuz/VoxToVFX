@@ -169,7 +169,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private async void OnLoadVoxModelClicked()
 		{
 			string fileName = mCollectionMinted.TransactionHash + ".zip";
-			string zipPath = Path.Combine(Application.persistentDataPath, fileName);
+			string zipPath = Path.Combine(Application.persistentDataPath, VoxelDataCreatorManager.VOX_FOLDER_CACHE_NAME, fileName);
 
 			if (File.Exists(zipPath))
 			{
@@ -178,8 +178,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			else
 			{
 				CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_DOWNLOAD_MODEL.Translate());
-				string path = await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, fileName);
-				ReadZipPath(path);
+				await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, zipPath);
+				ReadZipPath(zipPath);
 			}
 		}
 

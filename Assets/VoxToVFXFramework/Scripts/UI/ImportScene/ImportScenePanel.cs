@@ -64,11 +64,7 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		{
 			mImportButtonHighlightable = OpenFileClicked.GetComponent<ButtonHighlightable>();
 			OpenFileClicked.onClick.AddListener(OnOpenFileClicked);
-
-			Title.text = DataImportTypeState == EDataImportType.VOX ? LocalizationKeys.IMPORT_SCENE_TITLE.Translate() : LocalizationKeys.OPEN_SCENE_TITLE.Translate();
-			SubTitle.text = DataImportTypeState == EDataImportType.VOX ? LocalizationKeys.IMPORT_SCENE_SUBTITLE.Translate() : LocalizationKeys.OPEN_SCENE_SUBTITLE.Translate();
-
-			ImportState = EImportState.NORMAL;
+			
 			VoxelDataCreatorManager.Instance.LoadProgressCallback += OnLoadProgressUpdate;
 			VoxelDataCreatorManager.Instance.LoadFinishedCallback += OnLoadVoxFinished;
 
@@ -99,6 +95,11 @@ namespace VoxToVFXFramework.Scripts.UI.ImportScene
 		public void Initialize(EDataImportType importType)
 		{
 			DataImportTypeState = importType;
+
+			Title.text = DataImportTypeState == EDataImportType.VOX ? LocalizationKeys.IMPORT_SCENE_TITLE.Translate() : LocalizationKeys.OPEN_SCENE_TITLE.Translate();
+			SubTitle.text = DataImportTypeState == EDataImportType.VOX ? LocalizationKeys.IMPORT_SCENE_SUBTITLE.Translate() : LocalizationKeys.OPEN_SCENE_SUBTITLE.Translate();
+
+			ImportState = EImportState.NORMAL;
 		}
 
 		#endregion

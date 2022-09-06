@@ -45,6 +45,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return owners;
 		}
 
+		public async UniTask<NftOwnerCollection> GetNfts(string address)
+		{
+			NftOwnerCollection owners = await Moralis.Web3Api.Account.GetNFTs(address, ConfigManager.Instance.ChainList);
+			return owners;
+		}
+
 		public async UniTask<bool> SyncNFTContract(string address)
 		{
 			bool success = await Moralis.Web3Api.Token.SyncNFTContract(address, ConfigManager.Instance.ChainList);

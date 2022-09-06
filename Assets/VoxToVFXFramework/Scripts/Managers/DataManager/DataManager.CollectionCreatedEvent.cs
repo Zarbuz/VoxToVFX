@@ -63,6 +63,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return collectionCreated;
 		}
 
+
 		public async UniTask<string> GetCreatorOfCollection(string address)
 		{
 			foreach (KeyValuePair<string, CollectionCreatedEventCache> item in ContractCreatedPerUsers)

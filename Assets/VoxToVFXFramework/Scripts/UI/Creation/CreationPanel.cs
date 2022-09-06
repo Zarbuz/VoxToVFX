@@ -171,6 +171,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 			}
 			else
 			{
+				VoxelDataCreatorManager.Instance.DestroyFiles(outputChunkPaths);
 				OnUploadVoxFinished(fileUrls);
 			}
 		}

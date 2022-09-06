@@ -40,8 +40,9 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	private string mCurrentInputFolder;
 	private readonly ConcurrentBag<ChunkDataFile> mChunksWritten = new ConcurrentBag<ChunkDataFile>();
 	private readonly List<Task> mTaskList = new List<Task>();
-	private const string EXTRACT_TMP_FOLDER_NAME = "extract_tmp";
-	private const string IMPORT_TMP_FOLDER_NAME = "import_tmp";
+	private const string EXTRACT_TMP_FOLDER_NAME = "ExtractTmp";
+	private const string IMPORT_TMP_FOLDER_NAME = "ImportTmp";
+	public const string VOX_FOLDER_CACHE_NAME = "VoxCache";
 
 	private int mReadCompleted;
 
@@ -64,11 +65,18 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	protected override void OnStart()
 	{
 		mAppPersistantPath = Application.persistentDataPath;
+
+		string voxCache = Path.Combine(Application.persistentDataPath, VOX_FOLDER_CACHE_NAME);
+		if (!Directory.Exists(voxCache))
+		{
+			Directory.CreateDirectory(voxCache);
+		}
 	}
 
 	private void OnApplicationQuit()
 	{
 		mImporter?.Dispose();
+		CleanFolders();
 	}
 
 	#endregion
@@ -100,26 +108,27 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
 	}
 
-	public async UniTask<string> DownloadVoxModel(List<string> partModelPaths, string filename)
+	public async UniTask DownloadVoxModel(List<string> partModelPaths, string targetFilePath)
 	{
 		List<UniTask<byte[]>> tasks = Enumerable.Select(partModelPaths, url => BackendMediaManager.Instance.DownloadFile(url)).ToList();
 		byte[][] result = await UniTask.WhenAll(tasks);
 
-		string path = FileUtils.Combine(result, filename);
-		Debug.Log("[VoxelDataCreatorManager] DownloadVoxModel filepath: " + path);
-		return path;
+		FileUtils.Combine(result, targetFilePath);
+		Debug.Log("[VoxelDataCreatorManager] DownloadVoxModel filepath: " + targetFilePath);
 	}
 
 	public void ReadZipFile(string inputPath)
 	{
 		RuntimeVoxManager.Instance.Release();
 		string checksum = GetMd5Checksum(inputPath);
-		string inputFolder = Path.Combine(Application.persistentDataPath, checksum);
+		string voxCache = Path.Combine(Application.persistentDataPath, VOX_FOLDER_CACHE_NAME);
+
+		string inputFolder = Path.Combine(voxCache, checksum);
 		mCurrentInputFolder = inputFolder;
 		if (!Directory.Exists(inputFolder))
 		{
 			Directory.CreateDirectory(inputFolder);
-			ZipFile.ExtractToDirectory(inputPath, Path.Combine(Application.persistentDataPath, inputFolder));
+			ZipFile.ExtractToDirectory(inputPath, inputFolder);
 		}
 
 		StartCoroutine(StartReadImportFilesCo(inputFolder));
@@ -139,9 +148,32 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		}
 	}
 
+	public void DestroyFiles(List<string> outputChunkPaths)
+	{
+		foreach (string path in outputChunkPaths.Where(File.Exists))
+		{
+			File.Delete(path);
+		}
+	}
+
 	#endregion
 
 	#region PrivateMethods
+
+	private void CleanFolders()
+	{
+		string extractFolder = Path.Combine(Application.persistentDataPath, EXTRACT_TMP_FOLDER_NAME);
+		if (Directory.Exists(extractFolder))
+		{
+			CleanFolder(extractFolder);
+		}
+
+		string inputFolder = Path.Combine(Application.persistentDataPath, IMPORT_TMP_FOLDER_NAME);
+		if (Directory.Exists(inputFolder))
+		{
+			CleanFolder(inputFolder);
+		}
+	}
 
 	private string GetMd5Checksum(string filepath)
 	{
@@ -306,6 +338,12 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	{
 		string tmpPath = Path.Combine(folderPath);
 		DirectoryInfo di = new DirectoryInfo(tmpPath);
+
+		foreach (DirectoryInfo dir in di.GetDirectories())
+		{
+			dir.Delete(true);	
+		}
+
 		foreach (FileInfo file in di.GetFiles())
 		{
 			file.Delete();
@@ -459,4 +497,5 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 	#endregion
 
 
+	
 }

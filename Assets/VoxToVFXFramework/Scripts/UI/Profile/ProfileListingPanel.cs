@@ -74,7 +74,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 		}
 
-		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
+		private readonly List<ProfileListNFTItem> mItemsCreated = new List<ProfileListNFTItem>();
+		private readonly List<ProfileListNFTItem> mItemsOwned = new List<ProfileListNFTItem>();
 		private CustomUser mCustomUser;
 		#endregion
 
@@ -107,8 +108,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			ShowSpinnerImage(true);
 			UniTask task1 = RefreshCreatedTab();
 			UniTask task2 = RefreshCollectionTab();
+			UniTask task3 = RefreshOwnedTab();
 
-			await (task1, task2);
+			await (task1, task2, task3);
 			ShowSpinnerImage(false);
 		}
 
@@ -137,7 +139,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			CreatedGridTransform.DestroyAllChildren();
 
-			mItems.Clear();
+			mItemsCreated.Clear();
 			List<UniTask> tasks = new List<UniTask>();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser.EthAddress);
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
@@ -149,13 +151,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				{
 					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
 					NftOwner nftOwner = nftCollection.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
-					tasks.Add(item.Initialize(nft,nftOwner));
-					mItems.Add(item);
+					tasks.Add(item.Initialize(nft, nftOwner));
+					mItemsCreated.Add(item);
 				}
 			}
 
 			await UniTask.WhenAll(tasks);
-			CreatedCountText.text = mItems.Count(i => i.InitSuccess).ToString();
+			CreatedCountText.text = mItemsCreated.Count(i => i.InitSuccess).ToString();
 		}
 
 		private async UniTask RefreshCollectionTab()
@@ -163,7 +165,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionGridTransform.DestroyAllChildren();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser.EthAddress);
 
-			List<UniTask> tasks	= new List<UniTask>();
+			List<UniTask> tasks = new List<UniTask>();
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
 				ProfileCollectionItem item = Instantiate(ProfileCollectionItemPrefab, CollectionGridTransform, false);
@@ -171,6 +173,37 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 			await UniTask.WhenAll(tasks);
 			CollectionCountText.text = list.Count.ToString();
+		}
+
+		private async UniTask RefreshOwnedTab()
+		{
+			OwnedGridTransform.DestroyAllChildren();
+			NftOwnerCollection ownerCollection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
+
+			mItemsOwned.Clear();
+			List<UniTask> tasks = new List<UniTask>();
+
+			//List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
+			foreach (NftOwner nftOwner in ownerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
+			{
+				ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, OwnedGridTransform, false);
+
+				Nft nft = new Nft()
+				{
+					Name = nftOwner.Name,
+					Metadata = nftOwner.Metadata,
+					Symbol = nftOwner.Symbol,
+					TokenAddress = nftOwner.TokenAddress,
+					TokenId = nftOwner.TokenId,
+					SyncedAt = nftOwner.SyncedAt,
+				};
+
+				tasks.Add(item.Initialize(nft, nftOwner));
+				mItemsOwned.Add(item);
+			}
+
+			await UniTask.WhenAll(tasks);
+			OwnedCountText.text = mItemsOwned.Count(i => i.InitSuccess).ToString();
 		}
 
 		#endregion

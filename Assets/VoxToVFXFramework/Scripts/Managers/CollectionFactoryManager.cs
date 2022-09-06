@@ -61,8 +61,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return collection;
 		}
 
-		
-
 		#endregion
 	}
 }

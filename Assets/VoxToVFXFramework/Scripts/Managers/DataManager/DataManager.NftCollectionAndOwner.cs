@@ -9,7 +9,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 	public partial class DataManager
 	{
 		public Dictionary<string, NftCollectionAndOwner> NftCollection = new Dictionary<string, NftCollectionAndOwner>();
-
+		public Dictionary<string, UserOwnerCache> UserOwner = new Dictionary<string, UserOwnerCache>();
 		public async UniTask<NftCollectionAndOwner> GetNftCollectionWithCache(string address)
 		{
 			if (NftCollection.TryGetValue(address, out NftCollectionAndOwner collection))
@@ -40,6 +40,25 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return collectionAndOwner;
 		}
 
+		public async UniTask<NftOwnerCollection> GetNFTOwnedByUser(string address)
+		{
+			if (UserOwner.TryGetValue(address, out UserOwnerCache userOwnerCache))
+			{
+				if ((DateTime.UtcNow - userOwnerCache.LastUpdate).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
+				{
+					return userOwnerCache.NftOwnerCollection;
+				}
+			}
+
+			NftOwnerCollection result = await NFTManager.Instance.GetNfts(address);
+			UserOwner[address] = new UserOwnerCache()
+			{
+				LastUpdate = DateTime.UtcNow,
+				NftOwnerCollection = result
+			};
+			return result;
+		}
+
 		public async UniTask<NftOwner> GetOwnerOfNft(Nft nft)
 		{
 			NftCollectionAndOwner collection = await GetNftCollectionWithCache(nft.TokenAddress);
@@ -54,7 +73,12 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		}
 
-		
+		public class UserOwnerCache
+		{
+			public NftOwnerCollection NftOwnerCollection { get; set; }
+			public DateTime LastUpdate { get; set; }
+
+		}
 	}
 
 }
