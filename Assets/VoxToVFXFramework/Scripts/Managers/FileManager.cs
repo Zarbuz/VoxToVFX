@@ -53,14 +53,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 					if (url != null)
 					{
 						result.Add(url);
+						Debug.Log("[FileManager] Url: " + url);
 					}
 					uploadProgress?.Invoke(count / (float)filePaths.Count);
 					count++;
-				}
-
-				foreach (string path in result)
-				{
-					Debug.Log("[FileManager] Url: " + path);
 				}
 
 				return result;

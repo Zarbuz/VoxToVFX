@@ -7,11 +7,11 @@ namespace VoxToVFXFramework.Scripts.Utils.Image
 {
 	public static class ImageUtils
 	{
-		public static async UniTask<bool> DownloadAndApplyImage(string imageUrl, UnityEngine.UI.Image image, int maxWidth, bool preserveAspect = true, bool keepPermanentMedia = true, bool cropToCenter = false)
+		public static async UniTask<bool> DownloadAndApplyImage(string imageUrl, UnityEngine.UI.Image image, bool preserveAspect = true, bool keepPermanentMedia = true, bool cropToCenter = false)
 		{
 			if (!string.IsNullOrEmpty(imageUrl))
 			{
-				Texture2D texture = await MediaManager.Instance.DownloadImage(imageUrl, maxWidth, keepPermanentMedia, cropToCenter);
+				Texture2D texture = await MediaManager.Instance.DownloadImage(imageUrl, int.MaxValue, keepPermanentMedia, cropToCenter);
 				if (texture != null)
 				{
 					image.sprite = Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);

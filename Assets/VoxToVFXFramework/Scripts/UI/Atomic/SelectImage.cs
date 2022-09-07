@@ -76,7 +76,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 			if (!string.IsNullOrEmpty(imageUrl))
 			{
-				await ImageUtils.DownloadAndApplyImage(imageUrl, Image, 512, true, true, true);
+				await ImageUtils.DownloadAndApplyImageAndCropAfter(imageUrl, Image, 512, 512);
 			}
 			ImageUrl = imageUrl;
 		}

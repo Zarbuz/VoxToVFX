@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
+using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.Utils.MetadataBuilder;
 
@@ -267,7 +269,11 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnOpenSetBuyPriceClicked()
 		{
-			//CanvasPlayerPCManager.Instance.OpenSetBuyPricePanel(mCollectionMintedItem);
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eUpdateTargetType.SET_BUY_PRICE, new Nft()
+			{
+				TokenAddress = mCollectionMintedItem.Address,
+				TokenId = mCollectionMintedItem.TokenID,
+			});
 		}
 
 		#endregion

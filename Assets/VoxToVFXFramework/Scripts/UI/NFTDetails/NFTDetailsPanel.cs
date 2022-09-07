@@ -129,7 +129,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
 			}
 
-			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage, int.MaxValue);
+			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage);
 			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
 			LoadingBackgroundImage.gameObject.SetActive(false);
 		}

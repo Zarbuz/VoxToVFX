@@ -13,7 +13,7 @@ using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
-	public class ProfileListingPanel : MonoBehaviour
+	public class ProfileListingPanel : MonoBehaviour, IFilterPanelListener
 	{
 		#region Enum
 
@@ -52,6 +52,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		[SerializeField] private Image LoadingSpinner;
 
+		[Header("Created")]
+		[SerializeField] private ProfileFilterPanel ProfileFilterPanel;
+
 		#endregion
 
 		#region Fields
@@ -86,7 +89,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.CREATED));
 			CollectionButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.COLLECTION));
 			OwnedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.OWNED));
-
+			ProfileFilterPanel.FilterPanelListener = this;
 			ProfileListingState = eProfileListingState.CREATED;
 		}
 
@@ -207,5 +210,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		}
 
 		#endregion
+
+		public void OnFilterStateChanged(eFilterState state)
+		{
+		}
+
+		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
+		{
+		}
 	}
 }
