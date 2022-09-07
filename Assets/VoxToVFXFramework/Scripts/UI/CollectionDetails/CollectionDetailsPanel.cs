@@ -40,6 +40,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private Button EditCollectionButton;
 		[SerializeField] private TextMeshProUGUI CollectionOfCountText;
+		[SerializeField] private Button OpenOwnedByPopupButton;
 		[SerializeField] private TextMeshProUGUI OwnedByCountText;
 		[SerializeField] private TextMeshProUGUI FloorPriceText;
 		[SerializeField] private TextMeshProUGUI TotalSalesText;
@@ -74,6 +75,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
 		private VerticalLayoutGroup[] mVerticalLayoutGroups;
+		private DataManager.NftCollectionAndOwner mCollectionAndOwner;
 		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
 		private eCollectionDetailsState CollectionDetailsState
 		{
@@ -101,6 +103,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			ActivityTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.ACTIVITY));
 			DescriptionTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.DESCRIPTION));
 			EditCollectionButton.onClick.AddListener(OnEditCollectionClicked);
+			OpenOwnedByPopupButton.onClick.AddListener(OnOpenOwnedByClicked);
 			MintNftButton.onClick.AddListener(OnMintNftClicked);
 			mTransparentButtons = GetComponentsInChildren<TransparentButton>();
 			mVerticalLayoutGroups = GetComponentsInChildren<VerticalLayoutGroup>();
@@ -114,7 +117,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			DescriptionTabButton.onClick.RemoveAllListeners();
 			EditCollectionButton.onClick.RemoveListener(OnEditCollectionClicked);
 			MintNftButton.onClick.RemoveListener(OnMintNftClicked);
-
+			OpenOwnedByPopupButton.onClick.RemoveListener(OnOpenOwnedByClicked);
 		}
 
 		#endregion
@@ -135,7 +138,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			CollectionDetailsState = eCollectionDetailsState.NFT;
 			OpenUserProfileButton.Initialize(mCreatorUser);
 			UniTask task1 = RefreshCollectionDetails();
-			UniTask task2 =  RefreshNFTTab();
+			UniTask task2 = RefreshNFTTab();
 			await (task1, task2);
 
 			RebuildAllVerticalRect();
@@ -178,7 +181,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				if (!string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
 				{
 					LogoImage.transform.parent.gameObject.SetActive(true);
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, LogoImage, 184,184);
+					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, LogoImage, 184, 184);
 				}
 				else
 				{
@@ -202,7 +205,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				{
 					transparentButton.ImageBackgroundActive = false;
 				}
-				
+
 				MainImage.sprite = null;
 				LogoImage.sprite = null;
 				LogoImage.transform.parent.gameObject.SetActive(false);
@@ -215,13 +218,13 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			NFTGridTransform.DestroyAllChildren();
 			mItems.Clear();
-			var collection = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
+			mCollectionAndOwner= await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
 			List<UniTask> tasks = new List<UniTask>();
-			foreach (Nft nft in collection.NftCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
+			foreach (Nft nft in mCollectionAndOwner.NftCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
-				NftOwner nftOwner = collection.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
+				NftOwner nftOwner = mCollectionAndOwner.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
 				tasks.Add(item.Initialize(nft, nftOwner));
 			}
 
@@ -230,6 +233,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
+			OwnedByCountText.text = mCollectionAndOwner.NftOwnerCollection.Result.Select(t => t.OwnerOf).Distinct().Count().ToString();
 			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUserAddress);
 		}
 
@@ -254,6 +258,12 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			CanvasPlayerPCManager.Instance.OpenCreationPanel(mCollectionCreated);
 		}
+
+		private void OnOpenOwnedByClicked()
+		{
+			MessagePopup.ShowOwnedByPopup(mCollectionAndOwner.NftOwnerCollection.Result);
+		}
+
 		#endregion
 	}
 }

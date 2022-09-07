@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
 using UnityEngine;
 using UnityEngine.Events;
 using VoxToVFXFramework.Scripts.Localization;
@@ -31,7 +32,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 		[SerializeField] private GameObject EditCollectionPopup;
 		[SerializeField] private GameObject ConfirmatioWalletPopup;
 		[SerializeField] private GameObject ConfirmationBlockchainPopup;
-
+		[SerializeField] private GameObject OwnedByPopup;
 		#endregion
 
 		#region Fields
@@ -98,7 +99,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 				UnicityTag = MessagePopupUnicityTag.CONFIRMATION_WALLET,
 				ActionToExecute = execute,
 				OnActionSuccessful = onCallback,
-				
+
 			};
 
 			Instance.CreateAndShow<ConfirmationWalletPopup, ConfirmationWalletDescriptor>(
@@ -120,6 +121,20 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 			Instance.CreateAndShow<ConfirmationBlockchainPopup, ConfirmationBlockchainDescriptor>(
 				Instance.ConfirmationBlockchainPopup,
+				Instance.BlockingConfirmPanel,
+				popupDescriptor);
+		}
+
+		public static void ShowOwnedByPopup(List<NftOwner> owners)
+		{
+			var popupDescriptor = new OwnedByDescriptor()
+			{
+				UnicityTag = MessagePopupUnicityTag.OWNED_BY,
+				Owners = owners
+			};
+
+			Instance.CreateAndShow<OwnedByPopup, OwnedByDescriptor>(
+				Instance.OwnedByPopup,
 				Instance.BlockingConfirmPanel,
 				popupDescriptor);
 		}
@@ -334,6 +349,6 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 		#endregion
 
-		
+
 	}
 }
