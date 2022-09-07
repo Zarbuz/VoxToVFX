@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Localization;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
@@ -48,7 +50,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region Fields
 
-		public IFilterPanelListener FilterPanelListener { get; set; }
+		public IFilterPanelListener FilterPanelListener { get; private set; }
 
 		#endregion
 
@@ -61,6 +63,24 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			ReservePriceButton.onValueChanged.AddListener((b) => OnFilterStateChanged(b, eFilterState.RESERVE_PRICE));
 			ActiveOfferButton.onValueChanged.AddListener((b) => OnFilterStateChanged(b, eFilterState.ACTIVE_OFFER));
 			OrderByDropdown.onValueChanged.AddListener(OnOrderByValueChanged);
+			OrderByDropdown.ClearOptions();
+			OrderByDropdown.AddOptions(new List<TMP_Dropdown.OptionData>()
+			{
+				new(("[PROFILE_ORDER_BY_" + eFilterOrderBy.MOST_ACTIVE +"]").Translate()),
+				new(("[PROFILE_ORDER_BY_" + eFilterOrderBy.PRICE_HIGHEST_FIRST +"]").Translate()),
+				new(("[PROFILE_ORDER_BY_" + eFilterOrderBy.PRICE_LOWEST_FIRST +"]").Translate()),
+				new(("[PROFILE_ORDER_BY_" + eFilterOrderBy.NEWEST +"]").Translate()),
+				new(("[PROFILE_ORDER_BY_" + eFilterOrderBy.OLDEST +"]").Translate())
+			});
+		}
+
+		#endregion
+
+		#region PublicMethods
+
+		public void Initialize(IFilterPanelListener filterPanelListener)
+		{
+			FilterPanelListener = filterPanelListener;
 		}
 
 		#endregion
@@ -69,14 +89,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void OnFilterStateChanged(bool active, eFilterState filterState)
 		{
-			if (active)
-			{
-				FilterPanelListener?.OnFilterStateChanged(filterState);
-			}
-			else
-			{
-				FilterPanelListener?.OnFilterStateChanged(eFilterState.NONE);
-			}
+			FilterPanelListener?.OnFilterStateChanged(active ? filterState : eFilterState.NONE);
 		}
 
 		private void OnOrderByValueChanged(int index)

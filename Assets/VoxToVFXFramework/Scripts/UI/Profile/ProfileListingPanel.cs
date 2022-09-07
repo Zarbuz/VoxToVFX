@@ -89,7 +89,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.CREATED));
 			CollectionButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.COLLECTION));
 			OwnedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.OWNED));
-			ProfileFilterPanel.FilterPanelListener = this;
 			ProfileListingState = eProfileListingState.CREATED;
 		}
 
@@ -114,6 +113,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			UniTask task3 = RefreshOwnedTab();
 
 			await (task1, task2, task3);
+			ProfileFilterPanel.Initialize(this);
 			ShowSpinnerImage(false);
 		}
 
@@ -213,10 +213,12 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public void OnFilterStateChanged(eFilterState state)
 		{
+			//TODO
 		}
 
 		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
 		{
+			//TODO
 		}
 	}
 }
