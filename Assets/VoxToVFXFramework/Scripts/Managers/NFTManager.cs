@@ -35,24 +35,28 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public async UniTask<NftCollection> GetAllTokenIds(string address)
 		{
+			Debug.Log("[NFTManager] GetAllTokenIds: " + address);
 			NftCollection collection = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList, null);
 			return collection;
 		}
 
 		public async UniTask<NftOwnerCollection> GetNFTOwners(string address)
 		{
+			Debug.Log("[NFTManager] GetNFTOwners: " + address);
 			NftOwnerCollection owners = await Moralis.Web3Api.Token.GetNFTOwners(address, ConfigManager.Instance.ChainList);
 			return owners;
 		}
 
 		public async UniTask<NftOwnerCollection> GetNfts(string address)
 		{
+			Debug.Log("[NFTManager] GetNfts: " + address);
 			NftOwnerCollection owners = await Moralis.Web3Api.Account.GetNFTs(address, ConfigManager.Instance.ChainList);
 			return owners;
 		}
 
 		public async UniTask<bool> SyncNFTContract(string address)
 		{
+			Debug.Log("[NFTManager] Will sync contract for: " + address);
 			bool success = await Moralis.Web3Api.Token.SyncNFTContract(address, ConfigManager.Instance.ChainList);
 			Debug.Log("[NFTManager] SyncNFTContract: " + success);
 			return success;

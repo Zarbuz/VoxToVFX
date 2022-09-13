@@ -154,10 +154,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 					list = mItemsCreated.OrderBy(item => item.BuyPriceInEther).ToList();
 					break;
 				case eFilterOrderBy.NEWEST:
-					list = mItemsCreated.OrderBy(item => item.MintedDate).ToList();
+					list = mItemsCreated.OrderByDescending(item => item.MintedDate).ToList();
 					break;
 				case eFilterOrderBy.OLDEST:
-					list = mItemsCreated.OrderByDescending(item => item.MintedDate).ToList();
+					list = mItemsCreated.OrderBy(item => item.MintedDate).ToList();
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(mFilterOrderBy), mFilterOrderBy, null);
