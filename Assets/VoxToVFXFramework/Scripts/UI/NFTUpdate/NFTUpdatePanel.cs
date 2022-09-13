@@ -1,11 +1,11 @@
-﻿using System;
+﻿using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
+using Nethereum.Util;
+using System;
 using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
-using MoralisUnity;
-using MoralisUnity.Web3Api.Models;
-using Nethereum.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,16 +13,14 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.UI.Profile;
-using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 {
-	public enum eUpdateTargetType
+	public enum eNFTUpdateTargetType
 	{
 		SET_BUY_PRICE,
 		CHANGE_BUY_PRICE,
@@ -84,7 +82,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region Fields
 
-		private eUpdateTargetType mTargetType;
 		private Nft mNft;
 
 		private eNFTUpdatePanelState mPanelState;
@@ -140,23 +137,22 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public async void Initialize(eUpdateTargetType updateTargetType, Nft nft)
+		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, Nft nft)
 		{
-			mTargetType = updateTargetType;
 			mNft = nft;
-			switch (updateTargetType)
+			switch (nftUpdateTargetType)
 			{
-				case eUpdateTargetType.SET_BUY_PRICE:
+				case eNFTUpdateTargetType.SET_BUY_PRICE:
 					NftUpdatePanelState = eNFTUpdatePanelState.SET_BUY_PRICE;
 					Title.text = LocalizationKeys.SET_BUY_PRICE_TITLE.Translate();
 					Description.text = LocalizationKeys.SET_BUY_PRICE_DESCRIPTION.Translate();
 					SetButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
 					break;
-				case eUpdateTargetType.CHANGE_RESERVE:
+				case eNFTUpdateTargetType.CHANGE_RESERVE:
 					break;
-				case eUpdateTargetType.LIST_FOR_AUCTION:
+				case eNFTUpdateTargetType.LIST_FOR_AUCTION:
 					break;
-				case eUpdateTargetType.CHANGE_BUY_PRICE:
+				case eNFTUpdateTargetType.CHANGE_BUY_PRICE:
 					NftUpdatePanelState = eNFTUpdatePanelState.SET_BUY_PRICE;
 					Title.text = LocalizationKeys.CHANGE_BUY_NOW_PRICE_TITLE.Translate();
 					Description.text = LocalizationKeys.SET_BUY_PRICE_DESCRIPTION.Translate();
@@ -164,15 +160,15 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 					PriceInputField.text = details.BuyPriceInEtherFixedPoint;
 					break;
-				case eUpdateTargetType.REMOVE_BUY_PRICE:
+				case eNFTUpdateTargetType.REMOVE_BUY_PRICE:
 					NftUpdatePanelState = eNFTUpdatePanelState.REMOVE_BUY_PRICE;
 					break;
-				case eUpdateTargetType.TRANSFER_NFT:
+				case eNFTUpdateTargetType.TRANSFER_NFT:
 					NftUpdatePanelState = eNFTUpdatePanelState.TRANSFER_NFT;
 					TransferAddressInputField.text = string.Empty;
 					break;
 				default:
-					throw new ArgumentOutOfRangeException(nameof(updateTargetType), updateTargetType, null);
+					throw new ArgumentOutOfRangeException(nameof(nftUpdateTargetType), nftUpdateTargetType, null);
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;

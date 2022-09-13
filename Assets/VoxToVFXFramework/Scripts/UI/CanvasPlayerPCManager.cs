@@ -12,6 +12,7 @@ using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.UI.Collection;
 using VoxToVFXFramework.Scripts.UI.CollectionDetails;
+using VoxToVFXFramework.Scripts.UI.CollectionUpdate;
 using VoxToVFXFramework.Scripts.UI.Creation;
 using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
@@ -47,7 +48,8 @@ namespace VoxToVFXFramework.Scripts.UI
 		Loading,
 		NftDetails,
 		CollectionDetails,
-		NftUpdate
+		NftUpdate,
+		CollectionUpdate
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
@@ -73,6 +75,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		[SerializeField] private NFTDetailsPanel NFTDetailsPanel;
 		[SerializeField] private CollectionDetailsPanel CollectionDetailsPanel;
 		[SerializeField] private NFTUpdatePanel NFTUpdatePanel;
+		[SerializeField] private CollectionUpdatePanel CollectionUpdatePanel;
 
 		#endregion
 
@@ -100,6 +103,7 @@ namespace VoxToVFXFramework.Scripts.UI
 				NFTDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftDetails);
 				CollectionDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionDetails);
 				NFTUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftUpdate);
+				CollectionUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionUpdate);
 
 				CheckBlurImage();
 				RefreshCursorState();
@@ -213,10 +217,16 @@ namespace VoxToVFXFramework.Scripts.UI
 			PreviewPanel.Initialize(title, description, onBackCallback);
 		}
 
-		public void OpenUpdateNftPanel(eUpdateTargetType targetType, Nft nft)
+		public void OpenUpdateNftPanel(eNFTUpdateTargetType targetType, Nft nft)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
 			NFTUpdatePanel.Initialize(targetType, nft);
+		}
+
+		public void OpenUpdateCollectionPanel(eCollectionUpdateTargetType targetType, CollectionCreatedEvent collection)
+		{
+			CanvasPlayerPcState = CanvasPlayerPCState.CollectionUpdate;
+			CollectionUpdatePanel.Initialize(targetType, collection);
 		}
 
 		public async UniTask OpenLoginPanel()

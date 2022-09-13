@@ -1,13 +1,11 @@
 ﻿using Cysharp.Threading.Tasks;
-using MoralisUnity.Platform.Queries;
 using MoralisUnity;
+using MoralisUnity.Platform.Queries;
 using Nethereum.Hex.HexTypes;
 using System.Collections.Generic;
-using System;
 using System.Linq;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.ScriptableObjets;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.Utils.ContractFunction;
@@ -20,6 +18,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public SmartContractAddressConfig SmartContractAddressConfig => ConfigManager.Instance.SmartContractAddress;
 
 		#endregion
+
 		#region PublicMethods
 
 		public async UniTask<string> CreateCollection(string collectionName, string collectionSymbol)
@@ -43,14 +42,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
-		
-
 		public async UniTask<List<CollectionCreatedEvent>> GetUserListContract(string userAddress)
 		{
 			MoralisQuery<CollectionCreatedEvent> q = await Moralis.Query<CollectionCreatedEvent>();
 			q = q.WhereEqualTo("creator", userAddress);
 			IEnumerable<CollectionCreatedEvent> result = await q.FindAsync();
-			return result.ToList();
+
+			MoralisQuery<SelfDestructEvent> q2 = await Moralis.Query<SelfDestructEvent>();
+			q2 = q2.WhereEqualTo("owner", userAddress);
+			IEnumerable<SelfDestructEvent> result2 = await q2.FindAsync();
+
+			return result.Where(collection => result2.All(t => t.Address != collection.CollectionContract)).ToList();
 		}
 
 		public async UniTask<CollectionCreatedEvent> GetCollection(string collectionContract)

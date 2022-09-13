@@ -3,6 +3,7 @@ using MoralisUnity;
 using MoralisUnity.Platform.Queries;
 using MoralisUnity.Platform.Queries.Live;
 using System;
+using Org.BouncyCastle.Math.Field;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -46,6 +47,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<EthNFTTransfers> transferQuery = await Moralis.GetClient().Query<EthNFTTransfers>();
 			MoralisLiveQueryCallbacks<EthNFTTransfers> transferQueryCallbacks = new MoralisLiveQueryCallbacks<EthNFTTransfers>();
 
+			MoralisQuery<SelfDestructEvent> selfDestructQuery = await Moralis.GetClient().Query<SelfDestructEvent>();
+			MoralisLiveQueryCallbacks<SelfDestructEvent> selfDestructQueryCallbacks = new MoralisLiveQueryCallbacks<SelfDestructEvent>();
+
 			collectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
 			collectionMintedQueryCallbacks.OnErrorEvent += OnError;
 
@@ -61,11 +65,15 @@ namespace VoxToVFXFramework.Scripts.Managers
 			transferQueryCallbacks.OnUpdateEvent += HandleTransferEvent;
 			transferQueryCallbacks.OnErrorEvent += OnError;
 
+			selfDestructQueryCallbacks.OnUpdateEvent += HandleSelfDestructEvent;
+			selfDestructQueryCallbacks.OnErrorEvent += OnError;
+
 			MoralisLiveQueryController.AddSubscription("CollectionCreatedEvent", collectionCreatedQuery, collectionCreatedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("CollectionMintedEvent", collectionMintedQuery, collectionMintedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceSetEvent", setBuyPriceQuery, setBuyPriceQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceCanceledEvent", cancelBuyPriceQuery, cancelBuyPriceQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("EthNFTTransfers", transferQuery, transferQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("SelfDestructEvent", selfDestructQuery, selfDestructQueryCallbacks);
 		}
 
 		
@@ -146,6 +154,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 				OnEventReceived(item);
 			}
 		}
+
+		private void HandleSelfDestructEvent(SelfDestructEvent item, int requestid)
+		{
+			Debug.Log("[DatabaseEventManager] HandleSelfDestructEvent " + item.Owner);
+			if (UserManager.Instance.CurrentUserAddress == item.Owner)
+			{
+				Debug.Log("[DatabaseEventManager] HandleSelfDestructEvent is for current user");
+				DataManager.DataManager.Instance.ContractCreatedPerUsers.Remove(item.Owner);
+
+				OnEventReceived(item);
+			}
+		}
+
 
 		private async void OnEventReceived(AbstractContractEvent contractEvent)
 		{

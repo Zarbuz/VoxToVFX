@@ -11,6 +11,7 @@ using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
+using VoxToVFXFramework.Scripts.UI.CollectionUpdate;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.UI.Profile;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
@@ -33,17 +34,23 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		#region ScriptParameters
 
+		[Header("General")]
+
+		[Header("MainImage")]
 		[SerializeField] private Image MainImage;
 		[SerializeField] private Image LogoImage;
 		[SerializeField] private Image LoadingBackgroundImage;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private Button EditCollectionButton;
+
+		[Header("CollectionInfoPanel")]
 		[SerializeField] private TextMeshProUGUI CollectionOfCountText;
 		[SerializeField] private Button OpenOwnedByPopupButton;
 		[SerializeField] private TextMeshProUGUI OwnedByCountText;
 		[SerializeField] private TextMeshProUGUI FloorPriceText;
 		[SerializeField] private TextMeshProUGUI TotalSalesText;
+		
 		[SerializeField] private Button NFTTabButton;
 		[SerializeField] private Button ActivityTabButton;
 		[SerializeField] private Button DescriptionTabButton;
@@ -57,6 +64,10 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[SerializeField] private GameObject NFTPanel;
 		[SerializeField] private GameObject ActivityPanel;
 		[SerializeField] private GameObject DescriptionPanel;
+
+		[Header("Manage")]
+		[SerializeField] private Toggle MoreToggle;
+		[SerializeField] private Button SelfDestructButton;
 
 		[Header("NFT")]
 		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
@@ -110,8 +121,10 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			EditCollectionButton.onClick.AddListener(OnEditCollectionClicked);
 			OpenOwnedByPopupButton.onClick.AddListener(OnOpenOwnedByClicked);
 			MintNftButton.onClick.AddListener(OnMintNftClicked);
+			SelfDestructButton.onClick.AddListener(OnSelfDestructClicked);
 			mTransparentButtons = GetComponentsInChildren<TransparentButton>();
 			mVerticalLayoutGroups = GetComponentsInChildren<VerticalLayoutGroup>();
+			MoreToggle.isOn = false;
 		}
 
 		private void OnDisable()
@@ -123,6 +136,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			EditCollectionButton.onClick.RemoveListener(OnEditCollectionClicked);
 			MintNftButton.onClick.RemoveListener(OnMintNftClicked);
 			OpenOwnedByPopupButton.onClick.RemoveListener(OnOpenOwnedByClicked);
+			SelfDestructButton.onClick.RemoveListener(OnSelfDestructClicked);
 		}
 
 		#endregion
@@ -142,10 +156,13 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			CollectionSymbolText.text = collection.Symbol;
 			CollectionDetailsState = eCollectionDetailsState.NFT;
 			OpenUserProfileButton.Initialize(mCreatorUser);
+			MoreToggle.gameObject.SetActive(mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
+
 			UniTask task1 = RefreshCollectionDetails();
 			UniTask task2 = RefreshNFTTab();
 			await (task1, task2);
 
+			SelfDestructButton.gameObject.SetActive(mItems.Count == 0);
 			ProfileFilterPanel.Initialize(this);
 			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
@@ -310,8 +327,13 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			MessagePopup.ShowOwnedByPopup(mCollectionAndOwner.NftOwnerCollection.Result);
 		}
 
+		private void OnSelfDestructClicked()
+		{
+			CanvasPlayerPCManager.Instance.OpenUpdateCollectionPanel(eCollectionUpdateTargetType.BURN, mCollectionCreated);
+		}
+
 		#endregion
 
-		
+
 	}
 }

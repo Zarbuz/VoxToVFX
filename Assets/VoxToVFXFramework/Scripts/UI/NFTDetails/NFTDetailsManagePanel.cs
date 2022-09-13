@@ -85,7 +85,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnSetPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eUpdateTargetType.SET_BUY_PRICE, mNft);
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.SET_BUY_PRICE, mNft);
 		}
 
 		private void OnSetListClicked()
@@ -95,7 +95,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnTransferNFTClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eUpdateTargetType.TRANSFER_NFT, mNft);
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.TRANSFER_NFT, mNft);
 		}
 
 		private void OnBurnNFTClicked()
@@ -105,12 +105,12 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnChangePriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eUpdateTargetType.CHANGE_BUY_PRICE, mNft);
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.CHANGE_BUY_PRICE, mNft);
 		}
 
 		private void OnRemoveBuyNowClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eUpdateTargetType.REMOVE_BUY_PRICE, mNft);
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.REMOVE_BUY_PRICE, mNft);
 		}
 
 		#endregion

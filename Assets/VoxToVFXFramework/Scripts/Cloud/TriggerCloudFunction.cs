@@ -14,15 +14,10 @@ public class TriggerCloudFunction : MonoBehaviour
 	}
 
 	[Button]
-	public async void WatchTransferEventContract()
+	public async void WatchSefDestructEventContract()
 	{
-		await NFTManager.Instance.WatchTransferEventContract();
+		await NFTManager.Instance.WatchSelfDestructEventContract();
 	}
 
-	[Button]
-	public async void UnWatchTransferEventContract()
-	{
-		await NFTManager.Instance.UnWatchTransferEventContract();
-	}
 #endif
 }

@@ -104,6 +104,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
+		public async UniTask<string> SelfDestruct(string address)
+		{
+			object[] parameters = {
+			};
+
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(100000);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(address, SmartContractAddressConfig.CollectionContractABI, "selfDestruct", parameters, value, gas, gasPrice);
+
+			Debug.Log("[CollectionFactoryManager] SelfDestruct : " + resp);
+			return resp;
+		}
+
 		#endregion
 
 		#region EditorMethods
@@ -122,12 +138,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public async UniTask WatchTransferEventContract()
+		public async UniTask WatchSelfDestructEventContract()
 		{
 			try
 			{
 				Dictionary<string, object> parameters = new Dictionary<string, object>();
-				await Moralis.Cloud.RunAsync<object>("watchTransferEventContract", parameters);
+				await Moralis.Cloud.RunAsync<object>("watchSelfDestructEvent", parameters);
 			}
 			catch (Exception e)
 			{
@@ -135,18 +151,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		public async UniTask UnWatchTransferEventContract()
-		{
-			try
-			{
-				Dictionary<string, object> parameters = new Dictionary<string, object>();
-				await Moralis.Cloud.RunAsync<object>("unwatchTransferEventContract", parameters);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError(e.Message + " " + e.StackTrace);
-			}
-		}
+		
 #endif
 		#endregion
 	}
