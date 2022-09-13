@@ -18,7 +18,7 @@ using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 {
-	public class CollectionDetailsPanel : MonoBehaviour
+	public class CollectionDetailsPanel : MonoBehaviour, IFilterPanelListener
 	{
 		#region Enum
 
@@ -61,6 +61,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[Header("NFT")]
 		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
 		[SerializeField] private Transform NFTGridTransform;
+		[SerializeField] private ProfileFilterPanel ProfileFilterPanel;
+
 
 		[Header("Description")]
 		[SerializeField] private TextMeshProUGUI DescriptionText;
@@ -69,6 +71,9 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		#region Fields
 
+		public string UserAddress => mCreatorUser.EthAddress;
+
+		private eFilterOrderBy mFilterOrderBy;
 		private CollectionCreatedEvent mCollectionCreated;
 		private CustomUser mCreatorUser;
 		private Models.CollectionDetails mCollectionDetails;
@@ -141,13 +146,54 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			UniTask task2 = RefreshNFTTab();
 			await (task1, task2);
 
+			ProfileFilterPanel.Initialize(this);
 			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
+		}
+
+		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
+		{
+			mFilterOrderBy = orderBy;
+			RefreshData();
+		}
+
+		public void OnCollectionFilterChanged(string collectionName)
+		{
+			
 		}
 
 		#endregion
 
 		#region PrivateMethods
+
+		private void RefreshData()
+		{
+			List<ProfileListNFTItem> list = new List<ProfileListNFTItem>();
+
+			switch (mFilterOrderBy)
+			{
+				case eFilterOrderBy.PRICE_HIGHEST_FIRST:
+					list = mItems.OrderByDescending(item => item.BuyPriceInEther).ToList();
+					break;
+				case eFilterOrderBy.PRICE_LOWEST_FIRST:
+					list = mItems.OrderBy(item => item.BuyPriceInEther).ToList();
+					break;
+				case eFilterOrderBy.NEWEST:
+					list = mItems.OrderBy(item => item.MintedDate).ToList();
+					break;
+				case eFilterOrderBy.OLDEST:
+					list = mItems.OrderByDescending(item => item.MintedDate).ToList();
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(mFilterOrderBy), mFilterOrderBy, null);
+			}
+
+			for (int index = 0; index < list.Count; index++)
+			{
+				ProfileListNFTItem item = list[index];
+				item.transform.SetSiblingIndex(index);
+			}
+		}
 
 		private void OnSymbolClicked()
 		{
@@ -265,5 +311,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		}
 
 		#endregion
+
+		
 	}
 }

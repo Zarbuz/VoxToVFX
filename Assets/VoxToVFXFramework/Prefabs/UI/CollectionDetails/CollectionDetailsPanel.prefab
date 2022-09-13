@@ -4968,6 +4968,7 @@ MonoBehaviour:
   ProfileListNftItem: {fileID: 6650542330305824072, guid: f2fd016136e5fb743ad56783f1ecd669,
     type: 3}
   NFTGridTransform: {fileID: 7954173332147264781}
+  ProfileFilterPanel: {fileID: 635490001509504460}
   DescriptionText: {fileID: 9166460678075920175}
 --- !u!1001 &511472495276364970
 PrefabInstance:
@@ -5064,7 +5065,7 @@ PrefabInstance:
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
@@ -5074,12 +5075,12 @@ PrefabInstance:
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1715
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
@@ -5124,7 +5125,7 @@ PrefabInstance:
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 857.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
@@ -5150,11 +5151,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: FiltersCollectionPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 5179066206973333574, guid: 6bc9b5b51a900fe42b55574e960357c7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5882938929918610549, guid: 6bc9b5b51a900fe42b55574e960357c7,
         type: 3}
@@ -5223,6 +5219,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6bc9b5b51a900fe42b55574e960357c7, type: 3}
+--- !u!114 &635490001509504460 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1137347250412700006, guid: 6bc9b5b51a900fe42b55574e960357c7,
+    type: 3}
+  m_PrefabInstance: {fileID: 511472495276364970}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d502c4457b016f540bc6f72ac2e77609, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &4163779361444372572 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4526586852977292534, guid: 6bc9b5b51a900fe42b55574e960357c7,
