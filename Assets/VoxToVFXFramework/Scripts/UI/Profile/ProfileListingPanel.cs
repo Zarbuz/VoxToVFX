@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +61,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region Fields
 
 		private eProfileListingState mEProfileListingState;
+		private eFilterOrderBy mFilterOrderBy;
+		private string mCollectionFilterName;
 
 		private eProfileListingState ProfileListingState
 		{
@@ -77,9 +80,12 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 		}
 
-		private readonly List<ProfileListNFTItem> mItemsCreated = new List<ProfileListNFTItem>();
+		private List<ProfileListNFTItem> mItemsCreated = new List<ProfileListNFTItem>();
 		private readonly List<ProfileListNFTItem> mItemsOwned = new List<ProfileListNFTItem>();
 		private CustomUser mCustomUser;
+
+		public string UserAddress => mCustomUser.EthAddress;
+
 		#endregion
 
 		#region UnityMethods
@@ -117,9 +123,59 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			ShowSpinnerImage(false);
 		}
 
+		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
+		{
+			mFilterOrderBy = orderBy;
+			RefreshData();
+		}
+
+		public void OnCollectionFilterChanged(string collectionName)
+		{
+			mCollectionFilterName = collectionName;
+			RefreshData();
+		}
+
+
+
 		#endregion
 
 		#region PrivateMethods
+
+		private void RefreshData()
+		{
+			List<ProfileListNFTItem> list = new List<ProfileListNFTItem>();
+
+			switch (mFilterOrderBy)
+			{
+				case eFilterOrderBy.PRICE_HIGHEST_FIRST:
+					list = mItemsCreated.OrderByDescending(item => item.BuyPriceInEther).ToList();
+					break;
+				case eFilterOrderBy.PRICE_LOWEST_FIRST:
+					list = mItemsCreated.OrderBy(item => item.BuyPriceInEther).ToList();
+					break;
+				case eFilterOrderBy.NEWEST:
+					list = mItemsCreated.OrderBy(item => item.MintedDate).ToList();
+					break;
+				case eFilterOrderBy.OLDEST:
+					list = mItemsCreated.OrderByDescending(item => item.MintedDate).ToList();
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(mFilterOrderBy), mFilterOrderBy, null);
+			}
+
+			if (!string.IsNullOrEmpty(mCollectionFilterName))
+			{
+				list = list.Where(t => t.CollectionName == mCollectionFilterName).ToList();
+			}
+
+			mItemsCreated.ForEach(t => t.gameObject.SetActive(list.Contains(t)));
+
+			for (int index = 0; index < list.Count; index++)
+			{
+				ProfileListNFTItem item = list[index];
+				item.transform.SetSiblingIndex(index);
+			}
+		}
 
 		private void OnSwitchTabClicked(eProfileListingState profileListingState)
 		{
@@ -211,14 +267,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#endregion
 
-		public void OnFilterStateChanged(eFilterState state)
-		{
-			//TODO
-		}
 
-		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
-		{
-			//TODO
-		}
+
+		
 	}
 }

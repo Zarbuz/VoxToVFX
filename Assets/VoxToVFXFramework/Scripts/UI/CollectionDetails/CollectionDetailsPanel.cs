@@ -193,7 +193,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 					transparentButton.ImageBackgroundActive = !string.IsNullOrEmpty(mCollectionDetails.CoverImageUrl);
 				}
 				DescriptionText.text = mCollectionDetails.Description;
-				NFTTabButton.gameObject.SetActive(!string.IsNullOrEmpty(mCollectionDetails.Description));
+				DescriptionTabButton.gameObject.SetActive(!string.IsNullOrEmpty(mCollectionDetails.Description));
 				if (!string.IsNullOrEmpty(mCollectionDetails.CoverImageUrl))
 				{
 					CollectionNameText.color = Color.white;
@@ -210,7 +210,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				LogoImage.sprite = null;
 				LogoImage.transform.parent.gameObject.SetActive(false);
 				CollectionNameText.color = Color.black;
-				NFTTabButton.gameObject.SetActive(false);
+				DescriptionTabButton.gameObject.SetActive(false);
 			}
 		}
 

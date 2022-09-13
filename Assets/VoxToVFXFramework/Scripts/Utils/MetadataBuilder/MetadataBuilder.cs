@@ -14,6 +14,7 @@ namespace VoxToVFXFramework.Scripts.Utils.MetadataBuilder
 				Name = name,
 				FilesUrl = files,
 				Image = imageUrl,
+				MintedUTCDate = DateTime.UtcNow
 			};
 			return metadata;
 		}

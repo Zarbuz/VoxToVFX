@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
@@ -40,6 +41,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public bool InitSuccess { get; private set; }
 		public bool IsReadyOnly { get; set; }
+		public decimal BuyPriceInEther { get; private set; }
+		public string CollectionName { get; private set; }
+		public DateTime MintedDate { get; private set; }
 
 		private Nft mNft;
 
@@ -85,26 +89,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				OwnerUsernameText.text = string.Empty;
 			}
 
-			if (details != null)
-			{
-				ActionText.text = details.TargetAction;
-				if (details.BuyPriceInEther != 0)
-				{
-					PriceText.text = details.BuyPriceInEtherFixedPoint + " ETH";
-				}
-				else
-				{
-					PriceText.text = string.Empty;
-					ActionText.text = string.Empty;// Sure ?
-				}
-			}
-			else
-			{
-				ActionText.text = string.Empty;
-				PriceText.text = string.Empty;
-			}
-
+			ActionText.text = details != null ? details.TargetAction : string.Empty;
+			BuyPriceInEther = details?.BuyPriceInEther ?? 0;
+			PriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " ETH" : string.Empty;
 			CollectionNameText.text = nft.Name;
+			CollectionName = nft.Name;
 
 			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
@@ -114,6 +103,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
 			Title.text = metadataObject.Name;
+			MintedDate = metadataObject.MintedUTCDate;
 			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
 
 			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))

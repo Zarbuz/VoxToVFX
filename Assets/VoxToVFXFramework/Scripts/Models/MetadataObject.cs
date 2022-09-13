@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 
@@ -18,5 +19,7 @@ namespace VoxToVFXFramework.Scripts.Models
 		[JsonProperty("files_url")]
 		public List<string> FilesUrl { get; set; }
 
+		[JsonProperty("minted_utc_date")]
+		public DateTime MintedUTCDate { get; set; }
 	}
 }
