@@ -236,9 +236,15 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private async UniTask RefreshOwnedTab()
 		{
 			OwnedGridTransform.DestroyAllChildren();
-			NftOwnerCollection ownerCollection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
-
 			mItemsOwned.Clear();
+
+			NftOwnerCollection ownerCollection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
+			if (ownerCollection == null)
+			{
+				OwnedCountText.text = mItemsOwned.Count(i => i.InitSuccess).ToString();
+				return;
+			}
+
 			List<UniTask> tasks = new List<UniTask>();
 
 			//List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);

@@ -70,11 +70,15 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			}
 
 			NftOwnerCollection result = await NFTManager.Instance.GetNFTForUser(address);
-			UserOwner[address] = new UserOwnerCache()
+			if (result != null)
 			{
-				LastUpdate = DateTime.UtcNow,
-				NftOwnerCollection = result
-			};
+				UserOwner[address] = new UserOwnerCache()
+				{
+					LastUpdate = DateTime.UtcNow,
+					NftOwnerCollection = result
+				};
+			}
+			
 			return result;
 		}
 

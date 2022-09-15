@@ -50,8 +50,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 		public async UniTask<NftOwnerCollection> GetNFTForUser(string user)
 		{
 			Debug.Log("[NFTManager] GetNFTForCurrentUser: " + user);
-			NftOwnerCollection collection = await Moralis.Web3Api.Account.GetNFTs(user, ConfigManager.Instance.ChainList);
-			return collection;
+			try
+			{
+				NftOwnerCollection collection = await Moralis.Web3Api.Account.GetNFTs(user, ConfigManager.Instance.ChainList);
+				return collection;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				return null;
+			}
+		
 		}
 
 		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
