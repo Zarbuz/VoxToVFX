@@ -1,11 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Popups;
-using static UnityEngine.UI.GridLayoutGroup;
 
 namespace VoxToVFXFramework.Scripts.UI.Atomic
 {

@@ -11,21 +11,22 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 	{
 		#region Scriptparameters
 
-		[SerializeField] private Image FrameImage;
-		[SerializeField] private Image BackgroundImage;
-		[SerializeField] private Image OptionalIcon;
-		[SerializeField] private TextMeshProUGUI ButtonText;
-		[SerializeField] private Color BackgroundActive;
-		[SerializeField] private Color BackgroundDisable;
-		[SerializeField] private Color FrameColorActive;
-		[SerializeField] private Color FrameColorDisable;
-		[SerializeField] private Color OptionalIconColorDisable;
+		[SerializeField] protected Image FrameImage;
+		[SerializeField] protected Image BackgroundImage;
+		[SerializeField] protected Image OptionalIcon;
+		[SerializeField] protected TextMeshProUGUI ButtonText;
+		[SerializeField] protected Color BackgroundActive;
+		[SerializeField] protected Color BackgroundDisable;
+		[SerializeField] protected Color FrameColorActive;
+		[SerializeField] protected Color FrameColorDisable;
+		[SerializeField] protected Color OptionalIconColorDisable;
 		#endregion
 
 		#region Fields
 
-		private bool mImageBackgroundActive;
-		private Button mButton;
+		protected Button mButton;
+		protected bool mImageBackgroundActive;
+		
 		public bool ImageBackgroundActive
 		{
 			get => mImageBackgroundActive;
@@ -42,12 +43,12 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		#region UnityMethods
 
-		private void Awake()
+		protected virtual void Awake()
 		{
 			mButton = GetComponent<Button>();
 		}
 
-		public void OnPointerEnter(PointerEventData eventData)
+		public virtual void OnPointerEnter(PointerEventData eventData)
 		{
 			if (!mButton.interactable)
 			{
@@ -70,7 +71,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 			}
 		}
 
-		public void OnPointerExit(PointerEventData eventData)
+		public virtual void OnPointerExit(PointerEventData eventData)
 		{
 			if (!mButton.interactable)
 			{
@@ -91,9 +92,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 			{
 				OptionalIcon.color = OptionalIconColorDisable;
 			}
-
 		}
-
 
 		#endregion
 

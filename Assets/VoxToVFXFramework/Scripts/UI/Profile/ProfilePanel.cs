@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
+using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
@@ -39,9 +40,16 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private TextMeshProUGUI FollowingCountText;
 		[SerializeField] private TextMeshProUGUI FollowersCountText;
 		[SerializeField] private Button EditProfileButton;
+		[SerializeField] private ButtonFollowUser FollowButton;
 
 		[Header("MainContent")]
 		[SerializeField] private ProfileListingPanel ProfileListingPanel;
+
+		#endregion
+
+		#region Fields
+
+		private CustomUser mUser;
 
 		#endregion
 
@@ -56,6 +64,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		private void OnDisable()
 		{
 			EditProfileButton.onClick.RemoveListener(OnEditProfileClicked);
+
 			if (UserManager.Instance != null)
 			{
 				UserManager.Instance.OnUserInfoUpdated -= OnUserInfoUpdated;
@@ -68,6 +77,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public async void Initialize(CustomUser user)
 		{
+			mUser = user;
 			ProfileListingPanel.Initialize(user);
 
 			BannerImage.sprite = null;
@@ -109,14 +119,26 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			SnapChatText.gameObject.SetActive(!string.IsNullOrEmpty(user.SnapchatUsername));
 			SnapChatText.text = user.SnapchatUsername;
 
-			EditProfileButton.gameObject.SetActive(user.EthAddress == UserManager.Instance.CurrentUserAddress);
-
 			JoinedText.gameObject.SetActive(user.createdAt.HasValue);
 			if (user.createdAt != null)
 			{
 				JoinedText.text = user.createdAt.Value.ToShortDateString();
 			}
+
 			LayoutRebuilder.ForceRebuildLayoutImmediate(LeftPartVerticalLayout.GetComponent<RectTransform>());
+
+			int followers = await DataManager.Instance.GetCountUserFollowers(user.EthAddress);
+			int following = await DataManager.Instance.GetCountUserFollowings(user.EthAddress);
+			FollowersCountText.text = followers.ToString();
+			FollowingCountText.text = following.ToString();
+
+			EditProfileButton.gameObject.SetActive(user.EthAddress == UserManager.Instance.CurrentUserAddress);
+			bool isFollowing = DataManager.Instance.IsUserFollowing(user.EthAddress);
+
+			FollowButton.gameObject.SetActive(user.EthAddress != UserManager.Instance.CurrentUserAddress);
+			FollowButton.Initialize(isFollowing, user.EthAddress, RefreshFollowers);
+
+
 			await AvatarImage.Initialize(user);
 			await ImageUtils.DownloadAndApplyWholeImage(user.BannerUrl, BannerImage);
 		}
@@ -124,6 +146,14 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#endregion
 
 		#region PrivateMethods
+
+		private async void RefreshFollowers()
+		{
+			int followers = await DataManager.Instance.GetCountUserFollowers(mUser.EthAddress);
+			int following = await DataManager.Instance.GetCountUserFollowings(mUser.EthAddress);
+			FollowersCountText.text = followers.ToString();
+			FollowingCountText.text = following.ToString();
+		}
 
 		private void OnUserInfoUpdated(CustomUser user)
 		{
