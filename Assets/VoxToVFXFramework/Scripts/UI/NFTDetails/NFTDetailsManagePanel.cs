@@ -34,10 +34,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Toggle ManageToggle;
 		#endregion
 
-
 		#region Fields
 
-		private Nft mNft;
+		private NftOwner mNft;
 		
 		#endregion
 
@@ -51,6 +50,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			BurnNFTButton.onClick.AddListener(OnBurnNFTClicked);
 			ChangePriceButton.onClick.AddListener(OnChangePriceClicked);
 			RemoveBuyNowButton.onClick.AddListener(OnRemoveBuyNowClicked);
+			ManageToggle.isOn = false;
 		}
 
 		private void OnDisable()
@@ -68,7 +68,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(Nft nft, CustomUser creatorUser)
+		public async void Initialize(NftOwner nft, CustomUser creatorUser)
 		{
 			mNft = nft;
 			BurnNFTButton.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);

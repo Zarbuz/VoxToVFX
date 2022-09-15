@@ -82,7 +82,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region Fields
 
-		private Nft mNft;
+		private NftOwner mNft;
 
 		private eNFTUpdatePanelState mPanelState;
 		private eNFTUpdatePanelState NftUpdatePanelState
@@ -137,7 +137,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, Nft nft)
+		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, NftOwner nft)
 		{
 			mNft = nft;
 			switch (nftUpdateTargetType)
@@ -172,7 +172,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;
-			await ProfileListNftItem.Initialize(nft, null);
+			await ProfileListNftItem.Initialize(nft);
 
 		}
 

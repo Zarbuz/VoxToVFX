@@ -50,7 +50,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private CollectionMintedEvent mCollectionMinted;
 		private CollectionCreatedEvent mCollectionCreated;
-		private Nft mNft;
+		private NftOwner mNft;
 		private MetadataObject mMetadataObject;
 		#endregion
 
@@ -80,7 +80,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(Nft nft)
+		public async void Initialize(NftOwner nft)
 		{
 			mNft = nft;
 
@@ -91,9 +91,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			mCollectionCreated = await DataManager.Instance.GetCollectionCreatedEventWithCache(nft.TokenAddress);
 			mCollectionMinted = await DataManager.Instance.GetCollectionMintedWithCache(nft.TokenAddress, nft.TokenId);
-			NftOwner nftOwner = await DataManager.Instance.GetOwnerOfNft(nft);
 
-			NFTDetailsManagePanel.gameObject.SetActive(nftOwner != null && nftOwner.OwnerOf == UserManager.Instance.CurrentUserAddress);
+			NFTDetailsManagePanel.gameObject.SetActive(nft.OwnerOf == UserManager.Instance.CurrentUserAddress);
 			NFTDetailsManagePanel.Initialize(nft, creatorUser);
 			OpenUserProfileButton.Initialize(creatorUser);
 			CollectionNameText.text = mCollectionCreated.Name;

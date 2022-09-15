@@ -8,11 +8,12 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 {
 	public partial class DataManager
 	{
-		public Dictionary<string, NftCollectionAndOwner> NftCollection = new Dictionary<string, NftCollectionAndOwner>();
+		public Dictionary<string, NftCollectionCache> NftCollection = new Dictionary<string, NftCollectionCache>();
 		public Dictionary<string, UserOwnerCache> UserOwner = new Dictionary<string, UserOwnerCache>();
-		public async UniTask<NftCollectionAndOwner> GetNftCollectionWithCache(string address)
+
+		public async UniTask<NftCollectionCache> GetNftCollectionWithCache(string address)
 		{
-			if (NftCollection.TryGetValue(address, out NftCollectionAndOwner collection))
+			if (NftCollection.TryGetValue(address, out NftCollectionCache collection))
 			{
 				if ((DateTime.UtcNow - collection.LastUpdate).Minutes < MINUTES_BEFORE_UPDATE_CACHE)
 				{
@@ -20,24 +21,42 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 				}
 			}
 
-			NftCollectionAndOwner collectionAndOwner = new NftCollectionAndOwner();
-			NftCollection result = await NFTManager.Instance.GetAllTokenIds(address);
+			NftCollectionCache collectionCache = new NftCollectionCache
+			{
+				NftOwnerCollection = new NftOwnerCollection()
+			};
+
+			NftCollection result = await NFTManager.Instance.GetNFTForContract(address);
+			NftOwnerCollection ownerCollection = await NFTManager.Instance.GetNFTOwners(address);
 
 			if (result != null)
 			{
-				collectionAndOwner.NftCollection = result;
+				collectionCache.NftOwnerCollection.Result = new List<NftOwner>();
+				foreach (Nft nft in result.Result)
+				{
+					NftOwner owner = ownerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
+					collectionCache.NftOwnerCollection.Result.Add(new NftOwner()
+					{
+						Name = nft.Name,
+						Amount = nft.Amount,
+						TokenId = nft.TokenId,
+						Symbol = nft.Symbol,
+						TokenAddress = nft.TokenAddress,
+						TokenUri = nft.TokenUri,
+						SyncedAt = nft.SyncedAt,
+						ContractType = nft.ContractType,
+						Metadata = nft.Metadata,
+						OwnerOf = owner != null ? owner.OwnerOf : string.Empty,
+						BlockNumber = owner != null ? owner.BlockNumber : string.Empty,
+						BlockNumberMinted = owner != null ? owner.BlockNumberMinted : string.Empty
+					});
+				}
 			}
 
-			NftOwnerCollection result2 = await NFTManager.Instance.GetNFTOwners(address);
-			if (result2 != null)
-			{
-				collectionAndOwner.NftOwnerCollection = result2;
-			}
+			collectionCache.LastUpdate = DateTime.UtcNow;
+			NftCollection[address] = collectionCache;
 
-			collectionAndOwner.LastUpdate = DateTime.UtcNow;
-			NftCollection[address] = collectionAndOwner;
-
-			return collectionAndOwner;
+			return collectionCache;
 		}
 
 		public async UniTask<NftOwnerCollection> GetNFTOwnedByUser(string address)
@@ -50,7 +69,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 				}
 			}
 
-			NftOwnerCollection result = await NFTManager.Instance.GetNfts(address);
+			NftOwnerCollection result = await NFTManager.Instance.GetNFTForUser(address);
 			UserOwner[address] = new UserOwnerCache()
 			{
 				LastUpdate = DateTime.UtcNow,
@@ -59,15 +78,8 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return result;
 		}
 
-		public async UniTask<NftOwner> GetOwnerOfNft(Nft nft)
+		public class NftCollectionCache
 		{
-			NftCollectionAndOwner collection = await GetNftCollectionWithCache(nft.TokenAddress);
-			return collection is { NftOwnerCollection: { } } ? collection.NftOwnerCollection.Result.FirstOrDefault(nftOwner => nftOwner.TokenId == nft.TokenId) : null;
-		}
-
-		public class NftCollectionAndOwner
-		{
-			public NftCollection NftCollection { get; set; }
 			public NftOwnerCollection NftOwnerCollection { get; set; }
 			public DateTime LastUpdate { get; set; }
 
@@ -79,6 +91,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			public DateTime LastUpdate { get; set; }
 
 		}
+
 	}
 
 }

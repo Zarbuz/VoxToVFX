@@ -91,7 +91,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
 		private VerticalLayoutGroup[] mVerticalLayoutGroups;
-		private DataManager.NftCollectionAndOwner mCollectionAndOwner;
+		private DataManager.NftCollectionCache mCollectionCache;
 		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
 		private eCollectionDetailsState CollectionDetailsState
 		{
@@ -281,14 +281,13 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			NFTGridTransform.DestroyAllChildren();
 			mItems.Clear();
-			mCollectionAndOwner= await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
+			mCollectionCache= await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
 			List<UniTask> tasks = new List<UniTask>();
-			foreach (Nft nft in mCollectionAndOwner.NftCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
+			foreach (NftOwner nft in mCollectionCache.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 			{
 				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
 				mItems.Add(item);
-				NftOwner nftOwner = mCollectionAndOwner.NftOwnerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
-				tasks.Add(item.Initialize(nft, nftOwner));
+				tasks.Add(item.Initialize(nft));
 			}
 
 			await UniTask.WhenAll(tasks);
@@ -296,7 +295,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
-			OwnedByCountText.text = mCollectionAndOwner.NftOwnerCollection.Result.Select(t => t.OwnerOf).Distinct().Count().ToString();
+			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Distinct().Count().ToString();
 			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUserAddress);
 		}
 
@@ -324,7 +323,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private void OnOpenOwnedByClicked()
 		{
-			MessagePopup.ShowOwnedByPopup(mCollectionAndOwner.NftOwnerCollection.Result);
+			MessagePopup.ShowOwnedByPopup(mCollectionCache.NftOwnerCollection.Result);
 		}
 
 		private void OnSelfDestructClicked()

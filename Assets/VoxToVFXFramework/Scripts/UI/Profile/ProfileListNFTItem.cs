@@ -45,49 +45,42 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public string CollectionName { get; private set; }
 		public DateTime MintedDate { get; private set; }
 
-		private Nft mNft;
+		private NftOwner mNft;
 
 		#endregion
 
 		#region PublicMethods
 
-		public async UniTask Initialize(Nft nft, NftOwner owner)
+		public async UniTask Initialize(NftOwner nft)
 		{
 			mNft = nft;
 			Button.onClick.AddListener(OnItemClicked);
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 
-			if (owner != null)
-			{
-				if (owner.OwnerOf == UserManager.Instance.CurrentUserAddress)
-				{
-					OwnerAvatarImage.gameObject.SetActive(false);
-					OwnerUsernameText.text = string.Empty;
-				}
-				else
-				{
-					CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(owner.OwnerOf);
-					OwnerTrigger.Initialize(owner.OwnerOf);
-					if (ownerUser != null)
-					{
-
-						OwnerUsernameText.text = "@" + ownerUser.UserName;
-						OwnerAvatarImage.gameObject.SetActive(true);
-						await OwnerAvatarImage.Initialize(ownerUser);
-					}
-					else
-					{
-						OwnerUsernameText.text = owner.OwnerOf.FormatEthAddress(6);
-						await OwnerAvatarImage.Initialize(null);
-					}
-				}
-			}
-			else
+			if (nft.OwnerOf == UserManager.Instance.CurrentUserAddress)
 			{
 				OwnerAvatarImage.gameObject.SetActive(false);
 				OwnerUsernameText.text = string.Empty;
 			}
+			else
+			{
+				CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(nft.OwnerOf);
+				OwnerTrigger.Initialize(nft.OwnerOf);
+				if (ownerUser != null)
+				{
+
+					OwnerUsernameText.text = "@" + ownerUser.UserName;
+					OwnerAvatarImage.gameObject.SetActive(true);
+					await OwnerAvatarImage.Initialize(ownerUser);
+				}
+				else
+				{
+					OwnerUsernameText.text = nft.OwnerOf.FormatEthAddress(6);
+					await OwnerAvatarImage.Initialize(null);
+				}
+			}
+
 
 			ActionText.text = details != null ? details.TargetAction : string.Empty;
 			BuyPriceInEther = details?.BuyPriceInEther ?? 0;

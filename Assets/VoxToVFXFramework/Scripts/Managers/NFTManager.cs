@@ -33,11 +33,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return await q.FirstOrDefaultAsync();
 		}
 
-		public async UniTask<NftCollection> GetAllTokenIds(string address)
+		public async UniTask<NftCollection> GetNFTForContract(string address)
 		{
-			Debug.Log("[NFTManager] GetAllTokenIds: " + address);
-			NftCollection collection = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList, null);
-			return collection;
+			Debug.Log("[NFTManager] GetNFTForContract: " + address);
+			NftCollection owners = await Moralis.Web3Api.Token.GetAllTokenIds(address, ConfigManager.Instance.ChainList);
+			return owners;
 		}
 
 		public async UniTask<NftOwnerCollection> GetNFTOwners(string address)
@@ -47,22 +47,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return owners;
 		}
 
-		public async UniTask<NftOwnerCollection> GetNfts(string address)
+		public async UniTask<NftOwnerCollection> GetNFTForUser(string user)
 		{
-			Debug.Log("[NFTManager] GetNfts: " + address);
-			NftOwnerCollection owners = await Moralis.Web3Api.Account.GetNFTs(address, ConfigManager.Instance.ChainList);
-			return owners;
+			Debug.Log("[NFTManager] GetNFTForCurrentUser: " + user);
+			NftOwnerCollection collection = await Moralis.Web3Api.Account.GetNFTs(user, ConfigManager.Instance.ChainList);
+			return collection;
 		}
-
-		public async UniTask<bool> SyncNFTContract(string address)
-		{
-			Debug.Log("[NFTManager] Will sync contract for: " + address);
-			bool success = await Moralis.Web3Api.Token.SyncNFTContract(address, ConfigManager.Instance.ChainList);
-			Debug.Log("[NFTManager] SyncNFTContract: " + success);
-			return success;
-		}
-
-
 
 		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
 		{

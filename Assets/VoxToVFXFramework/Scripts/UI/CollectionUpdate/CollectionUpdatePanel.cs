@@ -78,8 +78,6 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionUpdate
 
 		#endregion
 
-		
-
 		#region PublicMethods
 
 		public async void Initialize(eCollectionUpdateTargetType collectionUpdateTargetType, CollectionCreatedEvent collection)
@@ -97,9 +95,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionUpdate
 			await CollectionItem.Initialize(collection);
 		}
 
-
-
 		#endregion
+		
 		#region PrivateMethods
 
 		private void OnSelfDestructClicked()

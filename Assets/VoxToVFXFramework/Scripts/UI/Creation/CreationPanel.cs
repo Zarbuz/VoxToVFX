@@ -269,7 +269,7 @@ namespace VoxToVFXFramework.Scripts.UI.Creation
 
 		private void OnOpenSetBuyPriceClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.SET_BUY_PRICE, new Nft()
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.SET_BUY_PRICE, new NftOwner()
 			{
 				TokenAddress = mCollectionMintedItem.Address,
 				TokenId = mCollectionMintedItem.TokenID,
