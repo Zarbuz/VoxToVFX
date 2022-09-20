@@ -72,7 +72,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 			catch (Exception e)
 			{
-				Debug.LogError("[MiddlewareManager] Failed to GetNFTDetails: " + e.Message);
+				Debug.LogError("[MiddlewareManager] Failed to GetNFTDetails: " + e.Message + " collection: " + nftContract + ", tokenID: " + tokenId);
 				return null;
 			}
 		}

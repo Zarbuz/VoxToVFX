@@ -101,7 +101,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionUpdate
 
 		private void OnSelfDestructClicked()
 		{
-			MessagePopup.ShowConfirmationWalletPopup(NFTManager.Instance.SelfDestruct(mCollection.CollectionContract),
+			MessagePopup.ShowConfirmationWalletPopup(NFTManager.Instance.CollectionSelfDestruct(mCollection.CollectionContract),
 				(transactionId) =>
 				{
 					MessagePopup.ShowConfirmationBlockchainPopup(

@@ -43,7 +43,7 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 		{
 			get
 			{
-				if (BuyPrice != 0)
+				if (BuyPriceInEther != 0)
 				{
 					return LocalizationKeys.PROFILE_BUY_NOW.Translate();
 				}

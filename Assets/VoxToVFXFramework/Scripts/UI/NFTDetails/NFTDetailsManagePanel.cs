@@ -1,5 +1,4 @@
 ﻿using MoralisUnity.Web3Api.Models;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +6,6 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
-using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTDetails
@@ -26,9 +24,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[SerializeField] private Button ChangePriceButton;
 		[SerializeField] private Button RemoveBuyNowButton;
 
-		[Header("Auction")]
-		[SerializeField] private Button ListButton;
-
 
 		[Header("Manager")]
 		[SerializeField] private Toggle ManageToggle;
@@ -45,7 +40,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private void OnEnable()
 		{
 			SetPriceButton.onClick.AddListener(OnSetPriceClicked);
-			ListButton.onClick.AddListener(OnSetListClicked);
 			TransferNFTButton.onClick.AddListener(OnTransferNFTClicked);
 			BurnNFTButton.onClick.AddListener(OnBurnNFTClicked);
 			ChangePriceButton.onClick.AddListener(OnChangePriceClicked);
@@ -56,7 +50,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private void OnDisable()
 		{
 			SetPriceButton.onClick.RemoveListener(OnSetPriceClicked);
-			ListButton.onClick.RemoveListener(OnSetListClicked);
 			TransferNFTButton.onClick.RemoveListener(OnTransferNFTClicked);
 			BurnNFTButton.onClick.RemoveListener(OnBurnNFTClicked);
 			ChangePriceButton.onClick.RemoveListener(OnChangePriceClicked);
@@ -88,11 +81,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.SET_BUY_PRICE, mNft);
 		}
 
-		private void OnSetListClicked()
-		{
-
-		}
-
 		private void OnTransferNFTClicked()
 		{
 			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.TRANSFER_NFT, mNft);
@@ -100,7 +88,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnBurnNFTClicked()
 		{
-
+			CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.BURN_NFT, mNft);
 		}
 
 		private void OnChangePriceClicked()

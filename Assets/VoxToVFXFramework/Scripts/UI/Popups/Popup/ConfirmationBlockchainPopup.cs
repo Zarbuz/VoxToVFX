@@ -58,6 +58,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 			{
 				Debug.Log("[ConfirmationBlockchainPopup] TransactionId match !");
 				mConfirmationBlockchainDescriptor.OnActionSuccessful?.Invoke(item);
+				mConfirmationBlockchainDescriptor.OnActionSuccessful = null;
 				Hide();
 			}
 		}

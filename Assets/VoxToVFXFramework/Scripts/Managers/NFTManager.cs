@@ -60,7 +60,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 				Console.WriteLine(e);
 				return null;
 			}
-		
 		}
 
 		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
@@ -103,7 +102,24 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
-		public async UniTask<string> SelfDestruct(string address)
+		public async UniTask<string> BurnNFT(string address, string tokenId)
+		{
+			object[] parameters = {
+				tokenId
+			};
+
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(0);
+			HexBigInteger gas = new HexBigInteger(100000);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(address, SmartContractAddressConfig.CollectionContractABI, "burn", parameters, value, gas, gasPrice);
+
+			Debug.Log("[CollectionFactoryManager] SelfDestruct : " + resp);
+			return resp;
+		}
+
+		public async UniTask<string> CollectionSelfDestruct(string address)
 		{
 			object[] parameters = {
 			};

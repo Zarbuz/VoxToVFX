@@ -27,7 +27,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		REMOVE_BUY_PRICE,
 		CHANGE_RESERVE,
 		LIST_FOR_AUCTION,
-		TRANSFER_NFT
+		TRANSFER_NFT,
+		BURN_NFT
 	}
 
 	public class NFTUpdatePanel : MonoBehaviour
@@ -39,6 +40,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		[SerializeField] private GameObject CongratulationsPanel;
 		[SerializeField] private GameObject RemoveBuyPricePanel;
 		[SerializeField] private GameObject TransferPanel;
+		[SerializeField] private GameObject BurnPanel;
 		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
 
 		[Header("SetBuyPrice")]
@@ -66,6 +68,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		[SerializeField] private TMP_InputField TransferAddressInputField;
 		[SerializeField] private Button TransferNFTButton;
 		[SerializeField] private TextMeshProUGUI TransferButtonText;
+
+		[Header("Burn")] 
+		[SerializeField] private Button BurnNFTButton;
 		#endregion
 
 		#region Enum
@@ -75,7 +80,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			SET_BUY_PRICE,
 			CONGRATULATIONS,
 			REMOVE_BUY_PRICE,
-			TRANSFER_NFT
+			TRANSFER_NFT,
+			BURN_NFT
 		}
 
 		#endregion
@@ -95,6 +101,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				CongratulationsPanel.SetActive(mPanelState == eNFTUpdatePanelState.CONGRATULATIONS);
 				RemoveBuyPricePanel.SetActive(mPanelState == eNFTUpdatePanelState.REMOVE_BUY_PRICE);
 				TransferPanel.SetActive(mPanelState == eNFTUpdatePanelState.TRANSFER_NFT);
+				BurnPanel.SetActive(mPanelState == eNFTUpdatePanelState.BURN_NFT);
 				ProfileListNftItem.transform.parent.gameObject.SetActive(mPanelState != eNFTUpdatePanelState.CONGRATULATIONS);
 			}
 		}
@@ -119,6 +126,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			RemoveBuyPriceButton.onClick.AddListener(OnRemoveBuyPriceClicked);
 			TransferAddressInputField.onValueChanged.AddListener(OnTransferAddressValueChanged);
 			TransferNFTButton.onClick.AddListener(OnTransferClicked);
+			BurnNFTButton.onClick.AddListener(OnBurnClicked);
 		}
 
 		private void OnDisable()
@@ -131,6 +139,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			RemoveBuyPriceButton.onClick.RemoveListener(OnRemoveBuyPriceClicked);
 			TransferAddressInputField.onValueChanged.RemoveListener(OnTransferAddressValueChanged);
 			TransferNFTButton.onClick.RemoveListener(OnTransferClicked);
+			BurnNFTButton.onClick.RemoveListener(OnBurnClicked);
 		}
 
 		#endregion
@@ -140,6 +149,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, NftOwner nft)
 		{
 			mNft = nft;
+			ViewNFTButton.gameObject.SetActive(true);
 			switch (nftUpdateTargetType)
 			{
 				case eNFTUpdateTargetType.SET_BUY_PRICE:
@@ -167,18 +177,28 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 					NftUpdatePanelState = eNFTUpdatePanelState.TRANSFER_NFT;
 					TransferAddressInputField.text = string.Empty;
 					break;
+				case eNFTUpdateTargetType.BURN_NFT:
+					NftUpdatePanelState = eNFTUpdatePanelState.BURN_NFT;
+					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(nftUpdateTargetType), nftUpdateTargetType, null);
 			}
 
 			ProfileListNftItem.IsReadyOnly = true;
 			await ProfileListNftItem.Initialize(nft);
-
 		}
 
 		#endregion
 
 		#region PrivateMethods
+
+		#region SetBuyPrice
+
+		private void OnSetClicked()
+		{
+			OnSetBuyPrice();
+		}
+
 
 		private void OnPriceValueChanged(string text)
 		{
@@ -212,12 +232,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 		}
 
-		private void OnSetClicked()
-		{
-			OnSetBuyPrice();
-
-		}
-
 		private void OnSetBuyPrice()
 		{
 			float price = float.Parse(PriceInputField.text);
@@ -242,6 +256,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			CongratulationsTitle.text = LocalizationKeys.SET_BUY_PRICE_SUCCESS_TITLE.Translate();
 			CongratulationsDescription.text = string.Format(LocalizationKeys.SET_BUY_PRICE_SUCCESS_DESCRIPTION.Translate(), price.ToString("F2"));
 		}
+		
+
+		#endregion
+
+		#region Congratulations
 
 		private void OnMarketplaceValueChanged(bool active)
 		{
@@ -259,6 +278,10 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			CollectionCreatedEvent collection = await DataManager.Instance.GetCollectionCreatedEventWithCache(mNft.TokenAddress);
 			CanvasPlayerPCManager.Instance.OpenCollectionDetailsPanel(collection);
 		}
+
+		#endregion
+
+		#region RemoveBuyPrice
 
 		private void OnRemoveBuyPriceClicked()
 		{
@@ -280,10 +303,14 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			CongratulationsDescription.text = LocalizationKeys.REMOVE_BUY_NOW_REMOVED_DESCRIPTION.Translate();
 		}
 
+		#endregion
+
+		#region Transfer
+
 		private void OnTransferAddressValueChanged(string value)
 		{
 			value = value.ToLowerInvariant().Trim();
-			
+
 			if (string.IsNullOrEmpty(value))
 			{
 				TransferButtonText.text = LocalizationKeys.TRANSFER_NFT_ADDRESS_MANDATORY.Translate();
@@ -300,6 +327,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				TransferNFTButton.interactable = false;
 			}
 		}
+
 
 		private void OnTransferClicked()
 		{
@@ -321,6 +349,34 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			CongratulationsTitle.text = LocalizationKeys.TRANSFER_NFT_SUCCESS_TITLE.Translate();
 			CongratulationsDescription.text = LocalizationKeys.TRANSFER_NFT_SUCCESS_DESCRIPTION.Translate();
 		}
+
+		#endregion
+
+		#region Burn
+
+		private void OnBurnClicked()
+		{
+			MessagePopup.ShowConfirmationWalletPopup(NFTManager.Instance.BurnNFT(mNft.TokenAddress, mNft.TokenId),
+				(transactionId) =>
+				{
+					MessagePopup.ShowConfirmationBlockchainPopup(
+						LocalizationKeys.BURN_NFT_WAITING_TITLE.Translate(),
+						LocalizationKeys.BURN_NFT_WAITING_DESCRIPTION.Translate(),
+						transactionId,
+						OnNFTBurned);
+				});
+		}
+
+		private void OnNFTBurned(AbstractContractEvent obj)
+		{
+			NftUpdatePanelState = eNFTUpdatePanelState.CONGRATULATIONS;
+			CongratulationsTitle.text = LocalizationKeys.BURN_NFT_SUCCESS_TITLE.Translate();
+			CongratulationsDescription.text = LocalizationKeys.BURN_NFT_SUCCESS_DESCRIPTION.Translate();
+			ViewNFTButton.gameObject.SetActive(false);
+		}
+
+		#endregion
+
 		#endregion
 	}
 }

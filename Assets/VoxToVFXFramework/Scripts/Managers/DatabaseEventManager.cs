@@ -18,6 +18,12 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#endregion
 
+		#region ConstStatic
+
+		public const string NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+		#endregion
+
 		#region UnityMethods
 
 		protected override async void OnStart()
@@ -76,7 +82,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisLiveQueryController.AddSubscription("SelfDestructEvent", selfDestructQuery, selfDestructQueryCallbacks);
 		}
 
-		
+
 
 		private void OnError(ErrorMessage evt)
 		{
@@ -146,8 +152,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.TokenAddress))
 			{
 				Debug.Log("[DatabaseEventManager] HandleTransferEvent is for current user");
+
+				if (item.ToAddress == NULL_ADDRESS)
+				{
+					Debug.Log("[DatabaseEventManager] ToAddress is null, NFT is burned");
+					if (DataManager.DataManager.Instance.NftCollection.ContainsKey(item.TokenAddress))
+					{
+						DataManager.DataManager.Instance.NftCollection.Remove(item.TokenAddress);
+					}
+				}
+
 				////Will force refresh the next time it's called
-				if (DataManager.DataManager.Instance.NftCollection.ContainsKey(item.TokenAddress))
+				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(item.TokenAddress))
 				{
 					DataManager.DataManager.Instance.NFTDetailsCache.Remove(item.TokenAddress);
 				}
