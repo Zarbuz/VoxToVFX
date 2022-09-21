@@ -177,7 +177,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		private void OnDrawGizmos()
 		{
-			if (!Application.isPlaying)
+			if (!IsReady)
 			{
 				return;
 			}
