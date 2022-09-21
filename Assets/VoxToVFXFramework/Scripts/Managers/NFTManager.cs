@@ -62,6 +62,43 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
+
+		public async UniTask<List<AbstractContractEvent>> GetAllEventsForNFT(string contract, string tokenId)
+		{
+			List<AbstractContractEvent> events = new List<AbstractContractEvent>();
+			MoralisQuery<CollectionMintedEvent> q = await Moralis.Query<CollectionMintedEvent>();
+			q = q.WhereEqualTo("address", contract);
+			q = q.WhereEqualTo("tokenId", tokenId);
+			CollectionMintedEvent result = await q.FirstAsync();
+			events.Add(result);
+
+			MoralisQuery<BuyPriceAcceptedEvent> q2 = await Moralis.Query<BuyPriceAcceptedEvent>();
+			q2 = q2.WhereEqualTo("address", contract);
+			q2 = q2.WhereEqualTo("tokenId", tokenId);
+			IEnumerable<BuyPriceAcceptedEvent> result2 = await q2.FindAsync();
+			events.AddRange(result2);
+
+			MoralisQuery<BuyPriceCanceledEvent> q3 = await Moralis.Query<BuyPriceCanceledEvent>();
+			q3 = q3.WhereEqualTo("address", contract);
+			q3 = q3.WhereEqualTo("tokenId", tokenId);
+			IEnumerable<BuyPriceCanceledEvent> result3 = await q3.FindAsync();
+			events.AddRange(result3);
+
+			MoralisQuery<BuyPriceSetEvent> q4 = await Moralis.Query<BuyPriceSetEvent>();
+			q4 = q4.WhereEqualTo("address", contract);
+			q4 = q4.WhereEqualTo("tokenId", tokenId);
+			IEnumerable<BuyPriceSetEvent> result4 = await q4.FindAsync();
+			events.AddRange(result4);
+
+			MoralisQuery<EthNFTTransfers> q5 = await Moralis.Query<EthNFTTransfers>();
+			q5 = q5.WhereEqualTo("token_address", contract);
+			q5 = q5.WhereEqualTo("token_id", tokenId);
+			IEnumerable<EthNFTTransfers> result5 = await q5.FindAsync();
+			events.AddRange(result5);
+
+			return events.OrderByDescending(t => t.createdAt).ToList();
+		}
+
 		public async UniTask<string> MintNftAndApprove(string tokenCID, string contractAddress)
 		{
 			string token = tokenCID.Replace("https://", string.Empty);
@@ -166,7 +203,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
-		
+
 #endif
 		#endregion
 	}
