@@ -161,5 +161,14 @@
 		public const string FOLLOWING = "[FOLLOWING]";
 
 		#endregion
+
+		#region Provenance
+
+		public const string MINTED_BY_LABEL = "[MINTED_BY_LABEL]";
+		public const string BUY_NOW_SET_LABEL = "[BUY_NOW_SET_LABEL]";
+		public const string BUY_NOW_REMOVED_LABEL = "[BUY_NOW_REMOVED_LABEL]";
+		public const string TRANSFERRED_FROM_TO_LABEL = "[TRANSFERRED_FROM_TO_LABEL]";
+
+		#endregion
 	}
 }

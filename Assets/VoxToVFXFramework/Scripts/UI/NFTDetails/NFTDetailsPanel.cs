@@ -150,9 +150,16 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 			mProvenanceNFTItemList.Clear();
 
-			foreach (AbstractContractEvent contractEvent in events)
+			for (int index = 0; index < events.Count; index++)
 			{
+				AbstractContractEvent contractEvent = events[index];
 				ProvenanceNFTItem item = Instantiate(ProvenanceNftItemPrefab, RightPart.transform, false);
+				if (contractEvent is BuyPriceCanceledEvent buyPriceCanceledEvent)
+				{
+					//BuyPriceSetEvent is always before BuyPriceCanceledEvent
+					buyPriceCanceledEvent.BuyPriceSetEventLinked = (BuyPriceSetEvent)events[index - 1];
+				}
+
 				item.Initialize(contractEvent);
 				mProvenanceNFTItemList.Add(item);
 			}

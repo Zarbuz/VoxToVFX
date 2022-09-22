@@ -85,6 +85,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<EthNFTTransfers> q5 = await Moralis.Query<EthNFTTransfers>();
 			q5 = q5.WhereEqualTo("token_address", contract);
 			q5 = q5.WhereEqualTo("token_id", tokenId);
+			q5 = q5.WhereNotEqualTo("from_address", DatabaseEventManager.NULL_ADDRESS);
 			IEnumerable<EthNFTTransfers> result5 = await q5.FindAsync();
 			events.AddRange(result5);
 
