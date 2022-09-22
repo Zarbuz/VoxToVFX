@@ -37,7 +37,7 @@ public class ProvenanceNFTItem : MonoBehaviour
 	{
 		OpenTransactionButton.onClick.AddListener(OnOpenTransactionClicked);
 		mAbstractContractEvent = contractEvent;
-		DateText.text = contractEvent.createdAt.HasValue ? contractEvent.createdAt.Value.ToShortDateString() : string.Empty;
+		DateText.text = contractEvent.createdAt.HasValue ? contractEvent.createdAt.Value.ToString("F") : string.Empty;
 
 		switch (contractEvent)
 		{
@@ -83,8 +83,8 @@ public class ProvenanceNFTItem : MonoBehaviour
 					await ToAvatarImage.Initialize(toUser);
 					ToAvatarImage.gameObject.SetActive(true);
 					ActionText.text = string.Format(LocalizationKeys.TRANSFERRED_FROM_TO_LABEL.Translate(),
-						fromUser != null ? fromUser.UserName : ethNftTransfers.FromAddress,
-						toUser != null ? toUser.UserName : ethNftTransfers.ToAddress);
+						fromUser != null ? fromUser.UserName : ethNftTransfers.FromAddress.FormatEthAddress(6),
+						toUser != null ? toUser.UserName : ethNftTransfers.ToAddress.FormatEthAddress(6));
 					PriceText.text = string.Empty;
 					break;
 				}
