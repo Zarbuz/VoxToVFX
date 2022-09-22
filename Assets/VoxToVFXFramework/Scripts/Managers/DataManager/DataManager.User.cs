@@ -10,6 +10,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		public async UniTask<CustomUser> GetUserWithCache(string ethAddress)
 		{
+			ethAddress = ethAddress.ToLowerInvariant();
 			if (Users.TryGetValue(ethAddress, out CustomUser user))
 			{
 				return user;

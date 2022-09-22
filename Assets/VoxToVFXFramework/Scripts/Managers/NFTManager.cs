@@ -65,19 +65,19 @@ namespace VoxToVFXFramework.Scripts.Managers
 			events.Add(result);
 
 			MoralisQuery<BuyPriceAcceptedEvent> q2 = await Moralis.Query<BuyPriceAcceptedEvent>();
-			q2 = q2.WhereEqualTo("address", contract);
+			q2 = q2.WhereEqualTo("nftContract", contract);
 			q2 = q2.WhereEqualTo("tokenId", tokenId);
 			IEnumerable<BuyPriceAcceptedEvent> result2 = await q2.FindAsync();
 			events.AddRange(result2);
 
 			MoralisQuery<BuyPriceCanceledEvent> q3 = await Moralis.Query<BuyPriceCanceledEvent>();
-			q3 = q3.WhereEqualTo("address", contract);
+			q3 = q3.WhereEqualTo("nftContract", contract);
 			q3 = q3.WhereEqualTo("tokenId", tokenId);
 			IEnumerable<BuyPriceCanceledEvent> result3 = await q3.FindAsync();
 			events.AddRange(result3);
 
 			MoralisQuery<BuyPriceSetEvent> q4 = await Moralis.Query<BuyPriceSetEvent>();
-			q4 = q4.WhereEqualTo("address", contract);
+			q4 = q4.WhereEqualTo("nftContract", contract);
 			q4 = q4.WhereEqualTo("tokenId", tokenId);
 			IEnumerable<BuyPriceSetEvent> result4 = await q4.FindAsync();
 			events.AddRange(result4);
@@ -87,8 +87,10 @@ namespace VoxToVFXFramework.Scripts.Managers
 			q5 = q5.WhereEqualTo("token_id", tokenId);
 			q5 = q5.WhereNotEqualTo("from_address", DatabaseEventManager.NULL_ADDRESS);
 			IEnumerable<EthNFTTransfers> result5 = await q5.FindAsync();
-			events.AddRange(result5);
 
+			List<EthNFTTransfers> filterContractsEvents = result5.Where(ethNftTransfers => !string.Equals(ethNftTransfers.ToAddress, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)
+			&& !string.Equals(ethNftTransfers.FromAddress, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).ToList();
+			events.AddRange(filterContractsEvents);
 			return events.OrderByDescending(t => t.createdAt).ToList();
 		}
 

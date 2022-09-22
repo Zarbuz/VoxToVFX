@@ -50,5 +50,12 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return null;
 		}
 		
+
+		public void DeleteCacheForTokenId(string address, string tokenId)
+		{
+			string key = address + "_" + tokenId;
+			NFTDetailsCache.Remove(key);
+			NFTEventsCache.Remove(key);
+		}
 	}
 }

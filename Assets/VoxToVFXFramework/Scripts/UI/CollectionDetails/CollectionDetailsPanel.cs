@@ -82,11 +82,11 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		#region Fields
 
-		public string UserAddress => mCreatorUser.EthAddress;
-
 		private eFilterOrderBy mFilterOrderBy;
 		private CollectionCreatedEvent mCollectionCreated;
-		private CustomUser mCreatorUser;
+		public string UserAddress => mCreatorUser;
+
+		private string mCreatorUser;
 		private Models.CollectionDetails mCollectionDetails;
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
@@ -147,7 +147,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			mCollectionCreated = collection;
 			LoadingBackgroundImage.gameObject.SetActive(true);
-			mCreatorUser = await DataManager.Instance.GetUserWithCache(collection.Creator);
+			mCreatorUser = collection.Creator;
 			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
 			MintNftButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUserAddress);
@@ -155,8 +155,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			CollectionNameText.text = collection.Name;
 			CollectionSymbolText.text = collection.Symbol;
 			CollectionDetailsState = eCollectionDetailsState.NFT;
-			OpenUserProfileButton.Initialize(mCreatorUser);
-			MoreToggle.gameObject.SetActive(mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
+			OpenUserProfileButton.Initialize(collection.Creator);
+			MoreToggle.gameObject.SetActive(mCreatorUser == UserManager.Instance.CurrentUserAddress);
 
 			UniTask task1 = RefreshCollectionDetails();
 			UniTask task2 = RefreshNFTTab();
@@ -167,6 +167,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
+
 
 		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
 		{
@@ -294,9 +295,9 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
-			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
+			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
 			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Distinct().Count().ToString();
-			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser.EthAddress != UserManager.Instance.CurrentUserAddress);
+			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser != UserManager.Instance.CurrentUserAddress);
 		}
 
 		private void RebuildAllVerticalRect()

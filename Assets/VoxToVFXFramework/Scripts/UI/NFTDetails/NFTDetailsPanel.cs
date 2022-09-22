@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
@@ -45,9 +46,13 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[Header("Right")]
 		[SerializeField] private Button LoadVoxModelButton;
 		[SerializeField] private NFTDetailsManagePanel NFTDetailsManagePanel;
+		[SerializeField] private NFTLastActionPanel NFTLastActionPanel;
 		[SerializeField] private ProvenanceNFTItem ProvenanceNftItemPrefab;
 		[SerializeField] private VerticalLayoutGroup RightPart;
 
+		[Header("EmptySpace")]
+		[SerializeField] private LayoutElement EmptySpaceLeft;
+		[SerializeField] private LayoutElement EmptySpaceRight;
 		#endregion
 
 		#region Fields
@@ -84,6 +89,18 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#endregion
 
+		#region ConstStatic
+
+		private const int HEIGHT_SPACE_LEFT_WITH_BUY_NOW = 174;
+		private const int HEIGHT_SPACE_LEFT_WITHOUT_BUY_NOW = 24;
+		private const int HEIGHT_SPACE_LEFT_MANAGE = 66;
+
+		private const int HEIGHT_SPACE_RIGHT_WITH_BUY_NOW = 290;
+		private const int HEIGHT_SPACE_RIGHT_WITHOUT_BUY_NOW = 140;
+		private const int HEIGHT_SPACE_RIGHT_MANAGE = 185;
+
+		#endregion
+
 		#region PublicMethods
 
 		public async void Initialize(NftOwner nft)
@@ -94,16 +111,26 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 			string creatorAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(creatorAddress);
-			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
+			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
+			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 			mCollectionCreated = await DataManager.Instance.GetCollectionCreatedEventWithCache(nft.TokenAddress);
 			List<AbstractContractEvent> events = await DataManager.Instance.GetAllEventsForNFT(nft.TokenAddress, nft.TokenId);
 			mCollectionMinted = (CollectionMintedEvent)events.First(e => e is CollectionMintedEvent);
 			BuildProvenanceDetails(events);
 
 			MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
-			NFTDetailsManagePanel.gameObject.SetActive(nft.OwnerOf == UserManager.Instance.CurrentUserAddress);
-			NFTDetailsManagePanel.Initialize(nft, creatorUser);
-			OpenUserProfileButton.Initialize(creatorUser);
+			NFTDetailsManagePanel.gameObject.SetActive(details.OwnerInLowercase== UserManager.Instance.CurrentUserAddress);
+			NFTDetailsManagePanel.Initialize(nft, creatorUser, details);
+
+			NFTLastActionPanel.gameObject.SetActive(details.OwnerInLowercase != UserManager.Instance.CurrentUserAddress);
+			NFTLastActionPanel.Initialize(details, events);
+
+			EmptySpaceRight.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_RIGHT_MANAGE : 
+				details.IsInEscrow ? HEIGHT_SPACE_RIGHT_WITH_BUY_NOW : HEIGHT_SPACE_RIGHT_WITHOUT_BUY_NOW;
+			EmptySpaceLeft.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_LEFT_MANAGE : 
+				details.IsInEscrow ? HEIGHT_SPACE_LEFT_WITH_BUY_NOW : HEIGHT_SPACE_LEFT_WITHOUT_BUY_NOW;
+
+			OpenUserProfileButton.Initialize(creatorAddress);
 			CollectionNameText.text = mCollectionCreated.Name;
 			try
 			{
@@ -119,17 +146,17 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				throw;
 			}
 
-			CollectionImage.transform.parent.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
-			if (details != null)
+			CollectionImage.transform.parent.gameObject.SetActive(collectionDetails != null && !string.IsNullOrEmpty(collectionDetails.LogoImageUrl));
+			if (collectionDetails != null)
 			{
-				if (!string.IsNullOrEmpty(details.LogoImageUrl))
+				if (!string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
 				{
-					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 32, 32);
+					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.LogoImageUrl, CollectionImage, 32, 32);
 					if (!success)
 					{
-						CollectionImage.transform.parent.gameObject.SetActive(false);	
+						CollectionImage.transform.parent.gameObject.SetActive(false);
 					}
-				}	
+				}
 			}
 
 			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage);
@@ -150,16 +177,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 			mProvenanceNFTItemList.Clear();
 
-			for (int index = 0; index < events.Count; index++)
+			foreach (AbstractContractEvent contractEvent in events)
 			{
-				AbstractContractEvent contractEvent = events[index];
 				ProvenanceNFTItem item = Instantiate(ProvenanceNftItemPrefab, RightPart.transform, false);
-				if (contractEvent is BuyPriceCanceledEvent buyPriceCanceledEvent)
-				{
-					//BuyPriceSetEvent is always before BuyPriceCanceledEvent
-					buyPriceCanceledEvent.BuyPriceSetEventLinked = (BuyPriceSetEvent)events[index - 1];
-				}
-
 				item.Initialize(contractEvent);
 				mProvenanceNFTItemList.Add(item);
 			}

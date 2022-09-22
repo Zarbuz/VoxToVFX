@@ -1,5 +1,6 @@
 ﻿using System;
 using Cysharp.Threading.Tasks;
+using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
@@ -58,33 +59,32 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 
-			if (nft.OwnerOf == UserManager.Instance.CurrentUserAddress)
+			if (details.OwnerInLowercase == UserManager.Instance.CurrentUserAddress)
 			{
 				OwnerAvatarImage.gameObject.SetActive(false);
 				OwnerUsernameText.text = string.Empty;
 			}
 			else
 			{
-				CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(nft.OwnerOf);
-				OwnerTrigger.Initialize(nft.OwnerOf);
+				CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(details.OwnerInLowercase);
+				OwnerTrigger.Initialize(details.OwnerInLowercase);
 				if (ownerUser != null)
 				{
-
 					OwnerUsernameText.text = "@" + ownerUser.UserName;
 					OwnerAvatarImage.gameObject.SetActive(true);
 					await OwnerAvatarImage.Initialize(ownerUser);
 				}
 				else
 				{
-					OwnerUsernameText.text = nft.OwnerOf.FormatEthAddress(6);
+					OwnerUsernameText.text = details.OwnerInLowercase.FormatEthAddress(6);
 					await OwnerAvatarImage.Initialize(null);
 				}
 			}
 
 
-			ActionText.text = details != null ? details.TargetAction : string.Empty;
-			BuyPriceInEther = details?.BuyPriceInEther ?? 0;
-			PriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " ETH" : string.Empty;
+			ActionText.text = details.TargetAction;
+			BuyPriceInEther = details.BuyPriceInEther;
+			PriceText.text = details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + "  " + Moralis.CurrentChain.Symbol : string.Empty;
 			CollectionNameText.text = nft.Name;
 			CollectionName = nft.Name;
 

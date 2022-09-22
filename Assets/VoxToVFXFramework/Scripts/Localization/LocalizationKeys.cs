@@ -168,6 +168,7 @@
 		public const string BUY_NOW_SET_LABEL = "[BUY_NOW_SET_LABEL]";
 		public const string BUY_NOW_REMOVED_LABEL = "[BUY_NOW_REMOVED_LABEL]";
 		public const string TRANSFERRED_FROM_TO_LABEL = "[TRANSFERRED_FROM_TO_LABEL]";
+		public const string LAST_SOLD_LABEL = "[LAST_SOLD_LABEL]";
 
 		#endregion
 	}

@@ -1,9 +1,11 @@
 using System.Numerics;
 using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
 using Nethereum.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
@@ -61,9 +63,10 @@ public class ProvenanceNFTItem : MonoBehaviour
 				}
 			case BuyPriceCanceledEvent buyPriceCanceledEvent:
 				{
-					CustomUser user = await DataManager.Instance.GetUserWithCache(buyPriceCanceledEvent.BuyPriceSetEventLinked.Seller);
+					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(buyPriceCanceledEvent.NFTContract, buyPriceCanceledEvent.TokenId);
+					CustomUser user = await DataManager.Instance.GetUserWithCache(details.OwnerInLowercase);
 					await FromAvatarImage.Initialize(user);
-					ActionText.text = LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate() + " " + (user != null ? user.UserName : buyPriceCanceledEvent.BuyPriceSetEventLinked.Seller.FormatEthAddress(6));
+					ActionText.text = LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate() + " " + (user != null ? user.UserName : details.OwnerInLowercase.FormatEthAddress(6));
 					PriceText.text = string.Empty;
 					break;
 				}

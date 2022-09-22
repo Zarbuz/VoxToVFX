@@ -119,12 +119,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent is for current user");
-				string key = item.NFTContract + "_" + item.TokenId;
-				//Will force refresh the next time it's called
-				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
-				{
-					DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
-				}
+				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
 				OnEventReceived(item);
 			}
 		}
@@ -135,12 +130,8 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent is for current user");
-				string key = item.NFTContract + "_" + item.TokenId;
-				//Will force refresh the next time it's called
-				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(key))
-				{
-					DataManager.DataManager.Instance.NFTDetailsCache.Remove(key);
-				}
+				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+
 				OnEventReceived(item);
 			}
 		}
@@ -161,11 +152,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					}
 				}
 
-				////Will force refresh the next time it's called
-				if (DataManager.DataManager.Instance.NFTDetailsCache.ContainsKey(item.TokenAddress))
-				{
-					DataManager.DataManager.Instance.NFTDetailsCache.Remove(item.TokenAddress);
-				}
+				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.TokenAddress, item.TokenId);
 				OnEventReceived(item);
 			}
 		}

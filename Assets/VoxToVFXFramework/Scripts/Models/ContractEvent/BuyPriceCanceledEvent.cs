@@ -9,9 +9,5 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 
 		[JsonProperty("tokenId")]
 		public string TokenId { get; set; }
-
-
-		[JsonIgnore] 
-		public BuyPriceSetEvent BuyPriceSetEventLinked { get; set; }
 	}
 }

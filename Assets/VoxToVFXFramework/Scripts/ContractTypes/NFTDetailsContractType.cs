@@ -74,8 +74,9 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 			}
 		}
 
-		[JsonIgnore]
-		public string BuyPriceInEtherFixedPoint => BuyPriceInEther.ToString("F2");
+		[JsonIgnore] public string BuyPriceInEtherFixedPoint => BuyPriceInEther.ToString("F2");
+
+		[JsonIgnore] public string OwnerInLowercase => Owner.ToLowerInvariant();
 	}
 
 	public class NFTDetailsCacheDTO

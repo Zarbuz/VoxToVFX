@@ -2,7 +2,9 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
+using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Atomic
 {
@@ -35,11 +37,11 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		#region PublicMethods
 
-		public async void Initialize(CustomUser user)
+		public async void Initialize(string address)
 		{
-			mUser = user;
-			CreatorUsername.text = user.UserName;
-			await CreatorImage.Initialize(user);
+			mUser = await DataManager.Instance.GetUserWithCache(address);
+			CreatorUsername.text = mUser != null ? mUser.UserName : address.FormatEthAddress(3);
+			await CreatorImage.Initialize(mUser);
 		}
 
 		#endregion
@@ -48,8 +50,10 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 		private void OnOpenUserProfileClicked()
 		{
-			CanvasPlayerPCManager.Instance.OpenProfilePanel(mUser);
-
+			if (mUser != null)
+			{
+				CanvasPlayerPCManager.Instance.OpenProfilePanel(mUser);
+			}
 		}
 
 		#endregion

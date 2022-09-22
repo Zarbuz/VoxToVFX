@@ -1,11 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Image;
@@ -49,8 +46,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionNameText.color = collectionDetails != null && !string.IsNullOrEmpty(collectionDetails.CoverImageUrl) ? Color.white : Color.black;
 			CollectionNameText.text = collection.Name;
 			CollectionSymbolText.text = collection.Symbol;
-			CustomUser creator = await DataManager.Instance.GetUserWithCache(collection.Creator);
-			OpenUserProfileButton.Initialize(creator);
+			OpenUserProfileButton.Initialize(collection.Creator);
 		}
 
 		#endregion
