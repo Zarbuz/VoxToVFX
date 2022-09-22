@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
@@ -43,15 +45,19 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[Header("Right")]
 		[SerializeField] private Button LoadVoxModelButton;
 		[SerializeField] private NFTDetailsManagePanel NFTDetailsManagePanel;
+		[SerializeField] private ProvenanceNFTItem ProvenanceNftItemPrefab;
+		[SerializeField] private VerticalLayoutGroup RightPart;
 
 		#endregion
 
 		#region Fields
 
-		private CollectionMintedEvent mCollectionMinted;
 		private CollectionCreatedEvent mCollectionCreated;
+		private CollectionMintedEvent mCollectionMinted;
 		private NftOwner mNft;
 		private MetadataObject mMetadataObject;
+
+		private readonly List<ProvenanceNFTItem> mProvenanceNFTItemList = new List<ProvenanceNFTItem>();
 		#endregion
 
 		#region UnityMethods
@@ -90,8 +96,11 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(creatorAddress);
 			Models.CollectionDetails details = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			mCollectionCreated = await DataManager.Instance.GetCollectionCreatedEventWithCache(nft.TokenAddress);
-			mCollectionMinted = await DataManager.Instance.GetCollectionMintedWithCache(nft.TokenAddress, nft.TokenId);
+			List<AbstractContractEvent> events = await DataManager.Instance.GetAllEventsForNFT(nft.TokenAddress, nft.TokenId);
+			mCollectionMinted = (CollectionMintedEvent)events.First(e => e is CollectionMintedEvent);
+			BuildProvenanceDetails(events);
 
+			MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
 			NFTDetailsManagePanel.gameObject.SetActive(nft.OwnerOf == UserManager.Instance.CurrentUserAddress);
 			NFTDetailsManagePanel.Initialize(nft, creatorUser);
 			OpenUserProfileButton.Initialize(creatorUser);
@@ -123,11 +132,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				}	
 			}
 
-			if (mCollectionMinted.createdAt != null)
-			{
-				MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
-			}
-
 			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage);
 			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
 			LoadingBackgroundImage.gameObject.SetActive(false);
@@ -136,6 +140,23 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		#endregion
 
 		#region PrivateMethods
+
+		private void BuildProvenanceDetails(List<AbstractContractEvent> events)
+		{
+			foreach (ProvenanceNFTItem item in mProvenanceNFTItemList)
+			{
+				Destroy(item.gameObject);
+			}
+
+			mProvenanceNFTItemList.Clear();
+
+			foreach (AbstractContractEvent contractEvent in events)
+			{
+				ProvenanceNFTItem item = Instantiate(ProvenanceNftItemPrefab, RightPart.transform, false);
+				item.Initialize(contractEvent);
+				mProvenanceNFTItemList.Add(item);
+			}
+		}
 
 
 		private void OnOpenCollectionClicked()

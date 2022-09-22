@@ -222,6 +222,7 @@ GameObject:
   m_Component:
   - component: {fileID: 797098600504851431}
   - component: {fileID: -6086132452071126772}
+  - component: {fileID: -4887174585657809739}
   m_Layer: 5
   m_Name: ProvenanceItem
   m_TagString: Untagged
@@ -276,6 +277,23 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &-4887174585657809739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708363249727554012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41200342ca2ae8e42894fe73fb73eb7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ActionText: {fileID: 2139033620489400649}
+  DateText: {fileID: 1180348590836353673}
+  PriceText: {fileID: 66791670365436536}
+  AvatarImage: {fileID: 3178201295685089235}
+  OpenTransactionButton: {fileID: 1258686183614120851}
 --- !u!1 &3342229631458779156
 GameObject:
   m_ObjectHideFlags: 0
@@ -958,6 +976,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UserDetailsPopupPrefab: {fileID: -6685543228279114484, guid: fb846041ec507b849ad561f78738e5aa,
     type: 3}
+--- !u!114 &3178201295685089235 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4920090467175638696, guid: 1c1462e8cba8c034b8f9619c9e1de545,
+    type: 3}
+  m_PrefabInstance: {fileID: 7520044954688999803}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1348126966007724877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a694c293d89b4864f9476ff325cb83ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5026195196587846258 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3286555626218486537, guid: 1c1462e8cba8c034b8f9619c9e1de545,
