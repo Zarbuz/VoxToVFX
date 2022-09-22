@@ -171,5 +171,16 @@
 		public const string LAST_SOLD_LABEL = "[LAST_SOLD_LABEL]";
 
 		#endregion
+
+		#region BuyNow
+
+		public const string BUY_NOW_NOT_ENOUGH_ETH = "[BUY_NOW_NOT_ENOUGH_ETH]";
+		public const string BUY_NOW_WAITING_TITLE = "[BUY_NOW_WAITING_TITLE]";
+		public const string BUY_NOW_WAITING_DESCRIPTION = "[BUY_NOW_WAITING_DESCRIPTION]";
+		public const string BUY_NOW_SUCCESS_TITLE = "[BUY_NOW_SUCCESS_TITLE]";
+		public const string BUY_NOW_SUCCESS_DESCRIPTION = "[BUY_NOW_SUCCESS_DESCRIPTION]";
+
+
+		#endregion
 	}
 }

@@ -123,7 +123,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			NFTDetailsManagePanel.Initialize(nft, creatorUser, details);
 
 			NFTLastActionPanel.gameObject.SetActive(details.OwnerInLowercase != UserManager.Instance.CurrentUserAddress);
-			NFTLastActionPanel.Initialize(details, events);
+			NFTLastActionPanel.Initialize(nft, details, events);
 
 			EmptySpaceRight.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_RIGHT_MANAGE : 
 				details.IsInEscrow ? HEIGHT_SPACE_RIGHT_WITH_BUY_NOW : HEIGHT_SPACE_RIGHT_WITHOUT_BUY_NOW;

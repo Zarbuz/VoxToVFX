@@ -56,6 +56,9 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<SelfDestructEvent> selfDestructQuery = await Moralis.GetClient().Query<SelfDestructEvent>();
 			MoralisLiveQueryCallbacks<SelfDestructEvent> selfDestructQueryCallbacks = new MoralisLiveQueryCallbacks<SelfDestructEvent>();
 
+			MoralisQuery<BuyPriceAcceptedEvent> buyPriceAcceptedQuery = await Moralis.GetClient().Query<BuyPriceAcceptedEvent>();
+			MoralisLiveQueryCallbacks<BuyPriceAcceptedEvent> buyPriceAcceptedQueryCallbacks = new MoralisLiveQueryCallbacks<BuyPriceAcceptedEvent>();
+
 			collectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
 			collectionMintedQueryCallbacks.OnErrorEvent += OnError;
 
@@ -74,12 +77,16 @@ namespace VoxToVFXFramework.Scripts.Managers
 			selfDestructQueryCallbacks.OnUpdateEvent += HandleSelfDestructEvent;
 			selfDestructQueryCallbacks.OnErrorEvent += OnError;
 
+			buyPriceAcceptedQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceAcceptedEvent;
+			buyPriceAcceptedQueryCallbacks.OnErrorEvent += OnError;
+
 			MoralisLiveQueryController.AddSubscription("CollectionCreatedEvent", collectionCreatedQuery, collectionCreatedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("CollectionMintedEvent", collectionMintedQuery, collectionMintedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceSetEvent", setBuyPriceQuery, setBuyPriceQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceCanceledEvent", cancelBuyPriceQuery, cancelBuyPriceQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("EthNFTTransfers", transferQuery, transferQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("SelfDestructEvent", selfDestructQuery, selfDestructQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("BuyPriceAcceptedEvent", buyPriceAcceptedQuery, buyPriceAcceptedQueryCallbacks);
 		}
 
 
@@ -130,6 +137,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
 			{
 				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent is for current user");
+				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+
+				OnEventReceived(item);
+			}
+		}
+
+		private void HandleOnBuyPriceAcceptedEvent(BuyPriceAcceptedEvent item, int requestid)
+		{
+			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceAcceptedEvent " + item.NFTContract);
+			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
+			{
+				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceAcceptedEvent is for current user");
 				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
 
 				OnEventReceived(item);

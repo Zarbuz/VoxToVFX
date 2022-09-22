@@ -296,7 +296,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			int countActive = mItems.Count(t => t.InitSuccess);
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
-			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Distinct().Count().ToString();
+			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Where(t => !string.Equals(t, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).Distinct().Count().ToString();
 			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser != UserManager.Instance.CurrentUserAddress);
 		}
 
@@ -324,7 +324,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private void OnOpenOwnedByClicked()
 		{
-			MessagePopup.ShowOwnedByPopup(mCollectionCache.NftOwnerCollection.Result);
+			MessagePopup.ShowOwnedByPopup(mCollectionCache.NftOwnerCollection.Result.Where(t => !string.Equals(t.OwnerOf, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).ToList());
 		}
 
 		private void OnSelfDestructClicked()

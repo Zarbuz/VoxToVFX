@@ -157,7 +157,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void OnUserInfoUpdated(CustomUser user)
 		{
-			Initialize(user);
+			if (user != null)
+			{
+				Initialize(user);
+			}
 		}
 
 		private void OnEditProfileClicked()

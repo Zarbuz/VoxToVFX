@@ -1,21 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using MoralisUnity;
-using MoralisUnity.Web3Api.Models;
 using Nethereum.Util;
-using Org.BouncyCastle.Math;
+using System.Collections.Generic;
+using System.Linq;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
-using VoxToVFXFramework.Scripts.Managers.DataManager;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
+using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.UI.Atomic;
+using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 using BigInteger = System.Numerics.BigInteger;
 
 public class NFTLastActionPanel : MonoBehaviour
@@ -53,10 +49,17 @@ public class NFTLastActionPanel : MonoBehaviour
 
 	#endregion
 
+	#region Fields
+
+	private NftOwner mNft;
+
+	#endregion
+
 	#region PublicMethods
 
-	public void Initialize(NFTDetailsContractType details, List<AbstractContractEvent> events)
+	public void Initialize(NftOwner nft, NFTDetailsContractType details, List<AbstractContractEvent> events)
 	{
+		mNft = nft;
 		BuyNowPanel.SetActive(details is { IsInEscrow: true });
 		OpenOwnerProfileButton.Initialize(details.OwnerInLowercase);
 		BuyNowPriceText.text = details.BuyPriceInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
@@ -97,7 +100,7 @@ public class NFTLastActionPanel : MonoBehaviour
 
 	private void OnBuyNowClicked()
 	{
-
+		CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.BUY_NOW, mNft);
 	}
 
 	#endregion
