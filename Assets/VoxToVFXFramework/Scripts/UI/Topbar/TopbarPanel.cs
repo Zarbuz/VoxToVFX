@@ -181,9 +181,9 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 			RefreshCircle();
 		}
 
-		private async void OnLogoutClicked()
+		private void OnLogoutClicked()
 		{
-			await UserManager.Instance.Logout();
+			UserManager.Instance.Logout();
 			CanvasPlayerPCManager.Instance.GenericClosePanel();
 			ProfilePopup.gameObject.SetActive(false);
 		}

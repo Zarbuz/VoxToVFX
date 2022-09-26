@@ -241,6 +241,11 @@ namespace VoxToVFXFramework.Scripts.UI
 			CollectionPanel.Initialize();
 		}
 
+		public void Disconnect()
+		{
+			LoginPanel.Disconnect();
+		}
+
 		#endregion
 
 		#region PrivateMethods

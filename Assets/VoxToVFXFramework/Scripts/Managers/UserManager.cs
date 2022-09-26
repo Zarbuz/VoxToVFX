@@ -8,6 +8,7 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -73,10 +74,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return input;
 		}
 
-		public async UniTask Logout()
+		public void Logout()
 		{
-			await Moralis.LogOutAsync();
+			CanvasPlayerPCManager.Instance.Disconnect();
 			CurrentUser = null;
+			DataManager.DataManager.Instance.ClearAll();
 			OnUserInfoUpdated?.Invoke(null);
 		}
 

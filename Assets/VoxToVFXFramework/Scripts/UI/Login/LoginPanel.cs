@@ -52,6 +52,11 @@ namespace VoxToVFXFramework.Scripts.UI.Login
 			await UniTask.WaitUntil(() => mIsConnected);
 		}
 
+		public void Disconnect()
+		{
+			AuthenticationKit.Disconnect();
+		}
+
 		#endregion
 
 		#region PrivateMethods

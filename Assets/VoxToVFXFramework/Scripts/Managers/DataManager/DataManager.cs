@@ -1,7 +1,4 @@
-﻿using MoralisUnity.Platform.Objects;
-using System;
-using System.Collections.Generic;
-using VoxToVFXFramework.Scripts.Singleton;
+﻿using VoxToVFXFramework.Scripts.Singleton;
 
 namespace VoxToVFXFramework.Scripts.Managers.DataManager
 {
@@ -13,6 +10,17 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		#endregion
 
+		public void ClearAll()
+		{
+			NFTEventsCache.Clear();
+			NFTDetailsCache.Clear();
+			CollectionDetails.Clear();
+			AccountDetails.Clear();
+			ContractCreatedPerUsers.Clear();
+			NftCollection.Clear();
+			UserOwner.Clear();
+			Users.Clear();
+		}
 	
 	}
 
