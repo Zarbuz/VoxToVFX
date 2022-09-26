@@ -44,6 +44,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private GameObject CollectionPanel;
 		[SerializeField] private GameObject OwnedPanel;
 
+		[SerializeField] private GameObject NoCreatedPanel;
+		[SerializeField] private GameObject NoCollectionPanel;
+		[SerializeField] private GameObject NoOwnedPanel;
+
 		[SerializeField] private ProfileNFTGridAdaptater CreatedNFTGridAdaptater;
 		[SerializeField] private ProfileCollectionGridAdaptater CollectionGridAdaptater;
 		[SerializeField] private ProfileNFTGridAdaptater OwnedGridAdaptater;
@@ -185,6 +189,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				mItemCreated.AddRange(nftCollection.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)).Select(t => new NftOwnerWithDetails(t)));
 			}
 
+			NoCreatedPanel.gameObject.SetActive(mItemCreated.Count == 0);
 			CreatedNFTGridAdaptater.Initialize(mItemCreated);
 			CreatedCountText.text = mItemCreated.Count.ToString();
 		}
@@ -195,6 +200,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			CollectionGridAdaptater.Initialize(list.OrderByDescending(c => c.createdAt).ToList());
 			CollectionCountText.text = list.Count.ToString();
+			NoCollectionPanel.SetActive(list.Count == 0);
 		}
 
 		private async UniTask RefreshOwnedTab()
@@ -209,10 +215,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			List<NftOwnerWithDetails> list = ownerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)).Select(t => new NftOwnerWithDetails(t)).ToList();
 			OwnedGridAdaptater.Initialize(list);
 			OwnedCountText.text = list.Count.ToString();
+			NoOwnedPanel.SetActive(list.Count == 0);
 		}
 
 		#endregion
 
-		
+
 	}
 }
