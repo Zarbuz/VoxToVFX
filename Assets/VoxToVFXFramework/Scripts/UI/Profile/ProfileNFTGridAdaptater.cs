@@ -23,6 +23,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public void Initialize(List<NftOwnerWithDetails> nfts)
 		{
+			base.Start();
 			mData = nfts;
 			ResetItems(nfts.Count, true);
 		}

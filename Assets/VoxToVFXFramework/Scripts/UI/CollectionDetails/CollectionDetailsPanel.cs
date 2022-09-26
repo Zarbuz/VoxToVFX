@@ -27,7 +27,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		{
 			NFT,
 			DESCRIPTION,
-			ACTIVITY
+			ACTIVITY,
+			LOADING
 		}
 
 		#endregion
@@ -70,8 +71,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[SerializeField] private Button SelfDestructButton;
 
 		[Header("NFT")]
-		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
-		[SerializeField] private Transform NFTGridTransform;
+		[SerializeField] private ProfileNFTGridAdaptater ProfileNftGridAdaptater;
 		[SerializeField] private ProfileFilterPanel ProfileFilterPanel;
 
 
@@ -91,19 +91,20 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
 		private DataManager.NftCollectionCache mCollectionCache;
-		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
+		private readonly List<NftOwnerWithDetails> mItems = new List<NftOwnerWithDetails>();
 		private eCollectionDetailsState CollectionDetailsState
 		{
 			get => mCollectionDetailsState;
 			set
 			{
 				mCollectionDetailsState = value;
-				NFTPanel.gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.NFT);
+				NFTPanel.gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.NFT || mCollectionDetailsState == eCollectionDetailsState.LOADING);
 				ActivityPanel.gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.ACTIVITY);
 				DescriptionPanel.gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.DESCRIPTION);
 				NFTTabButton.transform.GetChild(0).gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.NFT);
 				ActivityTabButton.transform.GetChild(0).gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.ACTIVITY);
 				DescriptionTabButton.transform.GetChild(0).gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.DESCRIPTION);
+				LoadingBackgroundImage.gameObject.SetActive(mCollectionDetailsState == eCollectionDetailsState.LOADING);
 			}
 		}
 
@@ -144,8 +145,9 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		public async void Initialize(CollectionCreatedEvent collection)
 		{
+			CollectionDetailsState = eCollectionDetailsState.LOADING;
+
 			mCollectionCreated = collection;
-			LoadingBackgroundImage.gameObject.SetActive(true);
 			mCreatorUser = collection.Creator;
 			mCollectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(collection.CollectionContract);
 			DescriptionTabButton.gameObject.SetActive(mCollectionDetails != null && !string.IsNullOrEmpty(mCollectionDetails.Description));
@@ -153,7 +155,6 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			EditCollectionButton.gameObject.SetActive(collection.Creator == UserManager.Instance.CurrentUserAddress);
 			CollectionNameText.text = collection.Name;
 			CollectionSymbolText.text = collection.Symbol;
-			CollectionDetailsState = eCollectionDetailsState.NFT;
 			OpenUserProfileButton.Initialize(collection.Creator);
 			MoreToggle.gameObject.SetActive(mCreatorUser == UserManager.Instance.CurrentUserAddress);
 
@@ -164,7 +165,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			SelfDestructButton.gameObject.SetActive(mItems.Count == 0);
 			ProfileFilterPanel.Initialize(this);
 			RebuildAllVerticalRect();
-			LoadingBackgroundImage.gameObject.SetActive(false);
+
+			CollectionDetailsState = eCollectionDetailsState.NFT;
 		}
 
 
@@ -185,7 +187,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private void RefreshData()
 		{
-			List<ProfileListNFTItem> list = new List<ProfileListNFTItem>();
+			List<NftOwnerWithDetails> list = new List<NftOwnerWithDetails>();
 
 			switch (mFilterOrderBy)
 			{
@@ -205,11 +207,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 					throw new ArgumentOutOfRangeException(nameof(mFilterOrderBy), mFilterOrderBy, null);
 			}
 
-			for (int index = 0; index < list.Count; index++)
-			{
-				ProfileListNFTItem item = list[index];
-				item.transform.SetSiblingIndex(index);
-			}
+			ProfileNftGridAdaptater.Initialize(list);
 		}
 
 		private void OnSymbolClicked()
@@ -279,21 +277,16 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private async UniTask RefreshNFTTab()
 		{
-			NFTGridTransform.DestroyAllChildren();
 			mItems.Clear();
 			mCollectionCache= await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
-			List<UniTask> tasks = new List<UniTask>();
 			foreach (NftOwner nft in mCollectionCache.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
 			{
-				ProfileListNFTItem item = Instantiate(ProfileListNftItem, NFTGridTransform, false);
-				mItems.Add(item);
-				tasks.Add(item.Initialize(nft));
+				mItems.Add(new NftOwnerWithDetails(nft));
 			}
 
-			await UniTask.WhenAll(tasks);
+			ProfileNftGridAdaptater.Initialize(mItems);
 
-			//int countActive = mItems.Count(t => t.InitSuccess);
-			int countActive = 0; //TODO
+			int countActive = mItems.Count;
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
 			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Where(t => !string.Equals(t, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).Distinct().Count().ToString();
