@@ -97,7 +97,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		private void OnPriceValueChanged(string text)
 		{
 			bool success = float.TryParse(text, NumberStyles.Any, Thread.CurrentThread.CurrentCulture, out float value);
-			Debug.Log(value);
 			if (!success)
 			{
 				SetButtonText.text = LocalizationKeys.SET_BUY_AMOUNT_REQUIRED.Translate();
@@ -106,8 +105,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				MarketplaceFeeCountText.text = "0.00 " + Moralis.CurrentChain.Symbol;
 			}
 			else
-			{
-				if (value < 0.01)
+			{	
+				if (value < 0.01f)
 				{
 					SetButtonText.text = LocalizationKeys.SET_BUY_AT_LEAST_0_01ETH.Translate();
 					SetButton.interactable = false;
