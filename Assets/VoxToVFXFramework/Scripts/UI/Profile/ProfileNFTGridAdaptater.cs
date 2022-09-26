@@ -99,7 +99,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				_CellsCount = mData.Count;
 			}
 
-			base.Refresh(true, keepVelocity);
+			base.Refresh(contentPanelEndEdgeStationary, keepVelocity);
 		}
 
 		private void OnItemClicked(NFTGridItemViewsHolder item)
@@ -150,11 +150,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		}
 
 
-		public void SetOnClickItem(Action<NFTGridItemViewsHolder> onClickQuestion)
+		public void SetOnClickItem(Action<NFTGridItemViewsHolder> onClickItem)
 		{
 			Button.onClick.RemoveAllListeners();
-			if (onClickQuestion != null)
-				Button.onClick.AddListener(() => onClickQuestion(this));
+			if (onClickItem != null)
+				Button.onClick.AddListener(() => onClickItem(this));
 		}
 	}
 }

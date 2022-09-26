@@ -13,8 +13,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Image CollectionCoverImage;
-		[SerializeField] private Image CollectionLogoImage;
+		[SerializeField] private RawImage CollectionCoverImage;
+		[SerializeField] private RawImage CollectionLogoImage;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
 		[SerializeField] private TextMeshProUGUI CollectionSymbolText;

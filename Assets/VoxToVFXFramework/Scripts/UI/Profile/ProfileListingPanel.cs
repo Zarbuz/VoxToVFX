@@ -45,12 +45,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private GameObject OwnedPanel;
 
 		[SerializeField] private ProfileNFTGridAdaptater CreatedNFTGridAdaptater;
-		//[SerializeField] private Transform CreatedGridTransform;
-		[SerializeField] private Transform CollectionGridTransform;
+		[SerializeField] private ProfileCollectionGridAdaptater CollectionGridAdaptater;
 		[SerializeField] private ProfileNFTGridAdaptater OwnedGridAdaptater;
-
-		[Header("ProfileListNFTItem")]
-		[SerializeField] private ProfileCollectionItem ProfileCollectionItemPrefab;
 
 		[SerializeField] private GameObject LoadingPanel;
 
@@ -120,10 +116,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mCustomUser = user;
 			ProfileListingState = eProfileListingState.LOADING;
 			UniTask task1 = RefreshCreatedTab();
-			//UniTask task2 = RefreshCollectionTab();
+			UniTask task2 = RefreshCollectionTab();
 			UniTask task3 = RefreshOwnedTab();
 
-			await (task1, task3);
+			await (task1, task2, task3);
 			ProfileListingState = eProfileListingState.CREATED;
 			ProfileFilterPanel.Initialize(this);
 		}
@@ -195,16 +191,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private async UniTask RefreshCollectionTab()
 		{
-			CollectionGridTransform.DestroyAllChildren();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser.EthAddress);
 
-			List<UniTask> tasks = new List<UniTask>();
-			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
-			{
-				ProfileCollectionItem item = Instantiate(ProfileCollectionItemPrefab, CollectionGridTransform, false);
-				tasks.Add(item.Initialize(collection));
-			}
-			await UniTask.WhenAll(tasks);
+			CollectionGridAdaptater.Initialize(list.OrderByDescending(c => c.createdAt).ToList());
 			CollectionCountText.text = list.Count.ToString();
 		}
 
