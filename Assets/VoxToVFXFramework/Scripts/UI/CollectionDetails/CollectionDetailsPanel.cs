@@ -19,7 +19,7 @@ using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 {
-	public class CollectionDetailsPanel : MonoBehaviour, IFilterPanelListener
+	public class CollectionDetailsPanel : AbstractComplexDetailsPanel, IFilterPanelListener
 	{
 		#region Enum
 
@@ -37,8 +37,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		[Header("General")]
 
 		[Header("MainImage")]
-		[SerializeField] private Image MainImage;
-		[SerializeField] private Image LogoImage;
+		[SerializeField] private RawImage MainImage;
+		[SerializeField] private RawImage LogoImage;
 		[SerializeField] private Image LoadingBackgroundImage;
 		[SerializeField] private TextMeshProUGUI CollectionNameText;
 		[SerializeField] private OpenUserProfileButton OpenUserProfileButton;
@@ -90,7 +90,6 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private Models.CollectionDetails mCollectionDetails;
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
-		private VerticalLayoutGroup[] mVerticalLayoutGroups;
 		private DataManager.NftCollectionCache mCollectionCache;
 		private readonly List<ProfileListNFTItem> mItems = new List<ProfileListNFTItem>();
 		private eCollectionDetailsState CollectionDetailsState
@@ -112,8 +111,9 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		#region UnityMethods
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			OpenSymbolButton.onClick.AddListener(OnSymbolClicked);
 			NFTTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.NFT));
 			ActivityTabButton.onClick.AddListener(() => OnSwitchTabClicked(eCollectionDetailsState.ACTIVITY));
@@ -123,7 +123,6 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 			MintNftButton.onClick.AddListener(OnMintNftClicked);
 			SelfDestructButton.onClick.AddListener(OnSelfDestructClicked);
 			mTransparentButtons = GetComponentsInChildren<TransparentButton>();
-			mVerticalLayoutGroups = GetComponentsInChildren<VerticalLayoutGroup>();
 			MoreToggle.isOn = false;
 		}
 
@@ -245,7 +244,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 				if (!string.IsNullOrEmpty(mCollectionDetails.LogoImageUrl))
 				{
 					LogoImage.transform.parent.gameObject.SetActive(true);
-					await ImageUtils.DownloadAndApplyImageAndCropAfter(mCollectionDetails.LogoImageUrl, LogoImage, 184, 184);
+					await ImageUtils.DownloadAndApplyImageAndCrop(mCollectionDetails.LogoImageUrl, LogoImage, 184, 184);
 				}
 				else
 				{
@@ -270,8 +269,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 					transparentButton.ImageBackgroundActive = false;
 				}
 
-				MainImage.sprite = null;
-				LogoImage.sprite = null;
+				MainImage.texture = null;
+				LogoImage.texture = null;
 				LogoImage.transform.parent.gameObject.SetActive(false);
 				CollectionNameText.color = Color.black;
 				DescriptionTabButton.gameObject.SetActive(false);
@@ -293,19 +292,12 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 			await UniTask.WhenAll(tasks);
 
-			int countActive = mItems.Count(t => t.InitSuccess);
+			//int countActive = mItems.Count(t => t.InitSuccess);
+			int countActive = 0; //TODO
 			CollectionOfCountText.text = countActive.ToString();
 			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
 			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Where(t => !string.Equals(t, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).Distinct().Count().ToString();
 			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser != UserManager.Instance.CurrentUserAddress);
-		}
-
-		private void RebuildAllVerticalRect()
-		{
-			foreach (VerticalLayoutGroup verticalLayoutGroup in mVerticalLayoutGroups.Reverse())
-			{
-				LayoutRebuilder.ForceRebuildLayoutImmediate(verticalLayoutGroup.GetComponent<RectTransform>());
-			}
 		}
 
 		private async void OnCollectionUpdated(Models.CollectionDetails collectionDetails)

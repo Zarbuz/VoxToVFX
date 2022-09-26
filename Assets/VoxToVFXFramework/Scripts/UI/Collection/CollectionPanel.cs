@@ -172,7 +172,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
 				DataManager.NftCollectionCache nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
-				tasks.Add(item.Initialize(collection, nftCollection.NftOwnerCollection.Total.Value, OnCollectionSelected));
+				tasks.Add(item.Initialize(collection, nftCollection.TotalItems, OnCollectionSelected));
 			}
 
 			await UniTask.WhenAll(tasks);

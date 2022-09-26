@@ -20,8 +20,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Image MainImage;
-		[SerializeField] private Image CollectionLogoImage;
+		[SerializeField] private RawImage MainImage;
+		[SerializeField] private RawImage CollectionLogoImage;
 		[SerializeField] private Button Button;
 		[SerializeField] private AvatarImage CreatorAvatarImage;
 		[SerializeField] private TextMeshProUGUI CreatorUsernameText;
@@ -40,7 +40,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region Fields
 
-		public bool InitSuccess { get; private set; }
 		public bool IsReadyOnly { get; set; }
 		public decimal BuyPriceInEther { get; private set; }
 		public string CollectionName { get; private set; }
@@ -93,11 +92,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatorUsernameText.text = "@" + creatorUser.UserName;
 			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
 			CreatorTrigger.Initialize(creatorUser.EthAddress);
-
 			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
 			Title.text = metadataObject.Name;
 			MintedDate = metadataObject.MintedUTCDate;
-			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
+			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCrop(metadataObject.Image, MainImage, 512, 512);
 
 			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
 			{
@@ -107,12 +105,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			else
 			{
 				CollectionLogoImage.gameObject.SetActive(true);
-				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.LogoImageUrl,
-					CollectionLogoImage, 32, 32);
+				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
 				await UniTask.WhenAll(task1, task2, task3);
 			}
-
-			InitSuccess = true;
 		}
 
 

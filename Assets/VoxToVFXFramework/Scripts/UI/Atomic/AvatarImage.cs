@@ -10,7 +10,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Image ProfileImage;
+		[SerializeField] private RawImage ProfileImage;
 		[SerializeField] private Image NoAvatarImage;
 
 		#endregion
@@ -24,7 +24,7 @@ namespace VoxToVFXFramework.Scripts.UI.Atomic
 
 			if (user != null && !string.IsNullOrEmpty(user.PictureUrl))
 			{
-				bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(user.PictureUrl, ProfileImage, 256, 256);
+				bool success = await ImageUtils.DownloadAndApplyImageAndCrop(user.PictureUrl, ProfileImage, 256, 256);
 				if (success)
 				{
 					NoAvatarImage.gameObject.SetActive(false);

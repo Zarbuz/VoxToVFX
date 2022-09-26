@@ -40,8 +40,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CollectionCoverImage.gameObject.SetActive(collectionDetails != null && !string.IsNullOrEmpty(collectionDetails.CoverImageUrl));
 			if (collectionDetails != null)
 			{
-				await ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.CoverImageUrl, CollectionCoverImage, 398, 524);
-				await ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.LogoImageUrl, CollectionLogoImage, 100, 100);
+				await ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.CoverImageUrl, CollectionCoverImage, 398, 524);
+				await ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionLogoImage, 100, 100);
 			}
 			CollectionNameText.color = collectionDetails != null && !string.IsNullOrEmpty(collectionDetails.CoverImageUrl) ? Color.white : Color.black;
 			CollectionNameText.text = collection.Name;

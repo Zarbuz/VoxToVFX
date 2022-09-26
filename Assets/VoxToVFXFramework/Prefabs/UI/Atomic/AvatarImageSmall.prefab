@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7789888643731511950}
   - component: {fileID: 482395449025688039}
-  - component: {fileID: 8231594658382045768}
+  - component: {fileID: 5690961191004371347}
+  - component: {fileID: 8896140342016573441}
   m_Layer: 5
   m_Name: AvatarImage
   m_TagString: Untagged
@@ -46,7 +47,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3286555626218486537}
   m_CullTransparentMesh: 1
---- !u!114 &8231594658382045768
+--- !u!114 &5690961191004371347
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -55,7 +56,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 3286555626218486537}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: eddc1fbd4bd796345832996a9560b9bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8896140342016573441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3286555626218486537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
@@ -66,16 +79,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!1 &3491859980950715927
 GameObject:
   m_ObjectHideFlags: 0
@@ -87,6 +97,7 @@ GameObject:
   - component: {fileID: 6609482370604590398}
   - component: {fileID: 3336696259325936344}
   - component: {fileID: 615295930824411208}
+  - component: {fileID: 4743850073834120906}
   m_Layer: 5
   m_Name: NoAvatarImage
   m_TagString: Untagged
@@ -153,6 +164,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 5
+--- !u!114 &4743850073834120906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3491859980950715927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eddc1fbd4bd796345832996a9560b9bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7140323739315071925
 GameObject:
   m_ObjectHideFlags: 0
@@ -164,6 +187,7 @@ GameObject:
   - component: {fileID: 8878168112591061483}
   - component: {fileID: 7159971309511307892}
   - component: {fileID: 9020080017867731258}
+  - component: {fileID: 5059352047877097134}
   m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
@@ -229,6 +253,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5059352047877097134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7140323739315071925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eddc1fbd4bd796345832996a9560b9bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8856631437222685238
 GameObject:
   m_ObjectHideFlags: 0
@@ -299,8 +335,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 15865c14912560543b33a4e5538d7ea6, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: ec33b29f67465db45aa8df22663e89f5, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -321,7 +357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a694c293d89b4864f9476ff325cb83ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ProfileImage: {fileID: 8231594658382045768}
+  ProfileImage: {fileID: 8896140342016573441}
   NoAvatarImage: {fileID: 615295930824411208}
 --- !u!114 &1705158760775831863
 MonoBehaviour:

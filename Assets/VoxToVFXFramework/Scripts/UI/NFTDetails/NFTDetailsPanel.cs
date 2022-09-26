@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
@@ -18,12 +19,11 @@ using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 {
-	public class NFTDetailsPanel : MonoBehaviour
+	public class NFTDetailsPanel : AbstractComplexDetailsPanel
 	{
 		#region ScriptParameters
 
 		[Header("Global")]
-		[SerializeField] private VerticalLayoutGroup VerticalLayoutGroup;
 		[SerializeField] private Image LoadingBackgroundImage;
 
 		[Header("Top")]
@@ -67,8 +67,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region UnityMethods
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			OpenTransactionButton.onClick.AddListener(OnOpenTransactionClicked);
 			ViewEtherscanButton.onClick.AddListener(OnViewEtherscanClicked);
 			ViewMetadataButton.onClick.AddListener(OnViewMetadataClicked);
@@ -151,7 +152,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			{
 				if (!string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
 				{
-					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.LogoImageUrl, CollectionImage, 32, 32);
+					bool success = await ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionImage, 32, 32);
 					if (!success)
 					{
 						CollectionImage.transform.parent.gameObject.SetActive(false);
@@ -160,13 +161,15 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			}
 
 			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage);
-			LayoutRebuilder.ForceRebuildLayoutImmediate(VerticalLayoutGroup.GetComponent<RectTransform>());
+			await UniTask.WaitForEndOfFrame();
+			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
 		}
 
 		#endregion
 
 		#region PrivateMethods
+
 
 		private void BuildProvenanceDetails(List<AbstractContractEvent> events)
 		{

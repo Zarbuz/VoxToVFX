@@ -34,9 +34,18 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		public async UniTask<NftOwnerCollection> GetNFTOwners(string address)
 		{
-			Debug.Log("[NFTManager] GetNFTOwners: " + address);
-			NftOwnerCollection owners = await Moralis.Web3Api.Token.GetNFTOwners(address, ConfigManager.Instance.ChainList);
-			return owners;
+			try
+			{
+				Debug.Log("[NFTManager] GetNFTOwners: " + address);
+				NftOwnerCollection owners = await Moralis.Web3Api.Token.GetNFTOwners(address, ConfigManager.Instance.ChainList);
+				return owners;
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e);
+				return null;
+			}
+		
 		}
 
 		public async UniTask<NftOwnerCollection> GetNFTForUser(string user)
@@ -49,7 +58,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Debug.LogError(e);
 				return null;
 			}
 		}

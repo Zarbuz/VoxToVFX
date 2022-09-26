@@ -100,7 +100,7 @@ namespace VoxToVFXFramework.Scripts.UI.Topbar
 
 				if (!string.IsNullOrEmpty(user.PictureUrl))
 				{
-					bool success = await ImageUtils.DownloadAndApplyImageAndCropAfter(user.PictureUrl, AvatarImage, 256, 256);
+					bool success = await ImageUtils.DownloadAndApplyImageAndCrop(user.PictureUrl, AvatarImage, 256, 256);
 					if (success)
 					{
 						AvatarImageTopbar.sprite = AvatarImage.sprite;

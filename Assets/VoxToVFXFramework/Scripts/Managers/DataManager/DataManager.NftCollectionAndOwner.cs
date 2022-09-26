@@ -34,7 +34,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 				collectionCache.NftOwnerCollection.Result = new List<NftOwner>();
 				foreach (Nft nft in result.Result)
 				{
-					NftOwner owner = ownerCollection.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
+					NftOwner owner = ownerCollection?.Result.FirstOrDefault(t => t.TokenId == nft.TokenId);
 					collectionCache.NftOwnerCollection.Result.Add(new NftOwner()
 					{
 						Name = nft.Name,
@@ -51,10 +51,10 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 						BlockNumberMinted = owner != null ? owner.BlockNumberMinted : string.Empty
 					});
 				}
-			}
 
-			collectionCache.LastUpdate = DateTime.UtcNow;
-			NftCollection[address] = collectionCache;
+				collectionCache.LastUpdate = DateTime.UtcNow;
+				NftCollection[address] = collectionCache;
+			}
 
 			return collectionCache;
 		}
@@ -78,7 +78,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 					NftOwnerCollection = result
 				};
 			}
-			
+
 			return result;
 		}
 
@@ -86,6 +86,19 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 		{
 			public NftOwnerCollection NftOwnerCollection { get; set; }
 			public DateTime LastUpdate { get; set; }
+
+			public int TotalItems
+			{
+				get
+				{
+					if (NftOwnerCollection != null && NftOwnerCollection.Total.HasValue)
+					{
+						return NftOwnerCollection.Total.Value;
+					}
+
+					return 0;
+				}
+			}
 
 		}
 
