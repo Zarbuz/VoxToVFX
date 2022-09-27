@@ -1,16 +1,14 @@
-using System;
 using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
-using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
@@ -151,10 +149,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			switch (mFilterOrderBy)
 			{
 				case eFilterOrderBy.PRICE_HIGHEST_FIRST:
-					list = mItemCreated.OrderByDescending(item => item.BuyPriceInEther).ToList();
+					list = mItemCreated.Where(t => t.BuyPriceInEther != 0).OrderByDescending(item => item.BuyPriceInEther).ToList();
 					break;
 				case eFilterOrderBy.PRICE_LOWEST_FIRST:
-					list = mItemCreated.OrderBy(item => item.BuyPriceInEther).ToList();
+					list = mItemCreated.Where(t => t.BuyPriceInEther != 0).OrderBy(item => item.BuyPriceInEther).ToList();
 					break;
 				case eFilterOrderBy.NEWEST:
 					list = mItemCreated.OrderByDescending(item => item.MintedDate).ToList();

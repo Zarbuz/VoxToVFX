@@ -13,6 +13,7 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 public class ProvenanceNFTItem : MonoBehaviour
 {
@@ -47,7 +48,7 @@ public class ProvenanceNFTItem : MonoBehaviour
 				{
 					CustomUser user = await DataManager.Instance.GetUserWithCache(collectionMintedEvent.Creator);
 					await FromAvatarImage.Initialize(user);
-					ActionText.text = LocalizationKeys.MINTED_BY_LABEL.Translate() + " " + (user != null ? user.UserName : collectionMintedEvent.Creator.FormatEthAddress(6));
+					FormatActionText(LocalizationKeys.MINTED_BY_LABEL.Translate(), user, collectionMintedEvent.Creator);
 					PriceText.text = string.Empty;
 					break;
 				}
@@ -55,7 +56,7 @@ public class ProvenanceNFTItem : MonoBehaviour
 				{
 					CustomUser user = await DataManager.Instance.GetUserWithCache(buyPriceSetEvent.Seller);
 					await FromAvatarImage.Initialize(user);
-					ActionText.text = LocalizationKeys.BUY_NOW_SET_LABEL.Translate() + " " + (user != null ? user.UserName : buyPriceSetEvent.Seller.FormatEthAddress(6));
+					FormatActionText(LocalizationKeys.BUY_NOW_SET_LABEL.Translate(), user, buyPriceSetEvent.Seller);
 					BigInteger priceInWei = BigInteger.Parse(buyPriceSetEvent.Price);
 					decimal price = UnitConversion.Convert.FromWei(priceInWei);
 					PriceText.text = price.ToString("F2") + " " + Moralis.CurrentChain.Symbol;
@@ -66,12 +67,16 @@ public class ProvenanceNFTItem : MonoBehaviour
 					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(buyPriceCanceledEvent.NFTContract, buyPriceCanceledEvent.TokenId);
 					CustomUser user = await DataManager.Instance.GetUserWithCache(details.OwnerInLowercase);
 					await FromAvatarImage.Initialize(user);
-					ActionText.text = LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate() + " " + (user != null ? user.UserName : details.OwnerInLowercase.FormatEthAddress(6));
+					FormatActionText(LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate(), user, details.OwnerInLowercase);
 					PriceText.text = string.Empty;
 					break;
 				}
 			case BuyPriceAcceptedEvent buyPriceAcceptedEvent:
 				{
+					CustomUser buyer = await DataManager.Instance.GetUserWithCache(buyPriceAcceptedEvent.Buyer);
+					await FromAvatarImage.Initialize(buyer);
+					FormatActionText(LocalizationKeys.BOUGHT_BY_LABEL.Translate(), buyer, buyPriceAcceptedEvent.Buyer);
+					PriceText.text = buyPriceAcceptedEvent.TotalInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
 					break;
 				}
 			case BuyPriceInvalidatedEvent buyPriceInvalidatedEvent:
@@ -97,6 +102,11 @@ public class ProvenanceNFTItem : MonoBehaviour
 	#endregion
 
 	#region PrivateMethods
+
+	private void FormatActionText(string action, CustomUser user, string address)
+	{
+		ActionText.text = action + " " + (user != null ? user.UserName : address.FormatEthAddress(6));
+	}
 
 	private void OnOpenTransactionClicked()
 	{

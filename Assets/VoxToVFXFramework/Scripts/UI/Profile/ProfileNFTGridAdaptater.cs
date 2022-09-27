@@ -25,7 +25,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			base.Start();
 			mData = nfts;
-			ResetItems(nfts.Count, true);
+			ResetItems(nfts.Count, false);
 		}
 
 		protected override void OnCellViewsHolderCreated(NFTGridItemViewsHolder cellVH, CellGroupViewsHolder<NFTGridItemViewsHolder> cellGroup)

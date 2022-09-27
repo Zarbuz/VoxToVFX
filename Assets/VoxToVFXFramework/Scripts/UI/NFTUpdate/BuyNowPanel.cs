@@ -81,7 +81,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				return;
 			}
 
-			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.Buy(mNftUpdatePanel.Nft.TokenAddress, mNftUpdatePanel.Nft.TokenId, mDetails.BuyPrice),
+			MessagePopup.ShowConfirmationWalletPopup(NFTMarketManager.Instance.Buy(mNftUpdatePanel.Nft.TokenAddress, mNftUpdatePanel.Nft.TokenId, mDetails.BuyPriceInEther),
 				(transactionId) =>
 				{
 					MessagePopup.ShowConfirmationBlockchainPopup(

@@ -123,36 +123,23 @@ namespace VoxToVFXFramework.Scripts.Managers
 		private void HandleOnBuyPriceSetEvent(BuyPriceSetEvent item, int requestid)
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent " + item.NFTContract);
-			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
-			{
-				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent is for current user");
-				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
-				OnEventReceived(item);
-			}
+			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+			OnEventReceived(item);
 		}
 
 		private void HandleOnBuyPriceCanceledEvent(BuyPriceCanceledEvent item, int requestid)
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent " + item.NFTContract);
-			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
-			{
-				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent is for current user");
-				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
 
-				OnEventReceived(item);
-			}
+			OnEventReceived(item);
 		}
 
 		private void HandleOnBuyPriceAcceptedEvent(BuyPriceAcceptedEvent item, int requestid)
 		{
 			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceAcceptedEvent " + item.NFTContract);
-			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.NFTContract))
-			{
-				Debug.Log("[DatabaseEventManager] HandleOnBuyPriceAcceptedEvent is for current user");
-				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
-
-				OnEventReceived(item);
-			}
+			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+			OnEventReceived(item);
 		}
 
 		private void HandleTransferEvent(EthNFTTransfers item, int requestid)
