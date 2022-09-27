@@ -41,9 +41,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region Fields
 
 		public bool IsReadyOnly { get; set; }
-		public decimal BuyPriceInEther { get; private set; }
-		public string CollectionName { get; private set; }
-		public DateTime MintedDate { get; private set; }
 
 		private NftOwner mNft;
 
@@ -82,10 +79,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 
 			ActionText.text = details.TargetAction;
-			BuyPriceInEther = details.BuyPriceInEther;
 			PriceText.text = details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + "  " + Moralis.CurrentChain.Symbol : string.Empty;
 			CollectionNameText.text = nft.Name;
-			CollectionName = nft.Name;
 
 			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
@@ -94,7 +89,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatorTrigger.Initialize(creatorUser.EthAddress);
 			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
 			Title.text = metadataObject.Name;
-			MintedDate = metadataObject.MintedUTCDate;
 			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCrop(metadataObject.Image, MainImage, 512, 512);
 
 			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
