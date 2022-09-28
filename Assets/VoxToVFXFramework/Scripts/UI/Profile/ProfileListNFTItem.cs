@@ -1,7 +1,5 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using MoralisUnity;
-using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
