@@ -82,6 +82,14 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return result;
 		}
 
+		public void DeleteCacheNFTItemInCollection(string address, string tokenId)
+		{
+			if (NftCollection.ContainsKey(address) && NftCollection[address].NftOwnerCollection != null)
+			{
+				NftCollection[address].NftOwnerCollection.Result.RemoveAll(nft => nft.TokenId == tokenId);
+			}
+		}
+
 		public class NftCollectionCache
 		{
 			public NftOwnerCollection NftOwnerCollection { get; set; }
@@ -106,9 +114,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 		{
 			public NftOwnerCollection NftOwnerCollection { get; set; }
 			public DateTime LastUpdate { get; set; }
-
 		}
-
 	}
 
 }

@@ -27,6 +27,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		TRANSFER_NFT,
 		BURN_NFT,
 		BUY_NOW,
+		MAKE_OFFER,
 		CONGRATULATIONS
 	}
 
@@ -41,9 +42,8 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		[SerializeField] private TransferPanel TransferPanel;
 		[SerializeField] private BurnPanel BurnPanel;
 		[SerializeField] private BuyNowPanel BuyNowPanel;
+		[SerializeField] private MakeOfferPanel MakeOfferPanel;
 		[SerializeField] private ProfileListNFTItem ProfileListNftItem;
-
-
 
 		#endregion
 
@@ -69,6 +69,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 				TransferPanel.gameObject.SetActive(mPanelState == eNFTUpdateTargetType.TRANSFER_NFT);
 				BurnPanel.gameObject.SetActive(mPanelState == eNFTUpdateTargetType.BURN_NFT);
 				BuyNowPanel.gameObject.SetActive(mPanelState == eNFTUpdateTargetType.BUY_NOW);
+				MakeOfferPanel.gameObject.SetActive(mPanelState == eNFTUpdateTargetType.MAKE_OFFER);
 				ProfileListNftItem.transform.parent.gameObject.SetActive(mPanelState != eNFTUpdateTargetType.CONGRATULATIONS);
 			}
 		}
@@ -85,14 +86,15 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			TransferPanel.Initialize(this);
 			SetBuyNowPanel.Initialize(this);
 			BuyNowPanel.Initialize(this);
+			MakeOfferPanel.Initialize(this);
 			ProfileListNftItem.IsReadyOnly = true;
 			await ProfileListNftItem.Initialize(nft);
 		}
 
-		public void SetCongratulations(string title, string description, bool viewNFTButton = true)
+		public void SetCongratulations(string title, string description, bool viewNFTButton = true, bool viewCollectionButton = true)
 		{
 			NftUpdatePanelState = eNFTUpdateTargetType.CONGRATULATIONS;
-			CongratulationsPanel.Initialize(this, title, description, viewNFTButton);
+			CongratulationsPanel.Initialize(this, title, description, viewNFTButton, viewCollectionButton);
 		}
 
 		#endregion

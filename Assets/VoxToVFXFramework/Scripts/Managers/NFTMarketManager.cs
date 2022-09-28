@@ -35,6 +35,21 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return resp;
 		}
 
+		public async UniTask<string> MakeOffer(string nftContract, string tokenId, BigInteger weiPrice)
+		{
+			object[] parameters = {
+				nftContract, tokenId, weiPrice
+			};
+
+			// Set gas estimate
+			HexBigInteger value = new HexBigInteger(weiPrice.ToString("x"));
+			HexBigInteger gas = new HexBigInteger(100000);
+			HexBigInteger gasPrice = new HexBigInteger(0); //useless
+			string resp = await ExecuteContractFunctionUtils.ExecuteContractFunction(SmartContractAddressConfig.VoxToVFXMarketAddress, SmartContractAddressConfig.VoxToVFXMarketABI, "makeOffer", parameters, value, gas, gasPrice);
+
+			Debug.Log("[NFTManager] MakeOffer: " + resp);
+			return resp;
+		}
 
 		public async UniTask<string> CancelBuyPrice(string nftContract, string tokenId)
 		{
@@ -59,9 +74,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 			object[] parameters = {
 				nftContract, tokenId, weiPrice
 			};
-
-			Debug.Log("100000000000000000");
-			Debug.Log(weiPrice);
 
 			// Set gas estimate
 

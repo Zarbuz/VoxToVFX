@@ -15,6 +15,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 	{
 		#region ScriptParameters
 
+		[Header("TransferPanel")]
 		[SerializeField] private TMP_InputField TransferAddressInputField;
 		[SerializeField] private Button TransferNFTButton;
 		[SerializeField] private TextMeshProUGUI TransferButtonText;

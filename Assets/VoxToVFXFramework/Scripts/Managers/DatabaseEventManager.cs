@@ -3,7 +3,6 @@ using MoralisUnity;
 using MoralisUnity.Platform.Queries;
 using MoralisUnity.Platform.Queries.Live;
 using System;
-using Org.BouncyCastle.Math.Field;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
@@ -29,6 +28,54 @@ namespace VoxToVFXFramework.Scripts.Managers
 		protected override async void OnStart()
 		{
 			await SubscribeToDatabaseEvents();
+		}
+
+		#endregion
+
+		#region PublicMethods
+
+		public void UpdateCache(AbstractContractEvent item)
+		{
+			switch (item)
+			{
+				case BuyPriceAcceptedEvent buyPriceAcceptedEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(buyPriceAcceptedEvent.NFTContract, buyPriceAcceptedEvent.TokenId);
+					break;
+				case BuyPriceCanceledEvent buyPriceCanceledEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(buyPriceCanceledEvent.NFTContract, buyPriceCanceledEvent.TokenId);
+					break;
+				case BuyPriceInvalidatedEvent buyPriceInvalidatedEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(buyPriceInvalidatedEvent.NFTContract, buyPriceInvalidatedEvent.TokenId);
+					break;
+				case BuyPriceSetEvent buyPriceSetEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(buyPriceSetEvent.NFTContract, buyPriceSetEvent.TokenId);
+					break;
+				case CollectionCreatedEvent collectionCreatedEvent:
+					DataManager.DataManager.Instance.AddCollectionCreated(collectionCreatedEvent);
+					break;
+				case CollectionMintedEvent collectionMintedEvent:
+					DataManager.DataManager.Instance.NftCollection.Remove(collectionMintedEvent.Address);
+					break;
+				case EthNFTTransfers ethNftTransfers:
+					if (ethNftTransfers.ToAddress == NULL_ADDRESS)
+					{
+						Debug.Log("[DatabaseEventManager] ToAddress is null, NFT is burned");
+						DataManager.DataManager.Instance.DeleteCacheNFTItemInCollection(ethNftTransfers.TokenAddress, ethNftTransfers.TokenId);
+					}
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(ethNftTransfers.TokenAddress, ethNftTransfers.TokenId);
+					break;
+				case OfferAcceptedEvent offerAcceptedEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(offerAcceptedEvent.NFTContract, offerAcceptedEvent.TokenId);
+					break;
+				case OfferMadeEvent offerMadeEvent:
+					DataManager.DataManager.Instance.DeleteCacheForTokenId(offerMadeEvent.NFTContract, offerMadeEvent.TokenId);
+					break;
+				case SelfDestructEvent selfDestructEvent:
+					DataManager.DataManager.Instance.ContractCreatedPerUsers.Remove(selfDestructEvent.Owner);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(item));
+			}
 		}
 
 		#endregion
@@ -59,26 +106,38 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisQuery<BuyPriceAcceptedEvent> buyPriceAcceptedQuery = await Moralis.GetClient().Query<BuyPriceAcceptedEvent>();
 			MoralisLiveQueryCallbacks<BuyPriceAcceptedEvent> buyPriceAcceptedQueryCallbacks = new MoralisLiveQueryCallbacks<BuyPriceAcceptedEvent>();
 
-			collectionMintedQueryCallbacks.OnUpdateEvent += HandleOnCollectionMintedEvent;
+			MoralisQuery<OfferMadeEvent> offerMadeQuery = await Moralis.GetClient().Query<OfferMadeEvent>();
+			MoralisLiveQueryCallbacks<OfferMadeEvent> offerMadeQueryCallbacks = new MoralisLiveQueryCallbacks<OfferMadeEvent>();
+
+			MoralisQuery<OfferAcceptedEvent> offerAcceptedQuery = await Moralis.GetClient().Query<OfferAcceptedEvent>();
+			MoralisLiveQueryCallbacks<OfferAcceptedEvent> offerAcceptedQueryCallbacks = new MoralisLiveQueryCallbacks<OfferAcceptedEvent>();
+
+			collectionMintedQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			collectionMintedQueryCallbacks.OnErrorEvent += OnError;
 
-			collectionCreatedQueryCallbacks.OnUpdateEvent += HandleOnCollectionCreatedEvent;
+			collectionCreatedQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			collectionCreatedQueryCallbacks.OnErrorEvent += OnError;
 
-			setBuyPriceQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceSetEvent;
+			setBuyPriceQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			setBuyPriceQueryCallbacks.OnErrorEvent += OnError;
 
-			cancelBuyPriceQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceCanceledEvent;
+			cancelBuyPriceQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			cancelBuyPriceQueryCallbacks.OnErrorEvent += OnError;
 
-			transferQueryCallbacks.OnUpdateEvent += HandleTransferEvent;
+			transferQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			transferQueryCallbacks.OnErrorEvent += OnError;
 
-			selfDestructQueryCallbacks.OnUpdateEvent += HandleSelfDestructEvent;
+			selfDestructQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			selfDestructQueryCallbacks.OnErrorEvent += OnError;
 
-			buyPriceAcceptedQueryCallbacks.OnUpdateEvent += HandleOnBuyPriceAcceptedEvent;
+			buyPriceAcceptedQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
 			buyPriceAcceptedQueryCallbacks.OnErrorEvent += OnError;
+
+			offerMadeQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
+			offerMadeQueryCallbacks.OnErrorEvent += OnError;
+
+			offerAcceptedQueryCallbacks.OnUpdateEvent += HandleGenericEvent;
+			offerAcceptedQueryCallbacks.OnErrorEvent += OnError;
 
 			MoralisLiveQueryController.AddSubscription("CollectionCreatedEvent", collectionCreatedQuery, collectionCreatedQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("CollectionMintedEvent", collectionMintedQuery, collectionMintedQueryCallbacks);
@@ -87,94 +146,20 @@ namespace VoxToVFXFramework.Scripts.Managers
 			MoralisLiveQueryController.AddSubscription("EthNFTTransfers", transferQuery, transferQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("SelfDestructEvent", selfDestructQuery, selfDestructQueryCallbacks);
 			MoralisLiveQueryController.AddSubscription("BuyPriceAcceptedEvent", buyPriceAcceptedQuery, buyPriceAcceptedQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("OfferMadeEvent", offerMadeQuery, offerMadeQueryCallbacks);
+			MoralisLiveQueryController.AddSubscription("OfferAcceptedEvent", offerAcceptedQuery, offerAcceptedQueryCallbacks);
 		}
-
-
 
 		private void OnError(ErrorMessage evt)
 		{
 			Debug.LogError("OnErrorEvent: " + evt.error + " " + evt.code);
 		}
 
-		private void HandleOnCollectionCreatedEvent(CollectionCreatedEvent item, int requestid)
+		private void HandleGenericEvent(AbstractContractEvent item, int requestId)
 		{
-			Debug.Log("[DatabaseEventManager] HandleOnCollectionCreatedEvent: " + item.Creator);
-
-			if (UserManager.Instance.CurrentUserAddress == item.Creator)
-			{
-				Debug.Log("[DatabaseEventManager] HandleOnCollectionCreatedEvent is for current user");
-				DataManager.DataManager.Instance.AddCollectionCreated(item);
-				OnEventReceived(item);
-			}
-		}
-
-		private void HandleOnCollectionMintedEvent(CollectionMintedEvent item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent " + item.Creator);
-			if (UserManager.Instance.CurrentUserAddress == item.Creator)
-			{
-				Debug.Log("[DatabaseEventManager] HandleOnCollectionMintedEvent is for current user");
-
-				DataManager.DataManager.Instance.NftCollection.Remove(item.Address);
-				OnEventReceived(item);
-			}
-		}
-
-		private void HandleOnBuyPriceSetEvent(BuyPriceSetEvent item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceSetEvent " + item.NFTContract);
-			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
+			Debug.Log("[DatabaseEventManager] HandleGenericEvent: " + item.GetType() + " requestId: " + requestId);
 			OnEventReceived(item);
 		}
-
-		private void HandleOnBuyPriceCanceledEvent(BuyPriceCanceledEvent item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceCanceledEvent " + item.NFTContract);
-			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
-
-			OnEventReceived(item);
-		}
-
-		private void HandleOnBuyPriceAcceptedEvent(BuyPriceAcceptedEvent item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleOnBuyPriceAcceptedEvent " + item.NFTContract);
-			DataManager.DataManager.Instance.DeleteCacheForTokenId(item.NFTContract, item.TokenId);
-			OnEventReceived(item);
-		}
-
-		private void HandleTransferEvent(EthNFTTransfers item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleTransferEvent " + item.TokenAddress);
-			if (DataManager.DataManager.Instance.IsCollectionCreatedByCurrentUser(item.TokenAddress))
-			{
-				Debug.Log("[DatabaseEventManager] HandleTransferEvent is for current user");
-
-				if (item.ToAddress == NULL_ADDRESS)
-				{
-					Debug.Log("[DatabaseEventManager] ToAddress is null, NFT is burned");
-					if (DataManager.DataManager.Instance.NftCollection.ContainsKey(item.TokenAddress))
-					{
-						DataManager.DataManager.Instance.NftCollection.Remove(item.TokenAddress);
-					}
-				}
-
-				DataManager.DataManager.Instance.DeleteCacheForTokenId(item.TokenAddress, item.TokenId);
-				OnEventReceived(item);
-			}
-		}
-
-		private void HandleSelfDestructEvent(SelfDestructEvent item, int requestid)
-		{
-			Debug.Log("[DatabaseEventManager] HandleSelfDestructEvent " + item.Owner);
-			if (UserManager.Instance.CurrentUserAddress == item.Owner)
-			{
-				Debug.Log("[DatabaseEventManager] HandleSelfDestructEvent is for current user");
-				DataManager.DataManager.Instance.ContractCreatedPerUsers.Remove(item.Owner);
-
-				OnEventReceived(item);
-			}
-		}
-
 
 		private async void OnEventReceived(AbstractContractEvent contractEvent)
 		{

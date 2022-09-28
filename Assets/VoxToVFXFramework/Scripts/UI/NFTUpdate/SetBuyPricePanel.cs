@@ -12,47 +12,44 @@ using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
-using Vector3 = UnityEngine.Vector3;
 
 namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 {
-	public class SetBuyPricePanel : MonoBehaviour
+	public class SetBuyPricePanel : AbstractUpdatePanel
 	{
 		#region ScriptParameters
 
+		[Header("SetBuyPricePanel")]
 		[SerializeField] private TextMeshProUGUI Title;
 		[SerializeField] private TextMeshProUGUI Description;
 		[SerializeField] private TMP_InputField PriceInputField;
 		[SerializeField] private Button SetButton;
 		[SerializeField] private TextMeshProUGUI SetButtonText;
-		[SerializeField] private Toggle MarketplaceToggle;
-		[SerializeField] private GameObject MarketplacePanel;
 		[SerializeField] private TextMeshProUGUI MarketplaceFeeCountText;
 		[SerializeField] private TextMeshProUGUI ReceiveCountText;
-		[SerializeField] private Image ArrowIcon;
 
 		#endregion
 
 		#region ConstStatic
 
 		public const int MARKETPLACE_FEES = 5;
-
+		private const float MIN_PRICE = 0.01f;
 		#endregion
 
 		#region UnityMethods
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			PriceInputField.onValueChanged.AddListener(OnPriceValueChanged);
 			SetButton.onClick.AddListener(OnSetClicked);
-			MarketplaceToggle.onValueChanged.AddListener(OnToggleValueChanged);
 		}
 
-		private void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			PriceInputField.onValueChanged.RemoveListener(OnPriceValueChanged);
 			SetButton.onClick.RemoveListener(OnSetClicked);
-			MarketplaceToggle.onValueChanged.RemoveListener(OnToggleValueChanged);
 		}
 
 		#endregion
@@ -106,9 +103,9 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 			}
 			else
 			{	
-				if (value < 0.01f)
+				if (value < MIN_PRICE)
 				{
-					SetButtonText.text = LocalizationKeys.SET_BUY_AT_LEAST_0_01ETH.Translate();
+					SetButtonText.text = string.Format(LocalizationKeys.MUST_BE_AT_LEAST_X_LABEL.Translate(), MIN_PRICE);
 					SetButton.interactable = false;
 					MarketplaceFeeCountText.text = "0.00 " + Moralis.CurrentChain.Symbol;
 					ReceiveCountText.text = "0.00 " + Moralis.CurrentChain.Symbol;
@@ -138,12 +135,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 						transactionId,
 						OnBuyPriceSet);
 				});
-		}
-
-		private void OnToggleValueChanged(bool active)
-		{
-			ArrowIcon.transform.eulerAngles = active ? new Vector3(0, 0, 90) : new Vector3(0, 0, 270);
-			MarketplacePanel.SetActive(active);
 		}
 
 		private void OnBuyPriceSet(AbstractContractEvent obj)

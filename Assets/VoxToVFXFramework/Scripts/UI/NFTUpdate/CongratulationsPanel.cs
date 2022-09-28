@@ -43,12 +43,13 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public void Initialize(NFTUpdatePanel updatePanel, string title, string description, bool viewNFTButton)
+		public void Initialize(NFTUpdatePanel updatePanel, string title, string description, bool viewNFTButton, bool viewCollectionButton)
 		{
 			mNftUpdatePanel = updatePanel;
 			CongratulationsTitle.text = title;
 			CongratulationsDescription.text = description;
 			ViewNFTButton.gameObject.SetActive(viewNFTButton);
+			ViewCollectionButton.gameObject.SetActive(viewCollectionButton);
 		}
 
 		#endregion
