@@ -53,6 +53,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		[Header("EmptySpace")]
 		[SerializeField] private LayoutElement EmptySpaceLeft;
 		[SerializeField] private LayoutElement EmptySpaceRight;
+
 		#endregion
 
 		#region Fields
@@ -60,7 +61,6 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 		private CollectionCreatedEvent mCollectionCreated;
 		private CollectionMintedEvent mCollectionMinted;
 		private NftWithDetails mNft;
-		private MetadataObject mMetadataObject;
 
 		private readonly List<ProvenanceNFTItem> mProvenanceNFTItemList = new List<ProvenanceNFTItem>();
 		#endregion
@@ -120,32 +120,23 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			BuildProvenanceDetails(events);
 
 			MintedDateText.text = string.Format(LocalizationKeys.MINTED_ON_DATE.Translate(), mCollectionMinted.createdAt.Value.ToShortDateString());
-			NFTDetailsManagePanel.gameObject.SetActive(details.OwnerInLowercase== UserManager.Instance.CurrentUserAddress);
+			NFTDetailsManagePanel.gameObject.SetActive(details.OwnerInLowercase == UserManager.Instance.CurrentUserAddress);
 			NFTDetailsManagePanel.Initialize(nft, creatorUser, details);
 
 			NFTLastActionPanel.gameObject.SetActive(details.OwnerInLowercase != UserManager.Instance.CurrentUserAddress);
 			NFTLastActionPanel.Initialize(nft, details, events);
 
-			EmptySpaceRight.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_RIGHT_MANAGE : 
+			EmptySpaceRight.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_RIGHT_MANAGE :
 				details.IsInEscrow ? HEIGHT_SPACE_RIGHT_WITH_BUY_NOW : HEIGHT_SPACE_RIGHT_WITHOUT_BUY_NOW;
-			EmptySpaceLeft.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_LEFT_MANAGE : 
+			EmptySpaceLeft.minHeight = NFTDetailsManagePanel.gameObject.activeSelf ? HEIGHT_SPACE_LEFT_MANAGE :
 				details.IsInEscrow ? HEIGHT_SPACE_LEFT_WITH_BUY_NOW : HEIGHT_SPACE_LEFT_WITHOUT_BUY_NOW;
 
 			OpenUserProfileButton.Initialize(creatorAddress);
 			CollectionNameText.text = mCollectionCreated.Name;
-			try
-			{
-				mMetadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
-				Title.text = mMetadataObject.Name;
-				DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
-				Description.gameObject.SetActive(!string.IsNullOrEmpty(mMetadataObject.Description));
-				Description.text = mMetadataObject.Description;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-				throw;
-			}
+			Title.text = nft.MetadataObject.Name;
+			DescriptionLabel.gameObject.SetActive(!string.IsNullOrEmpty(nft.MetadataObject.Description));
+			Description.gameObject.SetActive(!string.IsNullOrEmpty(nft.MetadataObject.Description));
+			Description.text = nft.MetadataObject.Description;
 
 			CollectionImage.transform.parent.gameObject.SetActive(collectionDetails != null && !string.IsNullOrEmpty(collectionDetails.LogoImageUrl));
 			if (collectionDetails != null)
@@ -160,7 +151,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 				}
 			}
 
-			await ImageUtils.DownloadAndApplyImage(mMetadataObject.Image, MainImage);
+			await ImageUtils.DownloadAndApplyImage(nft.MetadataObject.Image, MainImage);
 			await UniTask.WaitForEndOfFrame();
 			RebuildAllVerticalRect();
 			LoadingBackgroundImage.gameObject.SetActive(false);
@@ -207,7 +198,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private void OnViewIpfsClicked()
 		{
-			Application.OpenURL(mMetadataObject.Image);
+			Application.OpenURL(mNft.MetadataObject.Image);
 		}
 
 		private void OnOpenTransactionClicked()
@@ -228,7 +219,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 			else
 			{
 				CanvasPlayerPCManager.Instance.OpenLoadingPanel(LocalizationKeys.LOADING_DOWNLOAD_MODEL.Translate());
-				await VoxelDataCreatorManager.Instance.DownloadVoxModel(mMetadataObject.FilesUrl, zipPath);
+				await VoxelDataCreatorManager.Instance.DownloadVoxModel(mNft.MetadataObject.FilesUrl, zipPath);
 				ReadZipPath(zipPath);
 			}
 		}

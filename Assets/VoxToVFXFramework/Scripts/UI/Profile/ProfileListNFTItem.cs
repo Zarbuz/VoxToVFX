@@ -1,10 +1,12 @@
 ﻿using Cysharp.Threading.Tasks;
 using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
+using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
@@ -52,7 +54,37 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			Button.onClick.AddListener(OnItemClicked);
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
+			RefreshActionPrice(details);
+			RefreshOwner(details);
 
+			CollectionNameText.text = nft.Name;
+
+			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
+			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
+			CreatorUsernameText.text = "@" + creatorUser.UserName;
+			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
+			CreatorTrigger.Initialize(creatorUser.EthAddress);
+			Title.text = nft.MetadataObject.Name;
+			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCrop(nft.MetadataObject.Image, MainImage, 512, 512);
+
+			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
+			{
+				CollectionLogoImage.gameObject.SetActive(false);
+				await UniTask.WhenAll(task1, task2);
+			}
+			else
+			{
+				CollectionLogoImage.gameObject.SetActive(true);
+				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
+				await UniTask.WhenAll(task1, task2, task3);
+			}
+		}
+
+		#endregion
+		#region PrivateMethods
+
+		private async void RefreshOwner(NFTDetailsContractType details)
+		{
 			if (details.OwnerInLowercase == UserManager.Instance.CurrentUserAddress)
 			{
 				OwnerAvatarImage.gameObject.SetActive(false);
@@ -74,38 +106,30 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 					await OwnerAvatarImage.Initialize(null);
 				}
 			}
+		}
 
-
-			ActionText.text = details.TargetAction;
-			PriceText.text = details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + "  " + Moralis.CurrentChain.Symbol : string.Empty;
-			CollectionNameText.text = nft.Name;
-
-			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
-			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
-			CreatorUsernameText.text = "@" + creatorUser.UserName;
-			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
-			CreatorTrigger.Initialize(creatorUser.EthAddress);
-			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
-			Title.text = metadataObject.Name;
-			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCrop(metadataObject.Image, MainImage, 512, 512);
-
-			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
+		private async void RefreshActionPrice(NFTDetailsContractType details)
+		{
+			if (details.BuyPriceInEther != 0)
 			{
-				CollectionLogoImage.gameObject.SetActive(false);
-				await UniTask.WhenAll(task1, task2);
+				ActionText.text = LocalizationKeys.PROFILE_BUY_NOW.Translate();
+				PriceText.text = details.BuyPriceInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
 			}
 			else
 			{
-				CollectionLogoImage.gameObject.SetActive(true);
-				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
-				await UniTask.WhenAll(task1, task2, task3);
+				decimal lastSoldPrice = await DataManager.Instance.GetLastPriceForNFT(mNft.TokenAddress, mNft.TokenId, details.Owner);
+				if (lastSoldPrice > 0)
+				{
+					ActionText.text = LocalizationKeys.LAST_SOLD_LABEL.Translate();
+					PriceText.text = lastSoldPrice.ToString("F2") + " " + Moralis.CurrentChain.Symbol;
+				}
+				else
+				{
+					ActionText.text = string.Empty;
+					PriceText.text = string.Empty;
+				}
 			}
 		}
-
-
-		#endregion
-
-		#region PrivateMethods
 
 		private void OnItemClicked()
 		{

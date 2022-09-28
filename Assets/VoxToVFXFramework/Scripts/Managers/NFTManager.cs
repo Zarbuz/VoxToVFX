@@ -47,6 +47,34 @@ namespace VoxToVFXFramework.Scripts.Managers
 			}
 		}
 
+		public async UniTask<decimal> GetLastSoldPriceForNFT(string contract, string tokenId, string owner)
+		{
+			MoralisQuery<BuyPriceAcceptedEvent> q = await Moralis.Query<BuyPriceAcceptedEvent>();
+			q = q.WhereEqualTo("nftContract", contract);
+			q = q.WhereEqualTo("tokenId", tokenId);
+			q = q.OrderByDescending("createdAt");
+			q = q.Limit(1);
+			BuyPriceAcceptedEvent acceptedEvent = await q.FirstOrDefaultAsync();
+
+			if (acceptedEvent != null)
+			{
+				return acceptedEvent.TotalInEther;
+			}
+
+			MoralisQuery<OfferAcceptedEvent> q2 = await Moralis.Query<OfferAcceptedEvent>();
+			q2 = q2.WhereEqualTo("nftContract", contract);
+			q2 = q2.WhereEqualTo("tokenId", tokenId);
+			q2 = q2.OrderByDescending("createdAt");
+			q2 = q2.Limit(1);
+			OfferAcceptedEvent offerAcceptedEvent = await q2.FirstOrDefaultAsync();
+			if (offerAcceptedEvent != null)
+			{
+				return offerAcceptedEvent.TotalInEther;
+			}
+
+			return 0;
+		}
+
 
 		public async UniTask<List<AbstractContractEvent>> GetAllEventsForNFT(string contract, string tokenId)
 		{

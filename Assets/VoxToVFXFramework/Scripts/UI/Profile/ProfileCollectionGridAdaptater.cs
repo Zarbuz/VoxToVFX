@@ -11,7 +11,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public void Initialize(List<CollectionCreatedEvent> data)
 		{
 			mData = data;
-			ResetItems(data.Count, true);
+			ResetItems(data.Count);
 		}
 
 		protected override async void UpdateCellViewsHolder(CollectionGridItemViewsHolder viewsHolder)
@@ -29,13 +29,11 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 			base.Refresh(contentPanelEndEdgeStationary, keepVelocity);
 		}
-
 	}
 
 	public class CollectionGridItemViewsHolder : CellViewsHolder
 	{
 		public ProfileCollectionItem ProfileCollectionItem;
-
 
 		public override void CollectViews()
 		{

@@ -276,7 +276,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private async UniTask RefreshNFTTab()
 		{
-			mItems = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
+			mItems = await DataManager.Instance.GetNFTCollection(mCollectionCreated.CollectionContract);
 			ProfileNftGridAdaptater.Initialize(mItems);
 
 			RefreshOwnedByCount();

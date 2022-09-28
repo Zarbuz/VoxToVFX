@@ -183,7 +183,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mItemCreated.Clear();
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
-				List<NftWithDetails> nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
+				List<NftWithDetails> nftCollection = await DataManager.Instance.GetNFTCollection(collection.CollectionContract);
 				mItemCreated.AddRange(nftCollection);
 			}
 

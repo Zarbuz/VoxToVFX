@@ -1,5 +1,8 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using Nethereum.Util;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 {
@@ -25,5 +28,25 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 
 		[JsonProperty("sellerRev")]
 		public BigInteger SellerRev { get; set; }
+
+		[JsonIgnore]
+		public BigInteger Total => ProtocolFee + CreatorFee + SellerRev;
+
+		[JsonIgnore]
+		public decimal TotalInEther
+		{
+			get
+			{
+				try
+				{
+					return UnitConversion.Convert.FromWei(Total);
+				}
+				catch (Exception e)
+				{
+					Debug.LogError(e);
+					return 0;
+				}
+			}
+		}
 	}
 }

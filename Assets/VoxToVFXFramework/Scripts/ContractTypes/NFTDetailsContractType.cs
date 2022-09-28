@@ -38,21 +38,7 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 		[JsonProperty("offerExpiration")]
 		public BigInteger OfferExpiration { get; set; }
 
-		[JsonIgnore]
-		public string TargetAction
-		{
-			get
-			{
-				if (BuyPriceInEther != 0)
-				{
-					return LocalizationKeys.PROFILE_BUY_NOW.Translate();
-				}
-
-				//TODO To COMPLETE
-				return string.Empty;
-			}
-		}
-
+		
 		[JsonIgnore]
 		public decimal BuyPriceInEther
 		{

@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using MoralisUnity.Web3Api.Models;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using VoxToVFXFramework.Scripts.Models;
 
 namespace VoxToVFXFramework.Scripts.Managers.DataManager
@@ -11,8 +12,9 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 	{
 		public Dictionary<string, NftCollectionCache> NFTCollection = new Dictionary<string, NftCollectionCache>();
 		public Dictionary<string, NftCollectionCache> NFTOwnedByUser = new Dictionary<string, NftCollectionCache>();
+		public Dictionary<string, decimal> LastSoldPricePerNFT = new Dictionary<string, decimal>();
 
-		public async UniTask<List<NftWithDetails>> GetNftCollectionWithCache(string address)
+		public async UniTask<List<NftWithDetails>> GetNFTCollection(string address)
 		{
 			if (NFTCollection.TryGetValue(address, out NftCollectionCache collection))
 			{
@@ -75,6 +77,24 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			}
 
 			return nftCollection;
+		}
+
+		public async UniTask<decimal> GetLastPriceForNFT(string address, string tokenId, string owner)
+		{
+			string key = address + "_" + tokenId;
+			if (LastSoldPricePerNFT.TryGetValue(key, out decimal price))
+			{
+				return price;
+			}
+
+			decimal result = await NFTManager.Instance.GetLastSoldPriceForNFT(address, tokenId, owner);
+			if (result != 0)
+			{
+				LastSoldPricePerNFT[key] = result;
+			}
+
+			Debug.Log("LastPrice for " + address + " " + tokenId + " -> " + result);
+			return result;
 		}
 
 		public void DeleteCacheNFTItemInCollection(string address, string tokenId)
