@@ -85,7 +85,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			}
 		}
 
-		private readonly List<NftOwnerWithDetails> mItemCreated = new List<NftOwnerWithDetails>();
+		private readonly List<NftWithDetails> mItemCreated = new List<NftWithDetails>();
 		private CustomUser mCustomUser;
 
 		public string UserAddress => mCustomUser.EthAddress;
@@ -144,7 +144,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void RefreshData()
 		{
-			List<NftOwnerWithDetails> list = new List<NftOwnerWithDetails>();
+			List<NftWithDetails> list = new List<NftWithDetails>();
 
 			switch (mFilterOrderBy)
 			{
@@ -183,8 +183,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mItemCreated.Clear();
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
-				DataManager.NftCollectionCache nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
-				mItemCreated.AddRange(nftCollection.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)).Select(t => new NftOwnerWithDetails(t)));
+				List<NftWithDetails> nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
+				mItemCreated.AddRange(nftCollection);
 			}
 
 			NoCreatedPanel.gameObject.SetActive(mItemCreated.Count == 0);
@@ -203,17 +203,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private async UniTask RefreshOwnedTab()
 		{
-			NftOwnerCollection ownerCollection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
-			if (ownerCollection == null)
-			{
-				OwnedCountText.text = 0.ToString();
-				return;
-			}
-
-			List<NftOwnerWithDetails> list = ownerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)).Select(t => new NftOwnerWithDetails(t)).ToList();
-			OwnedGridAdaptater.Initialize(list);
-			OwnedCountText.text = list.Count.ToString();
-			NoOwnedPanel.SetActive(list.Count == 0);
+			List<NftWithDetails> collection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
+			OwnedGridAdaptater.Initialize(collection);
+			OwnedCountText.text = collection.Count.ToString();
+			NoOwnedPanel.SetActive(collection.Count == 0);
 		}
 
 		#endregion

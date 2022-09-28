@@ -59,7 +59,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		private CollectionCreatedEvent mCollectionCreated;
 		private CollectionMintedEvent mCollectionMinted;
-		private NftOwner mNft;
+		private NftWithDetails mNft;
 		private MetadataObject mMetadataObject;
 
 		private readonly List<ProvenanceNFTItem> mProvenanceNFTItemList = new List<ProvenanceNFTItem>();
@@ -104,7 +104,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(NftOwner nft)
+		public async void Initialize(NftWithDetails nft)
 		{
 			mNft = nft;
 

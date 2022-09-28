@@ -13,6 +13,7 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.UI.Profile;
@@ -54,7 +55,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region Fields
 
-		public NftOwner Nft { get; private set; }
+		public NftWithDetails Nft { get; private set; }
 
 		private eNFTUpdateTargetType mPanelState;
 		public eNFTUpdateTargetType NftUpdatePanelState
@@ -78,7 +79,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 
 		#region PublicMethods
 
-		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, NftOwner nft)
+		public async void Initialize(eNFTUpdateTargetType nftUpdateTargetType, NftWithDetails nft)
 		{
 			Nft = nft;
 			NftUpdatePanelState = nftUpdateTargetType;

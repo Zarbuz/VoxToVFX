@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using MoralisUnity.Web3Api.Models;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.UI.Popups.Descriptor;
 using VoxToVFXFramework.Scripts.UI.Popups.Popup.OwnedBy;
@@ -23,7 +21,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 		{
 			base.Init(descriptor);
 			CloseButton.onClick.AddListener(() => Hide());
-			foreach (string owner in descriptor.Owners.Select(t => t.OwnerOf).Distinct())
+			foreach (string owner in descriptor.Owners)
 			{
 				CollectionOwnerItem item = Instantiate(CollectionOwnerItemPrefab, VerticalParent.transform, false);
 				item.Initialize(owner);

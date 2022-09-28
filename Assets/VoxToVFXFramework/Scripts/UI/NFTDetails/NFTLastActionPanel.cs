@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
+using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI;
 using VoxToVFXFramework.Scripts.UI.Atomic;
@@ -51,13 +52,13 @@ public class NFTLastActionPanel : MonoBehaviour
 
 	#region Fields
 
-	private NftOwner mNft;
+	private NftWithDetails mNft;
 
 	#endregion
 
 	#region PublicMethods
 
-	public void Initialize(NftOwner nft, NFTDetailsContractType details, List<AbstractContractEvent> events)
+	public void Initialize(NftWithDetails nft, NFTDetailsContractType details, List<AbstractContractEvent> events)
 	{
 		mNft = nft;
 		BuyNowPanel.SetActive(details is { IsInEscrow: true });

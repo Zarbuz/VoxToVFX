@@ -54,7 +54,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 					DataManager.DataManager.Instance.AddCollectionCreated(collectionCreatedEvent);
 					break;
 				case CollectionMintedEvent collectionMintedEvent:
-					DataManager.DataManager.Instance.NftCollection.Remove(collectionMintedEvent.Address);
+					DataManager.DataManager.Instance.NFTCollection.Remove(collectionMintedEvent.Address);
 					break;
 				case EthNFTTransfers ethNftTransfers:
 					if (ethNftTransfers.ToAddress == NULL_ADDRESS)

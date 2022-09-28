@@ -42,13 +42,13 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		public bool IsReadyOnly { get; set; }
 
-		private NftOwner mNft;
+		private NftWithDetails mNft;
 
 		#endregion
 
 		#region PublicMethods
 
-		public async UniTask Initialize(NftOwner nft)
+		public async UniTask Initialize(NftWithDetails nft)
 		{
 			mNft = nft;
 			Button.onClick.AddListener(OnItemClicked);

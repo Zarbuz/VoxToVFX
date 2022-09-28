@@ -31,7 +31,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region Fields
 
-		private NftOwner mNft;
+		private NftWithDetails mNft;
 		
 		#endregion
 
@@ -61,7 +61,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public void Initialize(NftOwner nft, CustomUser creatorUser, NFTDetailsContractType details)
+		public void Initialize(NftWithDetails nft, CustomUser creatorUser, NFTDetailsContractType details)
 		{
 			mNft = nft;
 			BurnNFTButton.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);

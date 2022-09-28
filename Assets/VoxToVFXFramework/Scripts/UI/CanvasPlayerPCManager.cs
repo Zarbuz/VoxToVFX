@@ -185,7 +185,7 @@ namespace VoxToVFXFramework.Scripts.UI
 			ProfilePanel.Initialize(user);
 		}
 
-		public void OpenNftDetailsPanel(NftOwner nft)
+		public void OpenNftDetailsPanel(NftWithDetails nft)
 		{
 			SetCanvasPlayerState(CanvasPlayerPCState.NftDetails);
 			NFTDetailsPanel.Initialize(nft);
@@ -217,7 +217,7 @@ namespace VoxToVFXFramework.Scripts.UI
 			PreviewPanel.Initialize(title, description, onBackCallback);
 		}
 
-		public void OpenUpdateNftPanel(eNFTUpdateTargetType targetType, NftOwner nft)
+		public void OpenUpdateNftPanel(eNFTUpdateTargetType targetType, NftWithDetails nft)
 		{
 			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
 			NFTUpdatePanel.Initialize(targetType, nft);

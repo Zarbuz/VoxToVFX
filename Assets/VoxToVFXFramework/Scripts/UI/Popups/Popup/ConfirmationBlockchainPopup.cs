@@ -1,10 +1,5 @@
-﻿using System.Linq;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
-using MoralisUnity;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;

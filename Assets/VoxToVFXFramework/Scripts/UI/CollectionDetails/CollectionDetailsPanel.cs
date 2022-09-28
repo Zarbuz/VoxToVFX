@@ -1,11 +1,11 @@
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
@@ -14,7 +14,6 @@ using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.UI.CollectionUpdate;
 using VoxToVFXFramework.Scripts.UI.Popups;
 using VoxToVFXFramework.Scripts.UI.Profile;
-using VoxToVFXFramework.Scripts.Utils.Extensions;
 using VoxToVFXFramework.Scripts.Utils.Image;
 
 namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
@@ -90,8 +89,8 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 		private Models.CollectionDetails mCollectionDetails;
 		private eCollectionDetailsState mCollectionDetailsState;
 		private TransparentButton[] mTransparentButtons;
-		private DataManager.NftCollectionCache mCollectionCache;
-		private readonly List<NftOwnerWithDetails> mItems = new List<NftOwnerWithDetails>();
+		private List<NftWithDetails> mItems = new List<NftWithDetails>();
+		private List<string> mOwners = new List<string>();
 		private eCollectionDetailsState CollectionDetailsState
 		{
 			get => mCollectionDetailsState;
@@ -187,7 +186,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private void RefreshData()
 		{
-			List<NftOwnerWithDetails> list = new List<NftOwnerWithDetails>();
+			List<NftWithDetails> list = new List<NftWithDetails>();
 
 			switch (mFilterOrderBy)
 			{
@@ -277,20 +276,29 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private async UniTask RefreshNFTTab()
 		{
-			mItems.Clear();
-			mCollectionCache= await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
-			foreach (NftOwner nft in mCollectionCache.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
-			{
-				mItems.Add(new NftOwnerWithDetails(nft));
-			}
-
+			mItems = await DataManager.Instance.GetNftCollectionWithCache(mCollectionCreated.CollectionContract);
 			ProfileNftGridAdaptater.Initialize(mItems);
 
-			int countActive = mItems.Count;
-			CollectionOfCountText.text = countActive.ToString();
-			NoItemOwnerFoundPanel.SetActive(countActive == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
-			OwnedByCountText.text = mCollectionCache.NftOwnerCollection.Result.Select(t => t.OwnerOf).Where(t => !string.Equals(t, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).Distinct().Count().ToString();
-			NoItemFoundPanel.SetActive(countActive == 0 && mCreatorUser != UserManager.Instance.CurrentUserAddress);
+			RefreshOwnedByCount();
+			CollectionOfCountText.text = mItems.Count.ToString();
+			NoItemOwnerFoundPanel.SetActive(mItems.Count == 0 && mCreatorUser == UserManager.Instance.CurrentUserAddress);
+			NoItemFoundPanel.SetActive(mItems.Count == 0 && mCreatorUser != UserManager.Instance.CurrentUserAddress);
+		}
+
+		private async void RefreshOwnedByCount()
+		{
+			List<string> owners = new List<string>();
+			foreach (NftWithDetails nft in mItems)
+			{
+				NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
+				if (details.OwnerInLowercase != ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress)
+				{
+					owners.Add(details.OwnerInLowercase);
+				}
+			}
+
+			mOwners = owners.Distinct().ToList();
+			OwnedByCountText.text = mOwners.Count.ToString();
 		}
 
 		private async void OnCollectionUpdated(Models.CollectionDetails collectionDetails)
@@ -309,7 +317,7 @@ namespace VoxToVFXFramework.Scripts.UI.CollectionDetails
 
 		private void OnOpenOwnedByClicked()
 		{
-			MessagePopup.ShowOwnedByPopup(mCollectionCache.NftOwnerCollection.Result.Where(t => !string.Equals(t.OwnerOf, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).ToList());
+			MessagePopup.ShowOwnedByPopup(mOwners);
 		}
 
 		private void OnSelfDestructClicked()

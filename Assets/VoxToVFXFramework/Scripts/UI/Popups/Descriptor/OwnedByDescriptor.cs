@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using MoralisUnity.Web3Api.Models;
 
 namespace VoxToVFXFramework.Scripts.UI.Popups.Descriptor
 {
@@ -7,6 +6,6 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Descriptor
 	{
 		public MessagePopupUnicityTag UnicityTag { get; set; }
 		public float PopupDisplayDuration { get; set; }
-		public List<NftOwner> Owners { get; set; }
+		public List<string> Owners { get; set; }
 	}
 }

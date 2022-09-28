@@ -6,14 +6,18 @@ using VoxToVFXFramework.Scripts.Managers.DataManager;
 
 namespace VoxToVFXFramework.Scripts.Models
 {
-	public class NftOwnerWithDetails : NftOwner
+	public class NftWithDetails : Nft
 	{
-		public NftOwnerWithDetails(NftOwner nft)
+		public NftWithDetails()
+		{
+
+		}
+
+		public NftWithDetails(Nft nft)
 		{
 			TokenAddress = nft.TokenAddress;
 			TokenId = nft.TokenId;
 			ContractType = nft.ContractType;
-			OwnerOf = nft.OwnerOf;
 			Metadata = nft.Metadata;
 			Name = nft.Name;
 			SyncedAt = nft.SyncedAt;

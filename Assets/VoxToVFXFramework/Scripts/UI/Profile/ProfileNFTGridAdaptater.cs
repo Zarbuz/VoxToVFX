@@ -1,5 +1,4 @@
 ﻿using Com.TheFallenGames.OSA.CustomAdapters.GridView;
-using MoralisUnity.Web3Api.Models;
 using System.Collections.Generic;
 using VoxToVFXFramework.Scripts.Models;
 
@@ -7,9 +6,9 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 {
 	public class ProfileNFTGridAdaptater : GridAdapter<GridParams, NFTGridItemViewsHolder>
 	{
-		private List<NftOwnerWithDetails> mData;
+		private List<NftWithDetails> mData;
 
-		public void Initialize(List<NftOwnerWithDetails> nfts)
+		public void Initialize(List<NftWithDetails> nfts)
 		{
 			base.Start();
 			mData = nfts;
@@ -18,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		protected override async void UpdateCellViewsHolder(NFTGridItemViewsHolder viewsHolder)
 		{
-			NftOwnerWithDetails nft = mData[viewsHolder.ItemIndex];
+			NftWithDetails nft = mData[viewsHolder.ItemIndex];
 
 			viewsHolder.Nft = nft;
 			await viewsHolder.Item.Initialize(nft);
@@ -42,7 +41,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 	{
 		public ProfileListNFTItem Item;
 
-		public NftOwner Nft;
+		public NftWithDetails Nft;
 
 		public override void CollectViews()
 		{

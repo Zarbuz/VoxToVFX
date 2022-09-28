@@ -17,8 +17,8 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			CollectionDetails.Clear();
 			AccountDetails.Clear();
 			ContractCreatedPerUsers.Clear();
-			NftCollection.Clear();
-			UserOwner.Clear();
+			NFTCollection.Clear();
+			NFTOwnedByUser.Clear();
 			Users.Clear();
 		}
 	
