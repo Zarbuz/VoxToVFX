@@ -21,6 +21,8 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return details;
 		}
 
+
+
 		public void SaveCollectionDetails(CollectionDetails collectionDetails)
 		{
 			CollectionDetails[collectionDetails.CollectionContract] = collectionDetails;

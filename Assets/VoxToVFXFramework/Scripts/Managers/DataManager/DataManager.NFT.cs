@@ -11,7 +11,6 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 		public Dictionary<string, List<AbstractContractEvent>> NFTEventsCache = new Dictionary<string, List<AbstractContractEvent>>();
 		public Dictionary<string, NFTDetailsCacheDTO> NFTDetailsCache = new Dictionary<string, NFTDetailsCacheDTO>();
 
-
 		public async UniTask<List<AbstractContractEvent>> GetAllEventsForNFT(string contract, string tokenId)
 		{
 			string key = contract + "_" + tokenId;
@@ -50,5 +49,12 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			return null;
 		}
 		
+
+		public void DeleteCacheForTokenId(string address, string tokenId)
+		{
+			string key = address + "_" + tokenId;
+			NFTDetailsCache.Remove(key);
+			NFTEventsCache.Remove(key);
+		}
 	}
 }

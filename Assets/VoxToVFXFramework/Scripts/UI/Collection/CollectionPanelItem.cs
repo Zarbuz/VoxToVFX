@@ -31,7 +31,7 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			CollectionImage.gameObject.SetActive(details != null && !string.IsNullOrEmpty(details.LogoImageUrl));
 			if (details != null)
 			{
-				await ImageUtils.DownloadAndApplyImageAndCropAfter(details.LogoImageUrl, CollectionImage, 60, 60);
+				await ImageUtils.DownloadAndApplyImageAndCrop(details.LogoImageUrl, CollectionImage, 60, 60);
 			}
 			NameText.text = collectionCreated.Name;
 			CounterText.text = count + " NFTs";

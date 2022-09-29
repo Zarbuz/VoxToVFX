@@ -1,10 +1,10 @@
-﻿using MoralisUnity.Web3Api.Models;
+﻿using MoralisUnity;
+using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Managers;
-using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 
@@ -31,7 +31,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region Fields
 
-		private NftOwner mNft;
+		private NftWithDetails mNft;
 		
 		#endregion
 
@@ -61,15 +61,14 @@ namespace VoxToVFXFramework.Scripts.UI.NFTDetails
 
 		#region PublicMethods
 
-		public async void Initialize(NftOwner nft, CustomUser creatorUser)
+		public void Initialize(NftWithDetails nft, CustomUser creatorUser, NFTDetailsContractType details)
 		{
 			mNft = nft;
 			BurnNFTButton.gameObject.SetActive(creatorUser.EthAddress == UserManager.Instance.CurrentUserAddress);
-			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
 			ManageToggle.gameObject.SetActive(details is not { IsInEscrow: true });
 			SetBuyNowPanel.SetActive(details is not { IsInEscrow: true });
 			ChangePricePanel.SetActive(details is { IsInEscrow: true });
-			CurrentPriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " ETH" : string.Empty;
+			CurrentPriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol : string.Empty;
 		}
 
 		#endregion

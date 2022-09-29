@@ -171,8 +171,8 @@ namespace VoxToVFXFramework.Scripts.UI.Collection
 			foreach (CollectionCreatedEvent collection in userContracts.OrderByDescending(c => c.createdAt))
 			{
 				CollectionPanelItem item = Instantiate(CollectionPanelItemPrefab, ListCollectionParent, false);
-				DataManager.NftCollectionCache nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
-				tasks.Add(item.Initialize(collection, nftCollection.NftOwnerCollection.Total.Value, OnCollectionSelected));
+				List<NftWithDetails> nftCollection = await DataManager.Instance.GetNFTCollection(collection.CollectionContract);
+				tasks.Add(item.Initialize(collection, nftCollection.Count, OnCollectionSelected));
 			}
 
 			await UniTask.WhenAll(tasks);

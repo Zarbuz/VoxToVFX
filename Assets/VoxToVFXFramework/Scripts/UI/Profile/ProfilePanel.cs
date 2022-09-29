@@ -17,7 +17,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		#region ScriptParameters
 
 		[Header("UserInfo")]
-		[SerializeField] private Image BannerImage;
+		[SerializeField] private RawImage BannerImage;
 		[SerializeField] private AvatarImage AvatarImage;
 
 		[SerializeField] private VerticalLayoutGroup LeftPartVerticalLayout;
@@ -80,7 +80,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			mUser = user;
 			ProfileListingPanel.Initialize(user);
 
-			BannerImage.sprite = null;
+			BannerImage.texture = null;
 			UserNameText.text = "@" + user.UserName;
 			NameText.text = user.Name;
 
@@ -157,7 +157,10 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		private void OnUserInfoUpdated(CustomUser user)
 		{
-			Initialize(user);
+			if (user != null)
+			{
+				Initialize(user);
+			}
 		}
 
 		private void OnEditProfileClicked()

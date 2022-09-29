@@ -1,11 +1,12 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
+using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.ContractTypes;
+using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
@@ -19,8 +20,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Image MainImage;
-		[SerializeField] private Image CollectionLogoImage;
+		[SerializeField] private RawImage MainImage;
+		[SerializeField] private RawImage CollectionLogoImage;
 		[SerializeField] private Button Button;
 		[SerializeField] private AvatarImage CreatorAvatarImage;
 		[SerializeField] private TextMeshProUGUI CreatorUsernameText;
@@ -39,65 +40,32 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 
 		#region Fields
 
-		public bool InitSuccess { get; private set; }
 		public bool IsReadyOnly { get; set; }
-		public decimal BuyPriceInEther { get; private set; }
-		public string CollectionName { get; private set; }
-		public DateTime MintedDate { get; private set; }
 
-		private NftOwner mNft;
+		private NftWithDetails mNft;
 
 		#endregion
 
 		#region PublicMethods
 
-		public async UniTask Initialize(NftOwner nft)
+		public async UniTask Initialize(NftWithDetails nft)
 		{
 			mNft = nft;
 			Button.onClick.AddListener(OnItemClicked);
 			Models.CollectionDetails collectionDetails = await DataManager.Instance.GetCollectionDetailsWithCache(nft.TokenAddress);
 			NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(nft.TokenAddress, nft.TokenId);
+			RefreshActionPrice(details);
+			RefreshOwner(details);
 
-			if (nft.OwnerOf == UserManager.Instance.CurrentUserAddress)
-			{
-				OwnerAvatarImage.gameObject.SetActive(false);
-				OwnerUsernameText.text = string.Empty;
-			}
-			else
-			{
-				CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(nft.OwnerOf);
-				OwnerTrigger.Initialize(nft.OwnerOf);
-				if (ownerUser != null)
-				{
-
-					OwnerUsernameText.text = "@" + ownerUser.UserName;
-					OwnerAvatarImage.gameObject.SetActive(true);
-					await OwnerAvatarImage.Initialize(ownerUser);
-				}
-				else
-				{
-					OwnerUsernameText.text = nft.OwnerOf.FormatEthAddress(6);
-					await OwnerAvatarImage.Initialize(null);
-				}
-			}
-
-
-			ActionText.text = details != null ? details.TargetAction : string.Empty;
-			BuyPriceInEther = details?.BuyPriceInEther ?? 0;
-			PriceText.text = details != null && details.BuyPriceInEther != 0 ? details.BuyPriceInEtherFixedPoint + " ETH" : string.Empty;
 			CollectionNameText.text = nft.Name;
-			CollectionName = nft.Name;
 
 			string ethAddress = await DataManager.Instance.GetCreatorOfCollection(nft.TokenAddress);
 			CustomUser creatorUser = await DataManager.Instance.GetUserWithCache(ethAddress);
 			CreatorUsernameText.text = "@" + creatorUser.UserName;
 			UniTask task1 = CreatorAvatarImage.Initialize(creatorUser);
 			CreatorTrigger.Initialize(creatorUser.EthAddress);
-
-			MetadataObject metadataObject = JsonConvert.DeserializeObject<MetadataObject>(nft.Metadata);
-			Title.text = metadataObject.Name;
-			MintedDate = metadataObject.MintedUTCDate;
-			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCropAfter(metadataObject.Image, MainImage, 512, 512);
+			Title.text = nft.MetadataObject.Name;
+			UniTask<bool> task2 = ImageUtils.DownloadAndApplyImageAndCrop(nft.MetadataObject.Image, MainImage, 512, 512);
 
 			if (collectionDetails == null || string.IsNullOrEmpty(collectionDetails.LogoImageUrl))
 			{
@@ -107,18 +75,61 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			else
 			{
 				CollectionLogoImage.gameObject.SetActive(true);
-				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCropAfter(collectionDetails.LogoImageUrl,
-					CollectionLogoImage, 32, 32);
+				UniTask<bool> task3 = ImageUtils.DownloadAndApplyImageAndCrop(collectionDetails.LogoImageUrl, CollectionLogoImage, 32, 32);
 				await UniTask.WhenAll(task1, task2, task3);
 			}
-
-			InitSuccess = true;
 		}
 
-
 		#endregion
-
 		#region PrivateMethods
+
+		private async void RefreshOwner(NFTDetailsContractType details)
+		{
+			if (details.OwnerInLowercase == UserManager.Instance.CurrentUserAddress)
+			{
+				OwnerAvatarImage.gameObject.SetActive(false);
+				OwnerUsernameText.text = string.Empty;
+			}
+			else
+			{
+				CustomUser ownerUser = await DataManager.Instance.GetUserWithCache(details.OwnerInLowercase);
+				OwnerTrigger.Initialize(details.OwnerInLowercase);
+				if (ownerUser != null)
+				{
+					OwnerUsernameText.text = "@" + ownerUser.UserName;
+					OwnerAvatarImage.gameObject.SetActive(true);
+					await OwnerAvatarImage.Initialize(ownerUser);
+				}
+				else
+				{
+					OwnerUsernameText.text = details.OwnerInLowercase.FormatEthAddress(6);
+					await OwnerAvatarImage.Initialize(null);
+				}
+			}
+		}
+
+		private async void RefreshActionPrice(NFTDetailsContractType details)
+		{
+			if (details.BuyPriceInEther != 0)
+			{
+				ActionText.text = LocalizationKeys.PROFILE_BUY_NOW.Translate();
+				PriceText.text = details.BuyPriceInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
+			}
+			else
+			{
+				decimal lastSoldPrice = await DataManager.Instance.GetLastPriceForNFT(mNft.TokenAddress, mNft.TokenId, details.Owner);
+				if (lastSoldPrice > 0)
+				{
+					ActionText.text = LocalizationKeys.LAST_SOLD_LABEL.Translate();
+					PriceText.text = lastSoldPrice.ToString("F2") + " " + Moralis.CurrentChain.Symbol;
+				}
+				else
+				{
+					ActionText.text = string.Empty;
+					PriceText.text = string.Empty;
+				}
+			}
+		}
 
 		private void OnItemClicked()
 		{

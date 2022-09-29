@@ -1,16 +1,14 @@
-using System;
 using Cysharp.Threading.Tasks;
+using MoralisUnity.Web3Api.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using MoralisUnity.Web3Api.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Managers.DataManager;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
-using VoxToVFXFramework.Scripts.Utils.Extensions;
 
 namespace VoxToVFXFramework.Scripts.UI.Profile
 {
@@ -22,7 +20,8 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		{
 			CREATED,
 			COLLECTION,
-			OWNED
+			OWNED,
+			LOADING
 		}
 
 		#endregion
@@ -43,15 +42,15 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		[SerializeField] private GameObject CollectionPanel;
 		[SerializeField] private GameObject OwnedPanel;
 
-		[SerializeField] private Transform CreatedGridTransform;
-		[SerializeField] private Transform CollectionGridTransform;
-		[SerializeField] private Transform OwnedGridTransform;
+		[SerializeField] private GameObject NoCreatedPanel;
+		[SerializeField] private GameObject NoCollectionPanel;
+		[SerializeField] private GameObject NoOwnedPanel;
 
-		[Header("ProfileListNFTItem")]
-		[SerializeField] private ProfileListNFTItem ProfileListNftItemPrefab;
-		[SerializeField] private ProfileCollectionItem ProfileCollectionItemPrefab;
+		[SerializeField] private ProfileNFTGridAdaptater CreatedNFTGridAdaptater;
+		[SerializeField] private ProfileCollectionGridAdaptater CollectionGridAdaptater;
+		[SerializeField] private ProfileNFTGridAdaptater OwnedGridAdaptater;
 
-		[SerializeField] private Image LoadingSpinner;
+		[SerializeField] private GameObject LoadingPanel;
 
 		[Header("Created")]
 		[SerializeField] private ProfileFilterPanel ProfileFilterPanel;
@@ -70,18 +69,23 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			set
 			{
 				mEProfileListingState = value;
-				CreatedPanel.SetActive(mEProfileListingState == eProfileListingState.CREATED);
-				CollectionPanel.SetActive(mEProfileListingState == eProfileListingState.COLLECTION);
-				OwnedPanel.SetActive(mEProfileListingState == eProfileListingState.OWNED);
+				CreatedPanel.SetActive(mEProfileListingState == eProfileListingState.CREATED || mEProfileListingState == eProfileListingState.LOADING);
+				CollectionPanel.SetActive(mEProfileListingState == eProfileListingState.COLLECTION || mEProfileListingState == eProfileListingState.LOADING);
+				OwnedPanel.SetActive(mEProfileListingState == eProfileListingState.OWNED || mEProfileListingState == eProfileListingState.LOADING);
 
 				CreatedButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.CREATED);
 				CollectionButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.COLLECTION);
 				OwnedButton.transform.GetChild(0).gameObject.SetActive(mEProfileListingState == eProfileListingState.OWNED);
+
+				LoadingPanel.gameObject.SetActive(mEProfileListingState == eProfileListingState.LOADING);
+
+				CreatedButton.interactable = mEProfileListingState != eProfileListingState.LOADING;
+				CollectionButton.interactable = mEProfileListingState != eProfileListingState.LOADING;
+				OwnedButton.interactable = mEProfileListingState != eProfileListingState.LOADING;
 			}
 		}
 
-		private List<ProfileListNFTItem> mItemsCreated = new List<ProfileListNFTItem>();
-		private readonly List<ProfileListNFTItem> mItemsOwned = new List<ProfileListNFTItem>();
+		private readonly List<NftWithDetails> mItemCreated = new List<NftWithDetails>();
 		private CustomUser mCustomUser;
 
 		public string UserAddress => mCustomUser.EthAddress;
@@ -95,7 +99,6 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			CreatedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.CREATED));
 			CollectionButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.COLLECTION));
 			OwnedButton.onClick.AddListener(() => OnSwitchTabClicked(eProfileListingState.OWNED));
-			ProfileListingState = eProfileListingState.CREATED;
 		}
 
 
@@ -113,14 +116,14 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 		public async void Initialize(CustomUser user)
 		{
 			mCustomUser = user;
-			ShowSpinnerImage(true);
+			ProfileListingState = eProfileListingState.LOADING;
 			UniTask task1 = RefreshCreatedTab();
 			UniTask task2 = RefreshCollectionTab();
 			UniTask task3 = RefreshOwnedTab();
 
 			await (task1, task2, task3);
+			ProfileListingState = eProfileListingState.CREATED;
 			ProfileFilterPanel.Initialize(this);
-			ShowSpinnerImage(false);
 		}
 
 		public void OnFilterOrderByChanged(eFilterOrderBy orderBy)
@@ -135,29 +138,27 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			RefreshData();
 		}
 
-
-
 		#endregion
 
 		#region PrivateMethods
 
 		private void RefreshData()
 		{
-			List<ProfileListNFTItem> list = new List<ProfileListNFTItem>();
+			List<NftWithDetails> list = new List<NftWithDetails>();
 
 			switch (mFilterOrderBy)
 			{
 				case eFilterOrderBy.PRICE_HIGHEST_FIRST:
-					list = mItemsCreated.OrderByDescending(item => item.BuyPriceInEther).ToList();
+					list = mItemCreated.Where(t => t.BuyPriceInEther != 0).OrderByDescending(item => item.BuyPriceInEther).ToList();
 					break;
 				case eFilterOrderBy.PRICE_LOWEST_FIRST:
-					list = mItemsCreated.OrderBy(item => item.BuyPriceInEther).ToList();
+					list = mItemCreated.Where(t => t.BuyPriceInEther != 0).OrderBy(item => item.BuyPriceInEther).ToList();
 					break;
 				case eFilterOrderBy.NEWEST:
-					list = mItemsCreated.OrderByDescending(item => item.MintedDate).ToList();
+					list = mItemCreated.OrderByDescending(item => item.MintedDate).ToList();
 					break;
 				case eFilterOrderBy.OLDEST:
-					list = mItemsCreated.OrderBy(item => item.MintedDate).ToList();
+					list = mItemCreated.OrderBy(item => item.MintedDate).ToList();
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(mFilterOrderBy), mFilterOrderBy, null);
@@ -168,13 +169,7 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 				list = list.Where(t => t.CollectionName == mCollectionFilterName).ToList();
 			}
 
-			mItemsCreated.ForEach(t => t.gameObject.SetActive(list.Contains(t)));
-
-			for (int index = 0; index < list.Count; index++)
-			{
-				ProfileListNFTItem item = list[index];
-				item.transform.SetSiblingIndex(index);
-			}
+			CreatedNFTGridAdaptater.Initialize(list);
 		}
 
 		private void OnSwitchTabClicked(eProfileListingState profileListingState)
@@ -182,87 +177,40 @@ namespace VoxToVFXFramework.Scripts.UI.Profile
 			ProfileListingState = profileListingState;
 		}
 
-		private void ShowSpinnerImage(bool showSpinner)
-		{
-			LoadingSpinner.gameObject.SetActive(showSpinner);
-			CollectionPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.COLLECTION);
-			CreatedPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.CREATED);
-			OwnedPanel.SetActive(!showSpinner && ProfileListingState == eProfileListingState.OWNED);
-
-			CreatedButton.interactable = !showSpinner;
-			CollectionButton.interactable = !showSpinner;
-			OwnedButton.interactable = !showSpinner;
-		}
-
 		private async UniTask RefreshCreatedTab()
 		{
-			CreatedGridTransform.DestroyAllChildren();
-
-			mItemsCreated.Clear();
-			List<UniTask> tasks = new List<UniTask>();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser.EthAddress);
+			mItemCreated.Clear();
 			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
 			{
-				var nftCollection = await DataManager.Instance.GetNftCollectionWithCache(collection.CollectionContract);
-
-				//List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
-				foreach (NftOwner nft in nftCollection.NftOwnerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
-				{
-					ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, CreatedGridTransform, false);
-					tasks.Add(item.Initialize(nft));
-					mItemsCreated.Add(item);
-				}
+				List<NftWithDetails> nftCollection = await DataManager.Instance.GetNFTCollection(collection.CollectionContract);
+				mItemCreated.AddRange(nftCollection);
 			}
 
-			await UniTask.WhenAll(tasks);
-			CreatedCountText.text = mItemsCreated.Count(i => i.InitSuccess).ToString();
+			NoCreatedPanel.gameObject.SetActive(mItemCreated.Count == 0);
+			CreatedNFTGridAdaptater.Initialize(mItemCreated);
+			CreatedCountText.text = mItemCreated.Count.ToString();
 		}
 
 		private async UniTask RefreshCollectionTab()
 		{
-			CollectionGridTransform.DestroyAllChildren();
 			List<CollectionCreatedEvent> list = await DataManager.Instance.GetUserListContractWithCache(mCustomUser.EthAddress);
 
-			List<UniTask> tasks = new List<UniTask>();
-			foreach (CollectionCreatedEvent collection in list.OrderByDescending(c => c.createdAt))
-			{
-				ProfileCollectionItem item = Instantiate(ProfileCollectionItemPrefab, CollectionGridTransform, false);
-				tasks.Add(item.Initialize(collection));
-			}
-			await UniTask.WhenAll(tasks);
+			CollectionGridAdaptater.Initialize(list.OrderByDescending(c => c.createdAt).ToList());
 			CollectionCountText.text = list.Count.ToString();
+			NoCollectionPanel.SetActive(list.Count == 0);
 		}
 
 		private async UniTask RefreshOwnedTab()
 		{
-			OwnedGridTransform.DestroyAllChildren();
-			mItemsOwned.Clear();
-
-			NftOwnerCollection ownerCollection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
-			if (ownerCollection == null)
-			{
-				OwnedCountText.text = mItemsOwned.Count(i => i.InitSuccess).ToString();
-				return;
-			}
-
-			List<UniTask> tasks = new List<UniTask>();
-
-			//List<CollectionMintedEvent> listNfTsForContract = await DataManager.Instance.GetNFTForContractWithCache(mCustomUser.EthAddress, collection.CollectionContract);
-			foreach (NftOwner nft in ownerCollection.Result.Where(t => !string.IsNullOrEmpty(t.Metadata)))
-			{
-				ProfileListNFTItem item = Instantiate(ProfileListNftItemPrefab, OwnedGridTransform, false);
-				tasks.Add(item.Initialize(nft));
-				mItemsOwned.Add(item);
-			}
-
-			await UniTask.WhenAll(tasks);
-			OwnedCountText.text = mItemsOwned.Count(i => i.InitSuccess).ToString();
+			List<NftWithDetails> collection = await DataManager.Instance.GetNFTOwnedByUser(mCustomUser.EthAddress);
+			OwnedGridAdaptater.Initialize(collection);
+			OwnedCountText.text = collection.Count.ToString();
+			NoOwnedPanel.SetActive(collection.Count == 0);
 		}
 
 		#endregion
 
 
-
-		
 	}
 }

@@ -1,0 +1,24 @@
+(!) Important: No special setup is needed to use TMPro with OSA. This file only refers to using TMPro with InputFieldInScrollRectFixerTMPro.cs or TableView
+
+
+I. InputFieldInScrollRectFixerTMPro.cs 
+This script contains code for using a TMPro InputField inside a ScrollRect (or OSA, of course). 
+Although you can attach this script when TMPro is not imported, it'll throw an exception at runtime. Make sure TMPro is imported before using it.
+Check the file for more info.
+This was initially needed for the TableView, but was included in the utils as a general extension of the original InputFieldInScrollRectFixer script
+
+
+II. TableView
+TableView's cells can work both with UnitEngine.UI.Text and TMPro.TextMeshProUGUI components. 
+Using it with TMPro requires you to import TableViewTMProSupport.unitypackage under Extras/PluginSupport/TMPro.
+(!) But this shouldn't be the first thing you do. This is important, otherwise the OSA's TMPro will probably get corrupted and you'll need to delete your 
+Library folder to restore them, as even re-importing them from the package doesn't seem to work.
+Here are the steps:
+
+	1. Make sure you use version TMPro 1.0.56.0b1 or above, as that version was used to create the OSA's TMPro-specific prefabs.
+
+	2. Add OSA_TV_TMPRO to Scripting define symbols in Player settings. 
+	
+	3. Now import the TableViewTMProSupport.unitypackage
+	
+	4. Now when you create a TableView via OSA Wizard (right click on an UI element in hierarchy -> "UI/Optimized TableView") will now be created with TMPro prefabs

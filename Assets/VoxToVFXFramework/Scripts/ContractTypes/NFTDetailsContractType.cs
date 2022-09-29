@@ -38,21 +38,7 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 		[JsonProperty("offerExpiration")]
 		public BigInteger OfferExpiration { get; set; }
 
-		[JsonIgnore]
-		public string TargetAction
-		{
-			get
-			{
-				if (BuyPriceInEther != 0)
-				{
-					return LocalizationKeys.PROFILE_BUY_NOW.Translate();
-				}
-
-				//TODO To COMPLETE
-				return string.Empty;
-			}
-		}
-
+		
 		[JsonIgnore]
 		public decimal BuyPriceInEther
 		{
@@ -74,8 +60,9 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 			}
 		}
 
-		[JsonIgnore]
-		public string BuyPriceInEtherFixedPoint => BuyPriceInEther.ToString("F2");
+		[JsonIgnore] public string BuyPriceInEtherFixedPoint => BuyPriceInEther.ToString("F2");
+
+		[JsonIgnore] public string OwnerInLowercase => Owner.ToLowerInvariant();
 	}
 
 	public class NFTDetailsCacheDTO

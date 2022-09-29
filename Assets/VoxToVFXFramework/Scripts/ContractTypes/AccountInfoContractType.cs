@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Nethereum.Util;
+using Newtonsoft.Json;
 using System.Numerics;
 
 namespace VoxToVFXFramework.Scripts.ContractTypes
@@ -16,5 +18,40 @@ namespace VoxToVFXFramework.Scripts.ContractTypes
 
 		[JsonProperty("EnsName")]
 		public string EnsName { get; set; }
+
+		[JsonIgnore]
+		public decimal AvailableBalance
+		{
+			get
+			{
+				try
+				{
+					return UnitConversion.Convert.FromWei(AvailableFethBalance);
+				}
+				catch
+				{
+					return 0;
+				}
+			}
+		}
+
+		[JsonIgnore]
+		public decimal Balance
+		{
+			get
+			{
+				try
+				{
+					return UnitConversion.Convert.FromWei(EthBalance);
+				}
+				catch
+				{
+					return 0;
+				}
+			}
+		}
+
+		[JsonIgnore]
+		public DateTime LastUpdate { get; set; }
 	}
 }

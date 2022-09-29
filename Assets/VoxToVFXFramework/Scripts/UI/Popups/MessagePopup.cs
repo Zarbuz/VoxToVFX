@@ -125,7 +125,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 				popupDescriptor);
 		}
 
-		public static void ShowOwnedByPopup(List<NftOwner> owners)
+		public static void ShowOwnedByPopup(List<string> owners)
 		{
 			var popupDescriptor = new OwnedByDescriptor()
 			{

@@ -8,6 +8,7 @@ using VoxToVFXFramework.Scripts.ContractTypes;
 using VoxToVFXFramework.Scripts.Localization;
 using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Singleton;
+using VoxToVFXFramework.Scripts.UI;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -21,7 +22,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 		#region Fields
 
 		public CustomUser CurrentUser { get; private set; }
-		public AccountInfoContractType AccountInfoContractType { get; private set; }
+
 		public event Action<CustomUser> OnUserInfoUpdated;
 
 
@@ -73,10 +74,11 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return input;
 		}
 
-		public async UniTask Logout()
+		public void Logout()
 		{
-			await Moralis.LogOutAsync();
+			CanvasPlayerPCManager.Instance.Disconnect();
 			CurrentUser = null;
+			DataManager.DataManager.Instance.ClearAll();
 			OnUserInfoUpdated?.Invoke(null);
 		}
 
@@ -100,6 +102,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 			return user;
 		}
 
+		public async UniTask<AccountInfoContractType> GetAccountInfo()
+		{
+			if (CurrentUser != null)
+			{
+				AccountInfoContractType accountInfo = await MiddlewareManager.Instance.GetAccountInfo(CurrentUser.EthAddress);
+				return accountInfo;
+			}
+
+			return null;
+		}
+
 		public async UniTask<CustomUser> LoadCurrentUser()
 		{
 			try
@@ -110,12 +123,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 					Debug.Log("Found moralis current user: " + currentUser.ethAddress);
 					CustomUser user = await LoadFromUser(currentUser);
 					CurrentUser = user;
-					AccountInfoContractType accountInfo = await MiddlewareManager.Instance.GetAccountInfo(user.EthAddress);
-					if (accountInfo != null)
-					{
-						AccountInfoContractType = accountInfo;
-					}
-
 					OnUserInfoUpdated?.Invoke(CurrentUser);
 					return CurrentUser;
 				}

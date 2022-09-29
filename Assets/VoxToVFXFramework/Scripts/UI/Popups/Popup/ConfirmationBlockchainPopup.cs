@@ -1,10 +1,5 @@
-﻿using System.Linq;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
-using MoralisUnity;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
@@ -57,6 +52,8 @@ namespace VoxToVFXFramework.Scripts.UI.Popups.Popup
 			if (item.TransactionHash == mConfirmationBlockchainDescriptor.TransactionId)
 			{
 				Debug.Log("[ConfirmationBlockchainPopup] TransactionId match !");
+				DatabaseEventManager.Instance.UpdateCache(item);
+				
 				mConfirmationBlockchainDescriptor.OnActionSuccessful?.Invoke(item);
 				mConfirmationBlockchainDescriptor.OnActionSuccessful = null;
 				Hide();

@@ -5,7 +5,6 @@ using System.IO;
 using UnityEngine;
 using VoxToVFXFramework.Scripts.Singleton;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
-using Object = UnityEngine.Object;
 
 namespace VoxToVFXFramework.Scripts.Managers
 {
@@ -13,7 +12,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 	{
 		public class RefTexture
 		{
-			public int Count = 1;
 			public Texture2D Texture;
 		}
 
@@ -33,50 +31,17 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 		#region PublicMethods
 
-		public static Texture2D CheckMaxSize(Texture2D text, int maxWidth)
+
+		public async UniTask<Texture2D> DownloadImage(string imageUrl, bool keepPermanent, bool cropToCenter, int cropSizeWidth, int cropSizeHeight)
 		{
-			if (text == null)
-			{
-				return text;
-			}
-
-			if (text.width > maxWidth)
-			{
-				Texture2D res = Resize(text, maxWidth, Mathf.FloorToInt(maxWidth * (text.height / (float)text.width)));
-				GameObject.Destroy(text);
-				return res;
-			}
-
-			return text;
-		}
-
-		public async UniTask<Texture2D> DownloadImage(string imageUrl, int maxWidth, bool cropToCenter)
-		{
-			return await DownloadImage(imageUrl, maxWidth, false, cropToCenter);
-		}
-
-		public async UniTask<Texture2D> DownloadImage(string imageUrl, int maxWidth, bool keepPermanent, bool cropToCenter)
-		{
-			return await DownloadImageStandalone(imageUrl, maxWidth, keepPermanent, cropToCenter);
+			return await DownloadImageStandalone(imageUrl, keepPermanent, cropToCenter, cropSizeWidth, cropSizeHeight); 
 		}
 
 		#endregion
 
 		#region PrivateMethods
 
-		private static Texture2D Resize(Texture2D texture2D, int targetX, int targetY)
-		{
-			RenderTexture rt = new RenderTexture(targetX, targetY, 24);
-			RenderTexture.active = rt;
-			Graphics.Blit(texture2D, rt);
-			Texture2D result = new Texture2D(targetX, targetY);
-			result.ReadPixels(new Rect(0, 0, targetX, targetY), 0, 0);
-			result.Apply();
-			Object.Destroy(rt);
-			return result;
-		}
-
-		private async UniTask<Texture2D> DownloadImageStandalone(string imageUrl, int maxWidth, bool keepPermanent, bool cropToCenter)
+		private async UniTask<Texture2D> DownloadImageStandalone(string imageUrl, bool keepPermanent, bool cropToCenter, int cropSizeWidth, int cropSizeHeight)
 		{
 			if (string.IsNullOrEmpty(imageUrl))
 			{
@@ -84,41 +49,46 @@ namespace VoxToVFXFramework.Scripts.Managers
 				return null;
 			}
 
+
+			string imageUrlCache = imageUrl;
+			if (cropToCenter)
+			{
+				imageUrlCache += "&cropped_" + cropSizeWidth + "x" + cropSizeHeight;
+			}
+
 			//we first check the runtime memory cache
-			if (mCachedTexture.TryGetValue(imageUrl, out RefTexture reference))
+			if (mCachedTexture.TryGetValue(imageUrlCache, out RefTexture reference))
 			{
 				if (reference != null)
 				{
-					reference.Count++;
 					return reference.Texture;
 				}
 
-				mCachedTexture.Remove(imageUrl);
+				mCachedTexture.Remove(imageUrlCache);
 			}
 
 
 			Texture2D texture;
-			if (File.Exists(GetLocalFilePath(imageUrl)))
+			if (File.Exists(GetLocalFilePath(imageUrlCache)))
 			{
 				texture = await BackendMediaManager.Instance.DownloadTexture("file:///" + GetLocalFilePath(imageUrl));
 			}
 			else
 			{
 				texture = await BackendMediaManager.Instance.DownloadTexture(imageUrl);
-				SaveTexture(texture, imageUrl);
+				SaveTexture(texture, imageUrlCache);
 			}
 
-			texture = CheckMaxSize(texture, maxWidth);
 			texture.name = "hello";
 
 			if (cropToCenter)
 			{
-				texture = texture.ResampleAndCrop(maxWidth, maxWidth);
+				texture = texture.ResampleAndCrop(cropSizeWidth, cropSizeHeight);
 			}
 
-			if (!mCachedTexture.ContainsKey(imageUrl) && keepPermanent)
+			if (!mCachedTexture.ContainsKey(imageUrlCache) && keepPermanent)
 			{
-				mCachedTexture.Add(imageUrl, new RefTexture()
+				mCachedTexture.Add(imageUrlCache, new RefTexture()
 				{
 					Texture = texture,
 				});

@@ -96,7 +96,7 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 
 		public bool IsUserFollowing(string user)
 		{
-			return UserFollowings[UserManager.Instance.CurrentUserAddress].UserFollowings.Any(t => t == user);
+			return UserFollowings.ContainsKey(UserManager.Instance.CurrentUserAddress) && UserFollowings[UserManager.Instance.CurrentUserAddress].UserFollowings.Any(t => t == user);
 		}
 
 

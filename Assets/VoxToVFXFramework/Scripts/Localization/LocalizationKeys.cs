@@ -104,7 +104,7 @@
 		#region SetBuyPrice
 
 		public const string SET_BUY_AMOUNT_REQUIRED = "[SET_BUY_AMOUNT_REQUIRED]";
-		public const string SET_BUY_AT_LEAST_0_01ETH = "[SET_BUY_AT_LEAST_0_01ETH]";
+		public const string MUST_BE_AT_LEAST_X_LABEL  = "[MUST_BE_AT_LEAST_X_LABEL]";
 		public const string SET_BUY_PRICE = "[SET_BUY_PRICE]";
 		public const string SET_BUY_PRICE_TITLE = "[SET_BUY_PRICE_TITLE]";
 		public const string SET_BUY_PRICE_DESCRIPTION = "[SET_BUY_PRICE_DESCRIPTION]";
@@ -168,6 +168,28 @@
 		public const string BUY_NOW_SET_LABEL = "[BUY_NOW_SET_LABEL]";
 		public const string BUY_NOW_REMOVED_LABEL = "[BUY_NOW_REMOVED_LABEL]";
 		public const string TRANSFERRED_FROM_TO_LABEL = "[TRANSFERRED_FROM_TO_LABEL]";
+		public const string LAST_SOLD_LABEL = "[LAST_SOLD_LABEL]";
+		public const string BOUGHT_BY_LABEL = "[BOUGHT_BY_LABEL]";
+
+		#endregion
+
+		#region BuyNow
+
+		public const string BUY_NOW_NOT_ENOUGH_ETH = "[BUY_NOW_NOT_ENOUGH_ETH]";
+		public const string BUY_NOW_WAITING_TITLE = "[BUY_NOW_WAITING_TITLE]";
+		public const string BUY_NOW_WAITING_DESCRIPTION = "[BUY_NOW_WAITING_DESCRIPTION]";
+		public const string BUY_NOW_SUCCESS_TITLE = "[BUY_NOW_SUCCESS_TITLE]";
+		public const string BUY_NOW_SUCCESS_DESCRIPTION = "[BUY_NOW_SUCCESS_DESCRIPTION]";
+
+
+		#endregion
+
+		#region MakeOffer
+
+		public const string MAKE_OFFER_WAITING_TITLE = "[MAKE_OFFER_WAITING_TITLE]";
+		public const string MAKE_OFFER_WAITING_DESCRIPTION = "[MAKE_OFFER_WAITING_DESCRIPTION]";
+		public const string MAKE_OFFER_SUCCESS_TITLE = "[MAKE_OFFER_SUCCESS_TITLE]";
+		public const string MAKE_OFFER_SUCCESS_DESCRIPTION = "[MAKE_OFFER_SUCCESS_DESCRIPTION]";
 
 		#endregion
 	}

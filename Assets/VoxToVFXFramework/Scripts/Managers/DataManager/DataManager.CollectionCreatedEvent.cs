@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 
 namespace VoxToVFXFramework.Scripts.Managers.DataManager
@@ -35,20 +34,6 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 			};
 
 			return list;
-		}
-
-		public bool IsCollectionCreatedByCurrentUser(string address)
-		{
-			string currentUser = UserManager.Instance.CurrentUserAddress;
-			if (string.IsNullOrEmpty(currentUser))
-				return false;
-
-			if (ContractCreatedPerUsers.ContainsKey(currentUser))
-			{
-				return ContractCreatedPerUsers[currentUser].List.Any(t => t.CollectionContract == address);
-			}
-
-			return false;
 		}
 
 		public async UniTask<CollectionCreatedEvent> GetCollectionCreatedEventWithCache(string address)

@@ -801,8 +801,8 @@
       "Value": "Amount is required"
     },
     {
-      "Key": "[SET_BUY_AT_LEAST_0_01ETH]",
-      "Value": "Must be at least 0.01 ETH"
+      "Key": "[MUST_BE_AT_LEAST_X_LABEL]",
+      "Value": "Must be at least {0} ETH"
     },
     {
       "Key": "[SET_BUY_PRICE]",
@@ -861,7 +861,7 @@
       "Value": "Transferring …"
     },
     {
-      "Key": "[TRANSFER_NFT_WAITING_DESCRPTION]",
+      "Key": "[TRANSFER_NFT_WAITING_DESCRIPTION]",
       "Value": "The NFT is being transferred on the Ethereum blockchain"
     },
     {
@@ -1025,6 +1025,10 @@
       "Value": "Minted By"
     },
     {
+      "Key": "[BOUGHT_BY_LABEL]",
+      "Value": "Bought by"
+    },
+    {
       "Key": "[BUY_NOW_SET_LABEL]",
       "Value": "Buy Now price set by"
     },
@@ -1035,6 +1039,86 @@
     {
       "Key": "[TRANSFERRED_FROM_TO_LABEL]",
       "Value": "Transferred from {0} to {1}"
+    },
+    {
+      "Key": "[BUY_NOW_TITLE]",
+      "Value": "Buy Now"
+    },
+    {
+      "Key": "[BUY_NOW_DESCRIPTION]",
+      "Value": "Once the transaction is confirmed, the NFT will be sent to your wallet instantly."
+    },
+    {
+      "Key": "[AVAILABLE_BALANCE_LABEL]",
+      "Value": "Available Balance"
+    },
+    {
+      "Key": "[MARKETPLACE_BALANCE_LABEL]",
+      "Value": "Marketplace Balance"
+    },
+    {
+      "Key": "[WALLET_BALANCE_LABEL]",
+      "Value": "Wallet Balance"
+    },
+    {
+      "Key": "[BUY_NOW_NOT_ENOUGH_ETH]",
+      "Value": "You do not have enough ETH"
+    },
+    {
+      "Key": "[BUY_NOW_WAITING_TITLE]",
+      "Value": "Buying …"
+    },
+    {
+      "Key": "[BUY_NOW_WAITING_DESCRIPTION]",
+      "Value": "The sale is being confirmed on the Ethereum blockchain."
+    },
+    {
+      "Key": "[BUY_NOW_SUCCESS_TITLE]",
+      "Value": "You got it !"
+    },
+    {
+      "Key": "[BUY_NOW_SUCCESS_DESCRIPTION]",
+      "Value": "You got the NFT for {0} ETH"
+    },
+    {
+      "Key": "[PROFILE_NO_CREATED_ITEMS]",
+      "Value": "This user has not yet created any NFTs on VoxVerse"
+    },
+    {
+      "Key": "[PROFILE_NO_CREATED_COLLECTIONS]",
+      "Value": "This user has not created any collections yet on VoxVerse"
+    },
+    {
+      "Key": "[PROFILE_NO_OWNED_ITEMS]",
+      "Value": "This user does not own any NFTs on VoxVerse"
+    },
+    {
+      "Key": "[CONFIRM]",
+      "Value": "Confirm"
+    },
+    {
+      "Key": "[MAKE_OFFER_TITLE]",
+      "Value": "Make an Offer"
+    },
+    {
+      "Key": "[MAKE_OFFER_DESCRIPTION]",
+      "Value": "Once an Offer is sent, the owner will have 24 hours to accept. If the Offer expires, the funds will be available in your Marketplace Balance."
+    },
+    {
+      "Key": "[MAKE_OFFER_WAITING_TITLE]",
+      "Value": "Making the Offer …"
+    },
+    {
+      "Key": "[MAKE_OFFER_WAITING_DESCRIPTION]",
+      "Value": "Your Offer is being confirmed on the Ethereum blockchain."
+    },
+    {
+      "Key": "[MAKE_OFFER_SUCCESS_TITLE]",
+      "Value": "Offer made!"
+    },
+    {
+      "Key": "[MAKE_OFFER_SUCCESS_DESCRIPTION]",
+      "Value": "Your Offer has been sent to the owner. They have 24 hours to accept your offer. If not accepted, the Offer will expire and will be returned to your Marketplace Balance."
     },
     {
       "Key": "",
