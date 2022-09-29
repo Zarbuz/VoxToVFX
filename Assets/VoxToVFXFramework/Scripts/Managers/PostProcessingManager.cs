@@ -93,7 +93,7 @@ namespace VoxToVFXFramework.Scripts.Managers
 
 			}
 
-			if (mVolume.profile.TryGet(typeof(AmbientOcclusion), out AmbientOcclusion ambientOcclusion))
+			if (mVolume.profile.TryGet(typeof(ScreenSpaceAmbientOcclusion), out ScreenSpaceAmbientOcclusion ambientOcclusion))
 			{
 				ambientOcclusion.quality = scalableSettingLevelParameter;
 			}
