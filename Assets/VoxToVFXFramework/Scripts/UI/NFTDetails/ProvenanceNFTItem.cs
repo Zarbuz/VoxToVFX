@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using MoralisUnity;
 using MoralisUnity.Web3Api.Models;
@@ -13,6 +14,7 @@ using VoxToVFXFramework.Scripts.Models;
 using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Atomic;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
+using WalletConnectSharp.Core.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 public class ProvenanceNFTItem : MonoBehaviour
@@ -64,10 +66,8 @@ public class ProvenanceNFTItem : MonoBehaviour
 				}
 			case BuyPriceCanceledEvent buyPriceCanceledEvent:
 				{
-					NFTDetailsContractType details = await DataManager.Instance.GetNFTDetailsWithCache(buyPriceCanceledEvent.NFTContract, buyPriceCanceledEvent.TokenId);
-					CustomUser user = await DataManager.Instance.GetUserWithCache(details.OwnerInLowercase);
-					await FromAvatarImage.Initialize(user);
-					FormatActionText(LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate(), user, details.OwnerInLowercase);
+					FromAvatarImage.gameObject.SetActive(false);
+					ActionText.text = LocalizationKeys.BUY_NOW_REMOVED_LABEL.Translate();
 					PriceText.text = string.Empty;
 					break;
 				}
@@ -79,8 +79,20 @@ public class ProvenanceNFTItem : MonoBehaviour
 					PriceText.text = buyPriceAcceptedEvent.TotalInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
 					break;
 				}
-			case BuyPriceInvalidatedEvent buyPriceInvalidatedEvent:
+			case OfferAcceptedEvent offerAcceptedEvent:
 				{
+					CustomUser buyer = await DataManager.Instance.GetUserWithCache(offerAcceptedEvent.Buyer);
+					await FromAvatarImage.Initialize(buyer);
+					FormatActionText(LocalizationKeys.OFFER_MADE_ACCEPTED_LABEL.Translate(), buyer, offerAcceptedEvent.Buyer);
+					PriceText.text = offerAcceptedEvent.TotalInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
+					break;
+				}
+			case OfferMadeEvent offerMadeEvent:
+				{
+					CustomUser buyer = await DataManager.Instance.GetUserWithCache(offerMadeEvent.Buyer);
+					await FromAvatarImage.Initialize(buyer);
+					FormatActionText(LocalizationKeys.OFFER_MADE_BY_LABEL.Translate(), buyer, offerMadeEvent.Buyer);
+					PriceText.text = offerMadeEvent.TotalInEtherFixedPoint + " " + Moralis.CurrentChain.Symbol;
 					break;
 				}
 			case EthNFTTransfers ethNftTransfers:
@@ -96,6 +108,7 @@ public class ProvenanceNFTItem : MonoBehaviour
 					PriceText.text = string.Empty;
 					break;
 				}
+
 		}
 	}
 

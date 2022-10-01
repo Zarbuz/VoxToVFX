@@ -35,6 +35,7 @@ namespace VoxToVFXFramework.Scripts.UI.NFTUpdate
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			OnPriceValueChanged("0");
 			InputPrice.onValueChanged.AddListener(OnPriceValueChanged);
 			MakeOfferButton.onClick.AddListener(OnMakeOfferClicked);
 		}

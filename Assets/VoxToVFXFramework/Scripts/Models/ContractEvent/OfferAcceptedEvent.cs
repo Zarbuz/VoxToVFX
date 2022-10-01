@@ -48,5 +48,8 @@ namespace VoxToVFXFramework.Scripts.Models.ContractEvent
 				}
 			}
 		}
+
+		public string TotalInEtherFixedPoint => TotalInEther.ToString("F2");
+
 	}
 }

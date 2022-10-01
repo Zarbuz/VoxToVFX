@@ -96,7 +96,7 @@ public class NFTLastActionPanel : MonoBehaviour
 
 	private void OnMakeOfferClicked()
 	{
-		//TODO
+		CanvasPlayerPCManager.Instance.OpenUpdateNftPanel(eNFTUpdateTargetType.MAKE_OFFER, mNft);
 	}
 
 	private void OnBuyNowClicked()

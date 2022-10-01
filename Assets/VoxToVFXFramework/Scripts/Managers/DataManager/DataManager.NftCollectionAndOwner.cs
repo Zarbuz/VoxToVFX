@@ -93,7 +93,6 @@ namespace VoxToVFXFramework.Scripts.Managers.DataManager
 				LastSoldPricePerNFT[key] = result;
 			}
 
-			Debug.Log("LastPrice for " + address + " " + tokenId + " -> " + result);
 			return result;
 		}
 

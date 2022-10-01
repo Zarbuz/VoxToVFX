@@ -108,10 +108,22 @@ namespace VoxToVFXFramework.Scripts.Managers
 			q5 = q5.WhereEqualTo("token_id", tokenId);
 			q5 = q5.WhereNotEqualTo("from_address", DatabaseEventManager.NULL_ADDRESS);
 			IEnumerable<EthNFTTransfers> result5 = await q5.FindAsync();
-
 			List<EthNFTTransfers> filterContractsEvents = result5.Where(ethNftTransfers => !string.Equals(ethNftTransfers.ToAddress, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)
-			&& !string.Equals(ethNftTransfers.FromAddress, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).ToList();
+				&& !string.Equals(ethNftTransfers.FromAddress, ConfigManager.Instance.SmartContractAddress.VoxToVFXMarketAddress, StringComparison.InvariantCultureIgnoreCase)).ToList();
 			events.AddRange(filterContractsEvents);
+
+			MoralisQuery<OfferMadeEvent> q6 = await Moralis.Query<OfferMadeEvent>();
+			q6 = q6.WhereEqualTo("nftContract", contract);
+			q6 = q6.WhereEqualTo("tokenId", tokenId);
+			IEnumerable<OfferMadeEvent> result6 = await q6.FindAsync();
+			events.AddRange(result6);
+
+			MoralisQuery<OfferAcceptedEvent> q7 = await Moralis.Query<OfferAcceptedEvent>();
+			q7 = q7.WhereEqualTo("nftContract", contract);
+			q7 = q7.WhereEqualTo("tokenId", tokenId);
+			IEnumerable<OfferAcceptedEvent> result7 = await q7.FindAsync();
+			events.AddRange(result7);
+
 			return events.OrderByDescending(t => t.createdAt).ToList();
 		}
 

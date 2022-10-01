@@ -170,6 +170,8 @@
 		public const string TRANSFERRED_FROM_TO_LABEL = "[TRANSFERRED_FROM_TO_LABEL]";
 		public const string LAST_SOLD_LABEL = "[LAST_SOLD_LABEL]";
 		public const string BOUGHT_BY_LABEL = "[BOUGHT_BY_LABEL]";
+		public const string OFFER_MADE_BY_LABEL = "[OFFER_MADE_BY_LABEL]";
+		public const string OFFER_MADE_ACCEPTED_LABEL= "[OFFER_MADE_ACCEPTED_LABEL]";
 
 		#endregion
 
