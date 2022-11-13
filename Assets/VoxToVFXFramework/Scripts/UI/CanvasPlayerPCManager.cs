@@ -1,30 +1,13 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Managers;
-using VoxToVFXFramework.Scripts.Models;
-using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.Singleton;
-using VoxToVFXFramework.Scripts.UI.Collection;
-using VoxToVFXFramework.Scripts.UI.CollectionDetails;
-using VoxToVFXFramework.Scripts.UI.CollectionUpdate;
-using VoxToVFXFramework.Scripts.UI.Creation;
-using VoxToVFXFramework.Scripts.UI.EditProfile;
 using VoxToVFXFramework.Scripts.UI.ImportScene;
 using VoxToVFXFramework.Scripts.UI.Loading;
-using VoxToVFXFramework.Scripts.UI.Login;
-using VoxToVFXFramework.Scripts.UI.NFTDetails;
-using VoxToVFXFramework.Scripts.UI.NFTUpdate;
 using VoxToVFXFramework.Scripts.UI.Photo;
 using VoxToVFXFramework.Scripts.UI.Preview;
-using VoxToVFXFramework.Scripts.UI.Profile;
 using VoxToVFXFramework.Scripts.UI.Settings;
-using VoxToVFXFramework.Scripts.UI.Topbar;
 using VoxToVFXFramework.Scripts.UI.Weather;
 using VoxToVFXFramework.Scripts.Utils.Extensions;
 using Cursor = UnityEngine.Cursor;
@@ -40,39 +23,24 @@ namespace VoxToVFXFramework.Scripts.UI
 		Settings,
 		Weather,
 		Photo,
-		Login,
-		EditProfile,
 		Collection,
-		Profile,
 		Creation,
 		Loading,
-		NftDetails,
-		CollectionDetails,
-		NftUpdate,
-		CollectionUpdate
+	
 	}
 
 	public class CanvasPlayerPCManager : ModuleSingleton<CanvasPlayerPCManager>
 	{
 		#region ScriptParameters
 
-		[SerializeField] private TopbarPanel TopbarPanel;
-		[SerializeField] private LoginPanel LoginPanel;
 		[SerializeField] private PausePanel PausePanel;
 		[SerializeField] private ImportScenePanel ImportScenePanel;
 		[SerializeField] private SettingsPanel SettingsPanel;
 		[SerializeField] private WeatherPanel WeatherPanel;
 		[SerializeField] private PhotoPanel PhotoPanel;
-		[SerializeField] private EditProfilePanel EditProfilePanel;
-		[SerializeField] private CollectionPanel CollectionPanel;
-		[SerializeField] private ProfilePanel ProfilePanel;
-		[SerializeField] private CreationPanel CreationPanel;
+		
 		[SerializeField] private LoadingPanel LoadingPanel;
-		[SerializeField] private PreviewPanel PreviewPanel;
-		[SerializeField] private NFTDetailsPanel NFTDetailsPanel;
-		[SerializeField] private CollectionDetailsPanel CollectionDetailsPanel;
-		[SerializeField] private NFTUpdatePanel NFTUpdatePanel;
-		[SerializeField] private CollectionUpdatePanel CollectionUpdatePanel;
+		
 
 		#endregion
 
@@ -91,17 +59,8 @@ namespace VoxToVFXFramework.Scripts.UI
 				SettingsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Settings);
 				WeatherPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Weather);
 				PhotoPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Photo);
-				LoginPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Login);
-				EditProfilePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.EditProfile);
-				CollectionPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Collection);
-				ProfilePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Profile);
-				CreationPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Creation);
+				
 				LoadingPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.Loading);
-				NFTDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftDetails);
-				CollectionDetailsPanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionDetails);
-				NFTUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftUpdate);
-				CollectionUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionUpdate);
-
 				RefreshCursorState();
 			}
 		}
@@ -123,7 +82,7 @@ namespace VoxToVFXFramework.Scripts.UI
 		{
 			if (Keyboard.current.escapeKey.wasPressedThisFrame && !PauseLockedState)
 			{
-				GenericTogglePanel(PreviewPanel.gameObject.activeSelf ? CanvasPlayerPCState.Empty : CanvasPlayerPCState.Pause);
+				GenericTogglePanel(CanvasPlayerPCState.Pause);
 			}
 			else if (Keyboard.current.tabKey.wasPressedThisFrame && (CanvasPlayerPcState == CanvasPlayerPCState.Photo || CanvasPlayerPcState == CanvasPlayerPCState.Closed))
 			{
@@ -170,73 +129,7 @@ namespace VoxToVFXFramework.Scripts.UI
 			ImportScenePanel.Initialize(dataImportType);
 		}
 
-		public void OpenProfilePanel(CustomUser user)
-		{
-			SetCanvasPlayerState(CanvasPlayerPCState.Profile);
-			ProfilePanel.Initialize(user);
-		}
-
-		public void OpenNftDetailsPanel(NftWithDetails nft)
-		{
-			SetCanvasPlayerState(CanvasPlayerPCState.NftDetails);
-			NFTDetailsPanel.Initialize(nft);
-		}
-
-		public void OpenCollectionDetailsPanel(CollectionCreatedEvent collectionCreated)
-		{
-			SetCanvasPlayerState(CanvasPlayerPCState.CollectionDetails);
-			CollectionDetailsPanel.Initialize(collectionCreated);
-		}
-
-		public void OpenCreationPanel(CollectionCreatedEvent collectionCreated)
-		{
-			CreationPanel.Initialize(collectionCreated);
-		}
-
-		public void OpenLoadingPanel(string description, Action onLoadFinished)
-		{
-			LoadingPanel.Initialize(description, onLoadFinished);
-		}
-
-		public void OpenLoadingPanel(string description)
-		{
-			LoadingPanel.Initialize(description);
-		}
-
-		public void OpenPreviewPanel(string title, string description, Action onBackCallback)
-		{
-			PreviewPanel.Initialize(title, description, onBackCallback);
-		}
-
-		public void OpenUpdateNftPanel(eNFTUpdateTargetType targetType, NftWithDetails nft)
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.NftUpdate;
-			NFTUpdatePanel.Initialize(targetType, nft);
-		}
-
-		public void OpenUpdateCollectionPanel(eCollectionUpdateTargetType targetType, CollectionCreatedEvent collection)
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.CollectionUpdate;
-			CollectionUpdatePanel.Initialize(targetType, collection);
-		}
-
-		public async UniTask OpenLoginPanel()
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.Login;
-			await LoginPanel.Initialize();
-		}
-
-		public void OpenCollectionPanel()
-		{
-			CanvasPlayerPcState = CanvasPlayerPCState.Collection;
-			CollectionPanel.Initialize();
-		}
-
-		public void Disconnect()
-		{
-			LoginPanel.Disconnect();
-		}
-
+		
 		#endregion
 
 		#region PrivateMethods

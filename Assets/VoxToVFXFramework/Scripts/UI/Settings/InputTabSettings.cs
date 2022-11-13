@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
-using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.UI.Settings
 {
@@ -39,13 +38,13 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		private void OnResetAllClicked()
 		{
-			MessagePopup.ShowConfirmWithBlocking(LocalizationKeys.SETTINGS_CONFIRM_RESET_ALL.Translate(), () =>
-			{
-				foreach (RebindActionKey rebindActionKey in RebindActionKeys)
-				{
-					rebindActionKey.ResetToDefault();
-				}
-			});
+			//MessagePopup.ShowConfirmWithBlocking(LocalizationKeys.SETTINGS_CONFIRM_RESET_ALL.Translate(), () =>
+			//{
+			//	foreach (RebindActionKey rebindActionKey in RebindActionKeys)
+			//	{
+			//		rebindActionKey.ResetToDefault();
+			//	}
+			//});
 		}
 		#endregion
 	}

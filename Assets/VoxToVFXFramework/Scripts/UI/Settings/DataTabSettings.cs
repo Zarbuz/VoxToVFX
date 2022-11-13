@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using VoxToVFXFramework.Scripts.Localization;
-using VoxToVFXFramework.Scripts.UI.Popups;
 
 namespace VoxToVFXFramework.Scripts.UI.Settings
 {
@@ -41,11 +40,11 @@ namespace VoxToVFXFramework.Scripts.UI.Settings
 
 		private void OnDeleteCacheClicked()
 		{
-			MessagePopup.ShowConfirmWithBlocking(LocalizationKeys.SETTINGS_DATA_CONFIRM_DELETE.Translate(),
-				() =>
-				{
-					VoxelDataCreatorManager.Instance.ClearCacheFolder();
-				});
+			//MessagePopup.ShowConfirmWithBlocking(LocalizationKeys.SETTINGS_DATA_CONFIRM_DELETE.Translate(),
+			//	() =>
+			//	{
+			//		VoxelDataCreatorManager.Instance.ClearCacheFolder();
+			//	});
 		}
 
 		#endregion

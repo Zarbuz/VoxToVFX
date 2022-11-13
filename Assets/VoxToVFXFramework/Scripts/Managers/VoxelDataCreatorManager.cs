@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -106,15 +104,6 @@ public class VoxelDataCreatorManager : ModuleSingleton<VoxelDataCreatorManager>
 		mChunksWritten.Clear();
 		mImporter = new VoxImporter();
 		StartCoroutine(mImporter.LoadVoxModelAsync(inputPath, OnLoadFrameProgress, OnVoxLoadFinished));
-	}
-
-	public async UniTask DownloadVoxModel(List<string> partModelPaths, string targetFilePath)
-	{
-		List<UniTask<byte[]>> tasks = Enumerable.Select(partModelPaths, url => BackendMediaManager.Instance.DownloadFile(url)).ToList();
-		byte[][] result = await UniTask.WhenAll(tasks);
-
-		FileUtils.Combine(result, targetFilePath);
-		Debug.Log("[VoxelDataCreatorManager] DownloadVoxModel filepath: " + targetFilePath);
 	}
 
 	public void ReadZipFile(string inputPath)

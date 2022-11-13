@@ -1,16 +1,10 @@
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-using MoralisUnity.Web3Api.Models;
 using UnityEngine;
-using UnityEngine.Events;
 using VoxToVFXFramework.Scripts.Localization;
-using VoxToVFXFramework.Scripts.Models.ContractEvent;
 using VoxToVFXFramework.Scripts.UI.Popups.Descriptor;
 using VoxToVFXFramework.Scripts.UI.Popups.Popup;
-using static UnityEngine.Application;
 
 namespace VoxToVFXFramework.Scripts.UI.Popups
 {
@@ -29,10 +23,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 
 		[SerializeField] private GameObject MessagePrefab;
 		[SerializeField] private GameObject BlockingConfirmPopup;
-		[SerializeField] private GameObject EditCollectionPopup;
-		[SerializeField] private GameObject ConfirmatioWalletPopup;
-		[SerializeField] private GameObject ConfirmationBlockchainPopup;
-		[SerializeField] private GameObject OwnedByPopup;
+
 		#endregion
 
 		#region Fields
@@ -74,70 +65,7 @@ namespace VoxToVFXFramework.Scripts.UI.Popups
 			}
 		}
 
-		public static void ShowEditCollectionPopup(string logoImageUrl, string coverImageUrl, string description, Action<Models.CollectionDetails> onConfirm, Action onCancel)
-		{
-			var popupDescriptor = new EditCollectionDescriptor()
-			{
-				UnicityTag = MessagePopupUnicityTag.EDIT_COLLECTION,
-				LogoImageUrl = logoImageUrl,
-				CoverImageUrl = coverImageUrl,
-				Description = description,
-				OnConfirmAction = onConfirm,
-				OnCancelAction = onCancel
-			};
-
-			Instance.CreateAndShow<EditCollectionPopup, EditCollectionDescriptor>(
-				Instance.EditCollectionPopup,
-				Instance.BlockingConfirmPanel,
-				popupDescriptor);
-		}
-
-		public static void ShowConfirmationWalletPopup(UniTask<string> execute, Action<string> onCallback)
-		{
-			var popupDescriptor = new ConfirmationWalletDescriptor()
-			{
-				UnicityTag = MessagePopupUnicityTag.CONFIRMATION_WALLET,
-				ActionToExecute = execute,
-				OnActionSuccessful = onCallback,
-
-			};
-
-			Instance.CreateAndShow<ConfirmationWalletPopup, ConfirmationWalletDescriptor>(
-				Instance.ConfirmatioWalletPopup,
-				Instance.BlockingConfirmPanel,
-				popupDescriptor);
-		}
-
-		public static void ShowConfirmationBlockchainPopup(string title, string description, string transactionId, Action<AbstractContractEvent> onSuccessCallback)
-		{
-			var popupDescriptor = new ConfirmationBlockchainDescriptor()
-			{
-				UnicityTag = MessagePopupUnicityTag.CONFIRMATION_BLOCKCHAIN,
-				OnActionSuccessful = onSuccessCallback,
-				Title = title,
-				Description = description,
-				TransactionId = transactionId,
-			};
-
-			Instance.CreateAndShow<ConfirmationBlockchainPopup, ConfirmationBlockchainDescriptor>(
-				Instance.ConfirmationBlockchainPopup,
-				Instance.BlockingConfirmPanel,
-				popupDescriptor);
-		}
-
-		public static void ShowOwnedByPopup(List<string> owners)
-		{
-			var popupDescriptor = new OwnedByDescriptor()
-			{
-				UnicityTag = MessagePopupUnicityTag.OWNED_BY,
-				Owners = owners
-			};
-
-			Instance.CreateAndShow<OwnedByPopup, OwnedByDescriptor>(
-				Instance.OwnedByPopup,
-				Instance.BlockingConfirmPanel,
-				popupDescriptor);
-		}
+		
 
 		public static void ShowOrUpdateCurrent(string message, LogType logType, MessagePopupUnicityTag unicityTag)
 		{
