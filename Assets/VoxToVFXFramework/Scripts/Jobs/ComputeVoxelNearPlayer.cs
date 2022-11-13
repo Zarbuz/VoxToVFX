@@ -20,7 +20,7 @@ namespace VoxToVFXFramework.Scripts.Jobs
 		public void Execute(int index)
 		{
 			VoxelVFX voxel = Data[index];
-			float3 voxelPosition = voxel.DecodePosition();
+			float4 voxelPosition = voxel.DecodePosition();
 			float3 worldVoxelPosition = new float3(ChunkWorldPosition.x + voxelPosition.x,
 				ChunkWorldPosition.y + voxelPosition.y, ChunkWorldPosition.z + voxelPosition.z);
 			if (math.distance(PlayerPosition, worldVoxelPosition) < DistanceCheckVoxels)

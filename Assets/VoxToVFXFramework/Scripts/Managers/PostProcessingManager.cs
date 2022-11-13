@@ -23,7 +23,6 @@ namespace VoxToVFXFramework.Scripts.Managers
 		{
 			mVolume = GetComponent<Volume>();
 			mVolume.profile.TryGet(typeof(DepthOfField), out DepthOfField);
-			mVolume.enabled = false;
 		}
 
 		protected override void OnStart()

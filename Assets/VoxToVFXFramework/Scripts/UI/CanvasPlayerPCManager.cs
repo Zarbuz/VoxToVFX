@@ -56,9 +56,6 @@ namespace VoxToVFXFramework.Scripts.UI
 	{
 		#region ScriptParameters
 
-		[SerializeField] private Material BlurMat;
-		[SerializeField] private Image BackgroundBlurImage;
-
 		[SerializeField] private TopbarPanel TopbarPanel;
 		[SerializeField] private LoginPanel LoginPanel;
 		[SerializeField] private PausePanel PausePanel;
@@ -105,7 +102,6 @@ namespace VoxToVFXFramework.Scripts.UI
 				NFTUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.NftUpdate);
 				CollectionUpdatePanel.gameObject.SetActiveSafe(mCanvasPlayerPcState == CanvasPlayerPCState.CollectionUpdate);
 
-				CheckBlurImage();
 				RefreshCursorState();
 			}
 		}
@@ -114,17 +110,12 @@ namespace VoxToVFXFramework.Scripts.UI
 
 		public bool PauseLockedState { get; set; }
 
-		private RenderTexture mRenderTexture;
-		private UnityEngine.Camera mNewCamera;
-		private static readonly int mAltTexture = Shader.PropertyToID("_AltTexture");
-
 		#endregion
 
 		#region UnityMethods
 
 		protected override void OnStart()
 		{
-			CreateCameraRenderTexture();
 			CanvasPlayerPcState = CanvasPlayerPCState.Closed;
 		}
 
@@ -249,45 +240,6 @@ namespace VoxToVFXFramework.Scripts.UI
 		#endregion
 
 		#region PrivateMethods
-
-		private void CreateCameraRenderTexture()
-		{
-			UnityEngine.Camera mainCamera = UnityEngine.Camera.main;
-			Transform transform1 = mainCamera!.transform;
-			mNewCamera = Instantiate(mainCamera, transform1.parent, true);
-
-			mNewCamera.transform.localPosition = transform1.localPosition;
-			mNewCamera.transform.localRotation = transform1.localRotation;
-			mNewCamera.transform.localScale = transform1.localScale;
-
-			Destroy(mNewCamera.GetComponent<AudioListener>());
-
-			mRenderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-			mNewCamera.targetTexture = mRenderTexture;
-			mNewCamera.name = "Camera_RenderTexture";
-			BlurMat.SetTexture(mAltTexture, mRenderTexture);
-		}
-
-		private void CheckBlurImage()
-		{
-			bool active = mCanvasPlayerPcState != CanvasPlayerPCState.Closed &&
-			              mCanvasPlayerPcState != CanvasPlayerPCState.Photo &&
-			              mCanvasPlayerPcState != CanvasPlayerPCState.Weather;
-			mNewCamera.gameObject.SetActive(active);
-			BackgroundBlurImage.gameObject.SetActive(active);
-
-			if (mNewCamera.gameObject.activeSelf)
-			{
-				//Just enable the camera one frame
-				StartCoroutine(DisableBlurCameraCo());
-			}
-		}
-
-		private IEnumerator DisableBlurCameraCo()
-		{
-			yield return new WaitForEndOfFrame();
-			mNewCamera.gameObject.SetActive(false);
-		}
 
 		private void RefreshCursorState()
 		{
